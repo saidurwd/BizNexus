@@ -50,18 +50,23 @@
                                 <td>
                                     <select class="form-control account-select" name="lines[0][account_id]" required>
                                         <option value="">Select Account</option>
+                                        @foreach($accounts as $account)
+                                            <option value="{{ $account->id }}" @selected(old('lines.0.account_id') == $account->id)>
+                                                {{ $account->account_code }} — {{ $account->account_name }}
+                                            </option>
+                                        @endforeach
                                     </select>
                                 </td>
                                 <td>
-                                    <input type="text" class="form-control" name="lines[0][description]" placeholder="Description">
+                                    <input type="text" class="form-control" name="lines[0][description]" placeholder="Description" value="{{ old('lines.0.description') }}">
                                 </td>
                                 <td>
                                     <input type="number" class="form-control text-right debit-input" name="lines[0][debit]" 
-                                           step="0.01" min="0" value="0">
+                                           step="0.01" min="0" value="{{ old('lines.0.debit', 0) }}">
                                 </td>
                                 <td>
                                     <input type="number" class="form-control text-right credit-input" name="lines[0][credit]" 
-                                           step="0.01" min="0" value="0">
+                                           step="0.01" min="0" value="{{ old('lines.0.credit', 0) }}">
                                 </td>
                                 <td>
                                     <button type="button" class="btn btn-danger btn-sm remove-line">
@@ -73,18 +78,23 @@
                                 <td>
                                     <select class="form-control account-select" name="lines[1][account_id]" required>
                                         <option value="">Select Account</option>
+                                        @foreach($accounts as $account)
+                                            <option value="{{ $account->id }}" @selected(old('lines.1.account_id') == $account->id)>
+                                                {{ $account->account_code }} — {{ $account->account_name }}
+                                            </option>
+                                        @endforeach
                                     </select>
                                 </td>
                                 <td>
-                                    <input type="text" class="form-control" name="lines[1][description]" placeholder="Description">
+                                    <input type="text" class="form-control" name="lines[1][description]" placeholder="Description" value="{{ old('lines.1.description') }}">
                                 </td>
                                 <td>
                                     <input type="number" class="form-control text-right debit-input" name="lines[1][debit]" 
-                                           step="0.01" min="0" value="0">
+                                           step="0.01" min="0" value="{{ old('lines.1.debit', 0) }}">
                                 </td>
                                 <td>
                                     <input type="number" class="form-control text-right credit-input" name="lines[1][credit]" 
-                                           step="0.01" min="0" value="0">
+                                           step="0.01" min="0" value="{{ old('lines.1.credit', 0) }}">
                                 </td>
                                 <td>
                                     <button type="button" class="btn btn-danger btn-sm remove-line">
@@ -130,6 +140,12 @@
 <script>
     $(function () {
         let lineIndex = 2;
+        const accountOptions = `
+            <option value="">Select Account</option>
+            @foreach($accounts as $account)
+                <option value="{{ $account->id }}">{{ $account->account_code }} — {{ $account->account_name }}</option>
+            @endforeach
+        `;
         
         function updateTotals() {
             let totalDebit = 0;
@@ -155,7 +171,7 @@
                 <tr class="line-row">
                     <td>
                         <select class="form-control account-select" name="lines[${lineIndex}][account_id]" required>
-                            <option value="">Select Account</option>
+                            ${accountOptions}
                         </select>
                     </td>
                     <td>

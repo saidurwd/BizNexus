@@ -34,7 +34,11 @@ class JournalController extends Controller
 
     public function create()
     {
-        return view('finance.journals.create');
+        $accounts = \Modules\Finance\Models\Account::postable()
+            ->orderByRaw("CAST(account_code AS UNSIGNED)")
+            ->get(['id', 'account_code', 'account_name']);
+
+        return view('finance.journals.create', compact('accounts'));
     }
 
     public function store(Request $request)
