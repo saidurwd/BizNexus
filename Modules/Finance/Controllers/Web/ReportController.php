@@ -162,4 +162,9 @@ class ReportController extends Controller
             'asOfDate' => Carbon::today()->toDateString(),
         ]);
     }
+
+    public function budgetVsActual(Request $request)
+    {
+        return view('finance.reports.budget-vs-actual');
+    }
 }

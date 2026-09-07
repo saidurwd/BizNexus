@@ -13,6 +13,7 @@ use Modules\Finance\Controllers\Web\ReceiptController;
 use Modules\Finance\Controllers\Web\SupplierInvoiceController;
 use Modules\Finance\Controllers\Web\CustomerInvoiceController;
 use Modules\Finance\Controllers\Web\TaxController;
+use Modules\Finance\Controllers\Web\BudgetController;
 use Modules\Finance\Controllers\Web\CostCenterController;
 use Modules\Finance\Controllers\Web\CashAccountController;
 use Modules\Finance\Controllers\Web\BankAccountController;
@@ -172,6 +173,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/cost-centers/{id}/edit', [CostCenterController::class, 'edit'])->name('cost-centers.edit');
         Route::put('/cost-centers/{id}', [CostCenterController::class, 'update'])->name('cost-centers.update');
         Route::delete('/cost-centers/{id}', [CostCenterController::class, 'destroy'])->name('cost-centers.destroy');
+
+        // Budgets
+        Route::get('/budgets', [BudgetController::class, 'index'])->name('budgets.index');
+        Route::get('/budgets/create', [BudgetController::class, 'create'])->name('budgets.create');
+        Route::post('/budgets', [BudgetController::class, 'store'])->name('budgets.store');
+        Route::get('/budgets/{id}', [BudgetController::class, 'show'])->name('budgets.show');
+        Route::get('/budgets/{id}/edit', [BudgetController::class, 'edit'])->name('budgets.edit');
+        Route::put('/budgets/{id}', [BudgetController::class, 'update'])->name('budgets.update');
+        Route::delete('/budgets/{id}', [BudgetController::class, 'destroy'])->name('budgets.destroy');
+
+        // Budget vs Actual
+        Route::get('/budget-vs-actual', [ReportController::class, 'budgetVsActual'])->name('budget-vs-actual');
     });
 
     // Profile
