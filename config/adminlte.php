@@ -782,7 +782,7 @@ return [
         ],
         [
             'text' => 'Administration',
-            'icon' => 'bi bi-people-fill',
+            'icon' => 'bi bi-gear',
             'submenu' => [
                 ['header' => 'Company Management'],
                 ['text' => 'Companies', 'url' => '#', 'icon' => 'bi bi-person-badge'],
@@ -862,7 +862,7 @@ return [
         // ============================================================
         [
             'text' => 'FINANCE',
-            'icon' => 'bi bi-people-fill',
+            'icon' => 'bi bi-calculator',
             'submenu' => [
                 // Dashboard Menu
                 [
