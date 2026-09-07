@@ -78,7 +78,7 @@ class JournalController extends Controller
             $request->get('end_date') ? \Carbon\Carbon::parse($request->get('end_date')) : null
         );
 
-        return view('finance.reports.general-ledger', [
+        return view('finance::reports.general-ledger', [
             'ledger' => $ledger,
         ]);
     }

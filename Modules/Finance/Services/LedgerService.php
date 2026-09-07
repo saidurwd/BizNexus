@@ -34,8 +34,10 @@ class LedgerService
             $query->whereHas('journal', fn($q) => $q->where('fiscal_period_id', $fiscalPeriodId));
         }
 
-        $lines = $query->orderBy('journal.journal_date')
-            ->orderBy('journal.id')
+        $lines = $query->join('journals', 'journal_lines.journal_id', '=', 'journals.id')
+            ->orderBy('journals.journal_date', 'asc')
+            ->orderBy('journals.id', 'asc')
+            ->select('journal_lines.*')
             ->get();
 
         $openingBalance = $this->calculateOpeningBalance($account, $startDate, $endDate, $fiscalPeriodId);
@@ -225,8 +227,10 @@ class LedgerService
             $query->where('account_id', $accountId);
         }
 
-        $lines = $query->orderBy('journal.journal_date')
-            ->orderBy('journal.id')
+        $lines = $query->join('journals', 'journal_lines.journal_id', '=', 'journals.id')
+            ->orderBy('journals.journal_date', 'asc')
+            ->orderBy('journals.id', 'asc')
+            ->select('journal_lines.*')
             ->get();
 
         $groupedLines = [];
