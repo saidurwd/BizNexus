@@ -3,53 +3,55 @@
 namespace Modules\Finance\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\SupplierInvoice;
-use Modules\Finance\Services\SupplierInvoiceService;
+use Modules\Finance\Models\Supplier;
+use Modules\Finance\Models\Tax;
 
 class SupplierInvoiceController extends Controller
 {
-    public function __construct(
-        private SupplierInvoiceService $invoiceService
-    ) {}
-
-    public function index(Request $request)
+    public function index()
     {
-        $invoices = SupplierInvoice::with('supplier')
-            ->orderBy('invoice_date', 'desc')
-            ->paginate(20);
+        $invoices = \Modules\Finance\Models\SupplierInvoice::with(['supplier', 'tax'])
+            ->orderByDesc('invoice_date')
+            ->get();
 
         return view('finance.supplier-invoices.index', compact('invoices'));
     }
 
     public function create()
     {
-        return view('finance.supplier-invoices.create');
+        $suppliers = Supplier::where('status', 'active')->get();
+        $taxes = Tax::where('status', 'active')->get();
+
+        return view('finance.supplier-invoices.create', compact('suppliers', 'taxes'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
+            'company_id' => 'required|exists:companies,id',
+            'supplier_id' => 'required|exists:suppliers,id',
             'invoice_number' => 'required|string|max:50|unique:finance_supplier_invoices,invoice_number',
             'invoice_date' => 'required|date',
             'due_date' => 'nullable|date',
-            'supplier_id' => 'nullable|exists:finance_suppliers,id',
-            'tax_id' => 'nullable|exists:finance_taxes,id',
+            'tax_id' => 'nullable|exists:taxes,id',
             'subtotal' => 'required|numeric|min:0',
+            'total_amount' => 'required|numeric|min:0',
             'description' => 'nullable|string',
-            'company_id' => 'required|exists:companies,id',
+            'status' => 'required|in:draft,submitted,approved,paid,cancelled',
         ]);
 
-        $invoice = $this->invoiceService->createInvoice($validated);
+        \Modules\Finance\Models\SupplierInvoice::create($validated);
 
-        return redirect()
-            ->route('finance.supplier-invoices.show', $invoice->id)
-            ->with('success', 'Invoice created successfully');
+        return redirect()->route('finance.supplier-invoices.index')
+            ->with('success', 'Supplier invoice created successfully.');
     }
 
-    public function show(string $id)
+    public function show(int $id)
     {
-        $invoice = SupplierInvoice::with('supplier')->findOrFail($id);
+        $invoice = \Modules\Finance\Models\SupplierInvoice::with(['supplier', 'tax', 'lines'])
+            ->findOrFail($id);
 
         return view('finance.supplier-invoices.show', compact('invoice'));
     }

@@ -17,7 +17,7 @@
             <h3 class="card-title">Journal Register</h3>
         </div>
         <div class="card-body table-responsive">
-            <table class="table table-bordered table-striped datatable">
+            <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
                         <th>Date</th>
@@ -35,7 +35,7 @@
                         <tr>
                             <td>{{ $journal->journal_date->format('Y-m-d') }}</td>
                             <td>{{ $journal->journal_number }}</td>
-                            <td>{{ Str::limit($journal->description, 50) }}</td>
+                            <td>{{ $journal->description ?: '-' }}</td>
                             <td>{{ $journal->fiscalPeriod?->period_name ?? '-' }}</td>
                             <td class="text-right">{{ number_format($journal->total_debit, 2) }}</td>
                             <td class="text-right">{{ number_format($journal->total_credit, 2) }}</td>
@@ -63,11 +63,3 @@
         </div>
     </div>
 @endsection
-
-@push('js')
-<script>
-    $(function () {
-        $('.datatable').DataTable();
-    });
-</script>
-@endpush

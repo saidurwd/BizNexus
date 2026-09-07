@@ -34,6 +34,11 @@
                             <label for="supplier_id">Supplier</label>
                             <select class="form-control" name="supplier_id" required>
                                 <option value="">Select Supplier</option>
+                                @foreach($suppliers as $supplier)
+                                    <option value="{{ $supplier->id }}" @selected(old('supplier_id') == $supplier->id)>
+                                        {{ $supplier->supplier_code }} — {{ $supplier->name }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
@@ -51,6 +56,11 @@
                             <label for="tax_id">Tax</label>
                             <select class="form-control" name="tax_id">
                                 <option value="">No Tax</option>
+                                @foreach($taxes as $tax)
+                                    <option value="{{ $tax->id }}" @selected(old('tax_id') == $tax->id)>
+                                        {{ $tax->tax_code }} — {{ $tax->tax_name }} ({{ $tax->rate }}%)
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
