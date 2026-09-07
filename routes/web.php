@@ -19,6 +19,7 @@ use Modules\Finance\Controllers\Web\BankAccountController;
 use Modules\Finance\Controllers\Web\BankPaymentController;
 use Modules\Finance\Controllers\Web\BankReceiptController;
 use Modules\Finance\Controllers\Web\BankReconciliationController;
+use Modules\Finance\Controllers\Web\RecurringJournalController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -154,6 +155,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/bank-reconciliation', [BankReconciliationController::class, 'index'])->name('bank-reconciliation.index');
         Route::get('/bank-reconciliation/create', [BankReconciliationController::class, 'create'])->name('bank-reconciliation.create');
         Route::post('/bank-reconciliation', [BankReconciliationController::class, 'store'])->name('bank-reconciliation.store');
+
+        // Recurring Journals
+        Route::get('/recurring-journals', [RecurringJournalController::class, 'index'])->name('recurring-journals.index');
+        Route::get('/recurring-journals/create', [RecurringJournalController::class, 'create'])->name('recurring-journals.create');
+        Route::post('/recurring-journals', [RecurringJournalController::class, 'store'])->name('recurring-journals.store');
+        Route::get('/recurring-journals/{id}/edit', [RecurringJournalController::class, 'edit'])->name('recurring-journals.edit');
+        Route::put('/recurring-journals/{id}', [RecurringJournalController::class, 'update'])->name('recurring-journals.update');
+        Route::delete('/recurring-journals/{id}', [RecurringJournalController::class, 'destroy'])->name('recurring-journals.destroy');
 
         // Cost Centers
         Route::get('/cost-centers', [CostCenterController::class, 'index'])->name('cost-centers.index');
