@@ -105,6 +105,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Cost Centers
         Route::get('/cost-centers', [CostCenterController::class, 'index'])->name('cost-centers.index');
+        Route::get('/cost-centers/create', [CostCenterController::class, 'create'])->name('cost-centers.create');
+        Route::post('/cost-centers', [CostCenterController::class, 'store'])->name('cost-centers.store');
+        Route::get('/cost-centers/{id}/edit', [CostCenterController::class, 'edit'])->name('cost-centers.edit');
+        Route::put('/cost-centers/{id}', [CostCenterController::class, 'update'])->name('cost-centers.update');
+        Route::delete('/cost-centers/{id}', [CostCenterController::class, 'destroy'])->name('cost-centers.destroy');
     });
 
     // Profile
