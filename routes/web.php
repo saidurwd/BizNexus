@@ -13,6 +13,7 @@ use Modules\Finance\Controllers\Web\ReceiptController;
 use Modules\Finance\Controllers\Web\SupplierInvoiceController;
 use Modules\Finance\Controllers\Web\CustomerInvoiceController;
 use Modules\Finance\Controllers\Web\TaxController;
+use Modules\Finance\Controllers\Web\CostCenterController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -101,6 +102,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/taxes/create', [TaxController::class, 'create'])->name('taxes.create');
         Route::post('/taxes', [TaxController::class, 'store'])->name('taxes.store');
         Route::get('/taxes/{id}', [TaxController::class, 'show'])->name('taxes.show');
+
+        // Cost Centers
+        Route::get('/cost-centers', [CostCenterController::class, 'index'])->name('cost-centers.index');
     });
 
     // Profile

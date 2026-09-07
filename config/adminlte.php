@@ -356,8 +356,8 @@ return [
     */
 
     'laravel_asset_bundling' => false,
-    'laravel_css_path' => 'resources/css/app.css',
-    'laravel_js_path' => 'resources/js/app.js',
+    'laravel_css_path' => 'build/assets/adminlte.min.css',
+    'laravel_js_path' => 'build/assets/adminlte.min.js',
 
     /*
     |--------------------------------------------------------------------------
@@ -779,6 +779,82 @@ return [
         [
             'type' => 'sidebar-menu-search',
             'text' => 'search',
+        ],
+
+        // ============================================================
+        // ERP CORE MODULES - Uncomment as you implement them
+        // ============================================================
+        // [
+        //     'text' => 'HR & Payroll',
+        //     'icon' => 'bi bi-people-fill',
+        //     'submenu' => [
+        //         ['header' => 'Human Resources'],
+        //         ['text' => 'Employees', 'url' => 'hr/employees', 'icon' => 'bi bi-person-badge'],
+        //         ['text' => 'Departments', 'url' => 'hr/departments', 'icon' => 'bi bi-diagram-3'],
+        //         ['text' => 'Positions', 'url' => 'hr/positions', 'icon' => 'bi bi-briefcase'],
+        //         ['header' => 'Payroll'],
+        //         ['text' => 'Payroll Run', 'url' => 'hr/payroll', 'icon' => 'bi bi-cash-stack'],
+        //         ['text' => 'Pay Slips', 'url' => 'hr/payslips', 'icon' => 'bi bi-file-earmark-text'],
+        //         ['text' => 'Tax Reports', 'url' => 'hr/tax-reports', 'icon' => 'bi bi-file-earmark-bar-graph'],
+        //     ],
+        // ],
+        // [
+        //     'text' => 'Inventory',
+        //     'icon' => 'bi bi-box-seam',
+        //     'submenu' => [
+        //         ['header' => 'Items'],
+        //         ['text' => 'Products', 'url' => 'inventory/products', 'icon' => 'bi bi-box'],
+        //         ['text' => 'Categories', 'url' => 'inventory/categories', 'icon' => 'bi bi-folder'],
+        //         ['header' => 'Stock'],
+        //         ['text' => 'Stock In', 'url' => 'inventory/stock-in', 'icon' => 'bi bi-arrow-down-circle'],
+        //         ['text' => 'Stock Out', 'url' => 'inventory/stock-out', 'icon' => 'bi bi-arrow-up-circle'],
+        //         ['text' => 'Stock Count', 'url' => 'inventory/stock-count', 'icon' => 'bi bi-clipboard-check'],
+        //     ],
+        // ],
+        // [
+        //     'text' => 'Procurement',
+        //     'icon' => 'bi bi-cart-plus-fill',
+        //     'submenu' => [
+        //         ['header' => 'Purchasing'],
+        //         ['text' => 'Purchase Orders', 'url' => 'procurement/orders', 'icon' => 'bi bi-file-text'],
+        //         ['text' => 'Goods Receipt', 'url' => 'procurement/receipts', 'icon' => 'bi bi-truck'],
+        //         ['text' => 'Supplier Returns', 'url' => 'procurement/returns', 'icon' => 'bi bi-arrow-return-left'],
+        //     ],
+        // ],
+        // [
+        //     'text' => 'Sales',
+        //     'icon' => 'bi bi-cart-dash-fill',
+        //     'submenu' => [
+        //         ['header' => 'Sales'],
+        //         ['text' => 'Sales Orders', 'url' => 'sales/orders', 'icon' => 'bi bi-file-text'],
+        //         ['text' => 'Delivery Notes', 'url' => 'sales/deliveries', 'icon' => 'bi bi-truck'],
+        //         ['text' => 'Customer Returns', 'url' => 'sales/returns', 'icon' => 'bi bi-arrow-return-left'],
+        //     ],
+        // ],
+        // [
+        //     'text' => 'Fixed Assets',
+        //     'icon' => 'bi bi-building',
+        //     'submenu' => [
+        //         ['text' => 'Asset Register', 'url' => 'assets/register', 'icon' => 'bi bi-list-ul'],
+        //         ['text' => 'Depreciation', 'url' => 'assets/depreciation', 'icon' => 'bi bi-graph-down'],
+        //         ['text' => 'Asset Disposal', 'url' => 'assets/disposal', 'icon' => 'bi bi-trash'],
+        //     ],
+        // ],
+        // [
+        //     'text' => 'Projects',
+        //     'icon' => 'bi bi-kanban',
+        //     'submenu' => [
+        //         ['text' => 'All Projects', 'url' => 'projects', 'icon' => 'bi bi-list-task'],
+        //         ['text' => 'Tasks', 'url' => 'projects/tasks', 'icon' => 'bi bi-check2-square'],
+        //     ],
+        // ],
+
+        // ============================================================
+        // FINANCE MODULE
+        // ============================================================
+        [
+            'text' => 'FINANCE',
+            'header' => true,
         ],
 
         // Finance Menu
