@@ -17,6 +17,8 @@ use Modules\Finance\Controllers\Web\CostCenterController;
 use Modules\Finance\Controllers\Web\CashAccountController;
 use Modules\Finance\Controllers\Web\BankAccountController;
 use Modules\Finance\Controllers\Web\BankPaymentController;
+use Modules\Finance\Controllers\Web\BankReceiptController;
+use Modules\Finance\Controllers\Web\BankReconciliationController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -139,6 +141,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/bank-payments', [BankPaymentController::class, 'index'])->name('bank-payments.index');
         Route::get('/bank-payments/create', [BankPaymentController::class, 'create'])->name('bank-payments.create');
         Route::post('/bank-payments', [BankPaymentController::class, 'store'])->name('bank-payments.store');
+
+        // Bank Receipts
+        Route::get('/bank-receipts', [BankReceiptController::class, 'index'])->name('bank-receipts.index');
+        Route::get('/bank-receipts/create', [BankReceiptController::class, 'create'])->name('bank-receipts.create');
+        Route::post('/bank-receipts', [BankReceiptController::class, 'store'])->name('bank-receipts.store');
+
+        // Bank Reconciliation
+        Route::get('/bank-reconciliation', [BankReconciliationController::class, 'index'])->name('bank-reconciliation.index');
+        Route::get('/bank-reconciliation/create', [BankReconciliationController::class, 'create'])->name('bank-reconciliation.create');
+        Route::post('/bank-reconciliation', [BankReconciliationController::class, 'store'])->name('bank-reconciliation.store');
 
         // Cost Centers
         Route::get('/cost-centers', [CostCenterController::class, 'index'])->name('cost-centers.index');
