@@ -2791,3 +2791,163 @@ Version	Date	Status	Description
 1.0.0	2026-09-07	Baseline	Initial ERP Finance architecture
 
 END OF DOCUMENT
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+====================================
+
+FINDINGS
+
+Finance Module Audit Report
+Executive Summary
+The Finance module has substantial scaffolding but is missing critical architectural components, business logic, and integration patterns specified in ERP-FINANCE-ARCHITECTURE.md. Many CRUD interfaces exist, but the accounting engine, workflow, security, and integration layers are incomplete.
+
+1. Missing Architectural Services (HIGH IMPACT)
+Service	Status	Impact
+CompanyContext	MISSING	No multi-company scoping; users may see cross-company data
+AccountingPeriodService	MISSING	No fiscal period validation; journals can be created for closed periods
+DocumentNumberService	MISSING	number_sequences table exists (9 records) but is never used; document numbering is not implemented
+ApprovalService	MISSING	No workflow engine; journal lifecycle (DRAFT→SUBMITTED→APPROVED→POSTED) exists in JournalService but has no approval UI or business rules
+AuditService	MISSING	No audit trail creation; audit_logs table exists but is never written to by Finance
+TaxService	MISSING	Tax calculations are not automated; tax treatment logic is absent
+BankService	MISSING	No centralized bank transaction processing
+BankReconciliationService	MISSING	Reconciliation is CRUD-only; no matching/unmatched transaction logic
+BudgetService	MISSING	Budget CRUD exists but no budget-vs-actual calculation engine
+ChartOfAccountsService	EXISTS	✅ Implemented
+CurrencyService	MISSING	No currency conversion logic
+ExchangeRateService	MISSING	No exchange rate handling for multi-currency transactions
+2. Missing Module Structure (MEDIUM IMPACT)
+All these directories exist but are empty:
+
+Directory	Expected Content	Impact
+Events/	Domain events (SupplierInvoiceApproved, JournalPosted, etc.)	No integration hooks for other ERP modules
+Listeners/	Event listeners for auto-posting	Manual posting only; no automated accounting integration
+Policies/	Authorization policies	No granular permission enforcement beyond middleware
+Requests/	Form Request validation classes	Validation is inline in controllers (violates spec §116)
+Exceptions/	Domain exceptions (UnbalancedJournalException, etc.)	Generic error handling; no accounting-specific exceptions
+Jobs/	Queue jobs for reports, notifications, exports	No async processing; large reports will timeout
+Notifications/	Laravel Notifications	No approval reminders, payment reminders, period closing alerts
+3. Missing Database Tables (HIGH IMPACT)
+Table	Spec Section	Impact
+tax_transactions	§43	No tax transaction history; cannot track input/output tax per transaction
+supplier_credit_notes	§2235	No credit note functionality for AP
+customer_debit_notes	§2244	No debit note functionality for AR
+account_balances	—	Account balances are calculated on-the-fly; no snapshot for performance
+payment_methods	—	Payment methods are hardcoded strings; not configurable
+4. Database Schema Gaps (MEDIUM IMPACT)
+Table	Missing Field	Impact
+journal_lines	business_unit_id	Cannot track by business unit (spec §45)
+suppliers	payable_account_id	No direct link to AP GL account
+customers	receivable_account_id	No direct link to AR GL account
+supplier_invoices	currency_id, exchange_rate, outstanding_amount, journal_id	No multi-currency support; no auto-generated accounting entry
+customer_invoices	Same as above	Same issues
+bank_accounts	current_balance	Balance tracking is incomplete
+5. Missing Controllers / Views / Routes (MEDIUM IMPACT)
+Feature	Expected	Current Status
+Supplier Statements	Controller, view, route	MISSING
+Customer Statements	Controller, view, route	MISSING
+AP Aging Detail	Controller, view, route	Route exists (finance/ap-aging) but no controller found
+AR Aging Detail	Controller, view, route	Route exists (finance/ar-aging) but no controller found
+Budget Lines CRUD	Controller, view	MISSING — only budget header CRUD exists
+Exchange Rates	Controller, view, route	MISSING
+Period Closing	Controller, view, route	MISSING
+Opening Balances	Controller, view, route	MISSING
+Account Statements	Route exists	Controller uses finance.accounts.show but may not match spec
+Payment/Receipt Reversal	Controller, view, route	MISSING
+Customer Receipt Allocation	UI exists	Logic may be incomplete
+Supplier Payment Allocation	UI exists	Logic may be incomplete
+6. Missing Reports (HIGH IMPACT)
+Report	Spec §48	Current Status
+Supplier Statement	AP Reports	MISSING
+Customer Statement	AR Reports	MISSING
+AP Aging Detail	AP Reports	Route exists, no controller
+AR Aging Detail	AR Reports	Route exists, no controller
+AP Outstanding	AP Reports	MISSING
+AR Outstanding	AR Reports	MISSING
+Payment Register	AP Reports	MISSING
+Receipt Register	AR Reports	MISSING
+Cash Book	Cash & Bank	MISSING
+Bank Book	Cash & Bank	MISSING
+Management Reports	Management	Route exists (finance/reports/management) but no controller
+Expense Analysis	Management	MISSING
+Revenue Analysis	Management	MISSING
+Cost Center Analysis	Management	MISSING
+Budget vs Actual	Management	Route exists (finance/budget-vs-actual) but implementation unclear
+7. Accounting Rules Compliance Issues (CRITICAL)
+Rule	Spec §	Current Status	Impact
+Double-entry validation	§18-21	Partial — UI enforces balance, but server-side validation may be incomplete	Unbalanced journals could be posted
+Posting idempotency	§24, 563	NOT VERIFIED	Risk of duplicate postings
+Reversal journal reference	§25, 576	Fields exist in DB (reversal_of_journal_id, etc.)	Must verify JournalService::reverse() actually populates these
+Closed period prevention	§11, 530	Validation exists in JournalService but no period closing UI	Users cannot close periods; fiscal control is manual
+Document numbering	§26, 581	NOT IMPLEMENTED — number_sequences table unused	No configurable document numbering (JV-, PV-, RV-, etc.)
+No hard-coding	§2.6, 121	Multiple hard-coded values found: company_id = 1, account IDs, GL account codes	Violates multi-company and configuration principles
+DB transactions for posting	§23, 548	JournalService::post() uses DB::transaction()	✅ Compliant
+Exchange rate on historical tx	§13, 342	No evidence of implementation	Historical transactions may be recalculated incorrectly
+8. Missing Security / Authorization (HIGH IMPACT)
+Requirement	Spec §	Current Status
+Granular permissions	§62-64	No policies, no Form Requests, no permission checks in controllers
+Role-based access	§64	No role-permission matrix implementation
+Company isolation	§2.3, 6.3	CompanyContext missing; queries use company_id but no scope enforcement
+Audit logging	§59, 109	audit_logs table exists but no writes from Finance module
+CSRF/XSS/SQL injection	§61	Laravel provides base protection, but no additional Finance-specific controls
+9. Missing Integration Architecture (MEDIUM IMPACT)
+Requirement	Spec §	Current Status
+Domain Events	§72, 1280	No events defined; no listeners
+Event Naming Convention	§72	Not followed (e.g., SupplierInvoiceApproved)
+Integration Contracts	§2.2, 78	No service interfaces; direct Eloquent usage
+Queue Jobs	§58	No jobs defined; no async processing
+10. Missing Testing (MEDIUM IMPACT)
+Requirement	Spec §	Current Status
+Unit tests	§97	16 tests total; unclear if accounting rules are tested
+Feature tests	§98	Must verify journal lifecycle tests exist
+Security tests	§99	Must verify cross-company, closed-period, duplicate posting tests
+Accounting integration tests	§100	Must verify end-to-end: Invoice → Journal → Ledger → TB → FS
+11. Menu Structure Gaps
+Menu Item	Route	Issue
+AP Aging	finance/ap-aging	Route exists, no controller
+AR Aging	finance/ar-aging	Route exists, no controller
+Budget vs Actual	finance/budget-vs-actual	Route exists, implementation unclear
+Management Reports	finance/reports/management	Route exists, no controller
+Supplier/Customer Statements	—	MISSING from menu entirely
+12. Critical Business Logic Gaps
+No automated accounting entries — Creating a supplier invoice does not automatically create a journal entry (spec §105, 106)
+No payment allocation logic — Payments can be created but not allocated to invoices
+No receipt allocation logic — Receipts can be created but not allocated to invoices
+No budget enforcement — Budgets exist but no validation against budget limits during posting
+No tax calculation — Tax rates are stored but not applied to invoice totals
+No currency conversion — Multi-currency fields exist but no conversion logic
+No exchange rate management UI — Rates are in DB but not manageable
+No period closing workflow — Periods can be created but not closed/validated
+No document number generation — Journal numbers, invoice numbers are not generated from sequences
+No dashboard KPIs — Finance dashboard exists but shows no real data (spec §89)
+13. Immediate Action Items (Priority Order)
+P0 — Critical (Blocking Production)
+Implement DocumentNumberService and wire it to all document types
+Implement AccountingPeriodService with period validation
+Fix accounting integration: invoices/payments/receipts must auto-create journals
+Implement audit logging in all Finance services
+Implement CompanyContext and enforce company scoping
+P1 — High (Required for Phase 1 completion)
+Implement missing services: ApprovalService, TaxService, BankService
+Add missing controllers: AP/AR aging detail, statements, budget lines, period closing
+Implement domain events and listeners for integration
+Add Form Requests and Policies
+Complete missing reports: statements, registers, cash book, bank book
+P2 — Medium (Quality of life)
+Add queue jobs for reports/notifications
+Implement budget-vs-actual engine
+Add exchange rate management
+Create comprehensive test suite
+Remove hard-coded values (company_id = 1, account IDs)
+This audit reveals that while the CRUD scaffolding is extensive, the accounting engine, integration layer, security model, and business logic are significantly incomplete. The module is currently a set of standalone data-entry screens rather than an integrated ERP Finance system.
