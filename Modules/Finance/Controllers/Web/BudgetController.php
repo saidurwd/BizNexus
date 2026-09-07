@@ -31,7 +31,7 @@ class BudgetController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'fiscal_year_id' => 'required|exists:finance_fiscal_years,id',
+            'fiscal_year_id' => 'required|exists:fiscal_years,id',
             'status' => 'required|in:DRAFT,APPROVED,ACTIVE,CLOSED',
             'company_id' => 'required|exists:companies,id',
         ]);
