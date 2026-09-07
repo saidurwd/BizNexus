@@ -1079,12 +1079,12 @@ return [
         ['header' => 'account_settings'],
         [
             'text' => 'profile',
-            'url' => 'admin/settings',
+            'url' => 'profile',
             'icon' => 'bi bi-person',
         ],
         [
             'text' => 'change_password',
-            'url' => 'admin/settings',
+            'url' => '#',
             'icon' => 'bi bi-lock',
         ],
     ],
