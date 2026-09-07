@@ -780,7 +780,15 @@ return [
             'type' => 'sidebar-menu-search',
             'text' => 'search',
         ],
-
+        [
+            'text' => 'Administration',
+            'icon' => 'bi bi-people-fill',
+            'submenu' => [
+                ['header' => 'Company Management'],
+                ['text' => 'Companies', 'url' => '#', 'icon' => 'bi bi-person-badge'],
+                ['text' => 'Departments', 'url' => '#', 'icon' => 'bi bi-diagram-3'],
+            ],
+        ],
         // ============================================================
         // ERP CORE MODULES - Uncomment as you implement them
         // ============================================================

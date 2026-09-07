@@ -23,13 +23,16 @@ class TaxController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'tax_code' => 'required|string|max:20|unique:finance_taxes,tax_code',
+            'tax_code' => 'required|string|max:20|unique:taxes,tax_code',
             'tax_name' => 'required|string|max:100',
-            'tax_rate' => 'required|numeric|min:0|max:100',
-            'tax_type' => 'required|in:SALES,PURCHASE,VAT',
-            'description' => 'nullable|string',
+            'rate' => 'required|numeric|min:0|max:100',
+            'tax_type' => 'required|in:VAT,WITHHOLDING_TAX,INCOME_TAX,OTHER',
+            'is_inclusive' => 'nullable|boolean',
+            'status' => 'required|in:active,inactive',
             'company_id' => 'required|exists:companies,id',
         ]);
+
+        $validated['is_inclusive'] = $validated['is_inclusive'] ?? false;
 
         Tax::create($validated);
 
@@ -43,5 +46,45 @@ class TaxController extends Controller
         $tax = Tax::findOrFail($id);
 
         return view('finance.taxes.show', compact('tax'));
+    }
+
+    public function edit(string $id)
+    {
+        $tax = Tax::findOrFail($id);
+
+        return view('finance.taxes.edit', compact('tax'));
+    }
+
+    public function update(Request $request, string $id)
+    {
+        $tax = Tax::findOrFail($id);
+
+        $validated = $request->validate([
+            'tax_code' => 'required|string|max:20|unique:taxes,tax_code,' . $tax->id,
+            'tax_name' => 'required|string|max:100',
+            'rate' => 'required|numeric|min:0|max:100',
+            'tax_type' => 'required|in:VAT,WITHHOLDING_TAX,INCOME_TAX,OTHER',
+            'is_inclusive' => 'nullable|boolean',
+            'status' => 'required|in:active,inactive',
+            'company_id' => 'required|exists:companies,id',
+        ]);
+
+        $validated['is_inclusive'] = $validated['is_inclusive'] ?? false;
+
+        $tax->update($validated);
+
+        return redirect()
+            ->route('finance.taxes.index')
+            ->with('success', 'Tax updated successfully');
+    }
+
+    public function destroy(string $id)
+    {
+        $tax = Tax::findOrFail($id);
+        $tax->delete();
+
+        return redirect()
+            ->route('finance.taxes.index')
+            ->with('success', 'Tax deleted successfully');
     }
 }

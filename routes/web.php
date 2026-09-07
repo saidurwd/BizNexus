@@ -120,6 +120,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/taxes/create', [TaxController::class, 'create'])->name('taxes.create');
         Route::post('/taxes', [TaxController::class, 'store'])->name('taxes.store');
         Route::get('/taxes/{id}', [TaxController::class, 'show'])->name('taxes.show');
+        Route::get('/taxes/{id}/edit', [TaxController::class, 'edit'])->name('taxes.edit');
+        Route::put('/taxes/{id}', [TaxController::class, 'update'])->name('taxes.update');
+        Route::delete('/taxes/{id}', [TaxController::class, 'destroy'])->name('taxes.destroy');
 
         // Cash Accounts
         Route::get('/cash-accounts', [CashAccountController::class, 'index'])->name('cash-accounts.index');
