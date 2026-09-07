@@ -2867,6 +2867,7 @@ Account Statements	Route exists	Controller uses finance.accounts.show but may no
 Payment/Receipt Reversal	Controller, view, route	MISSING
 Customer Receipt Allocation	UI exists	Logic may be incomplete
 Supplier Payment Allocation	UI exists	Logic may be incomplete
+
 6. Missing Reports (HIGH IMPACT)
 Report	Spec §48	Current Status
 Supplier Statement	AP Reports	MISSING
