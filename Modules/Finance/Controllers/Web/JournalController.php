@@ -86,4 +86,19 @@ class JournalController extends Controller
             'ledger' => $ledger,
         ]);
     }
+
+    public function destroy(int $id)
+    {
+        $journal = Journal::findOrFail($id);
+
+        if ($journal->status !== 'DRAFT') {
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('error', 'Only draft journals can be deleted.');
+        }
+
+        $journal->delete();
+
+        return redirect()->route('finance.journals.index')
+            ->with('success', 'Journal deleted successfully.');
+    }
 }

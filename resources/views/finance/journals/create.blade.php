@@ -138,7 +138,7 @@
 
 @push('js')
 <script>
-    $(function () {
+    (function () {
         let lineIndex = 2;
         const accountOptions = `
             <option value="">Select Account</option>
@@ -150,74 +150,83 @@
         function updateTotals() {
             let totalDebit = 0;
             let totalCredit = 0;
-            
-            $('.line-row').each(function() {
-                totalDebit += parseFloat($(this).find('.debit-input').val()) || 0;
-                totalCredit += parseFloat($(this).find('.credit-input').val()) || 0;
+            const rows = document.querySelectorAll('.line-row');
+            rows.forEach(function(row) {
+                const debitInput = row.querySelector('.debit-input');
+                const creditInput = row.querySelector('.credit-input');
+                totalDebit += parseFloat(debitInput.value) || 0;
+                totalCredit += parseFloat(creditInput.value) || 0;
             });
             
-            $('#totalDebit').text(totalDebit.toFixed(2));
-            $('#totalCredit').text(totalCredit.toFixed(2));
+            document.getElementById('totalDebit').textContent = totalDebit.toFixed(2);
+            document.getElementById('totalCredit').textContent = totalCredit.toFixed(2);
             
             const isBalanced = Math.abs(totalDebit - totalCredit) < 0.01;
-            $('#balanceWarning').toggleClass('d-none', isBalanced);
-            $('#submitBtn').prop('disabled', !isBalanced || totalDebit === 0);
+            const warning = document.getElementById('balanceWarning');
+            const submitBtn = document.getElementById('submitBtn');
+            warning.classList.toggle('d-none', isBalanced);
+            submitBtn.disabled = !isBalanced || totalDebit === 0;
         }
         
-        $(document).on('input', '.debit-input, .credit-input', updateTotals);
+        document.querySelectorAll('.debit-input, .credit-input').forEach(function(input) {
+            input.addEventListener('input', updateTotals);
+        });
         
-        $('#addLine').click(function() {
-            const newRow = `
-                <tr class="line-row">
-                    <td>
-                        <select class="form-control account-select" name="lines[${lineIndex}][account_id]" required>
-                            ${accountOptions}
-                        </select>
-                    </td>
-                    <td>
-                        <input type="text" class="form-control" name="lines[${lineIndex}][description]" placeholder="Description">
-                    </td>
-                    <td>
-                        <input type="number" class="form-control text-right debit-input" name="lines[${lineIndex}][debit]" 
-                               step="0.01" min="0" value="0">
-                    </td>
-                    <td>
-                        <input type="number" class="form-control text-right credit-input" name="lines[${lineIndex}][credit]" 
-                               step="0.01" min="0" value="0">
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-danger btn-sm remove-line">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                </tr>
+        document.getElementById('addLine').addEventListener('click', function() {
+            const tbody = document.getElementById('linesBody');
+            const newRow = document.createElement('tr');
+            newRow.className = 'line-row';
+            newRow.innerHTML = `
+                <td>
+                    <select class="form-control account-select" name="lines[${lineIndex}][account_id]" required>
+                        ${accountOptions}
+                    </select>
+                </td>
+                <td>
+                    <input type="text" class="form-control" name="lines[${lineIndex}][description]" placeholder="Description">
+                </td>
+                <td>
+                    <input type="number" class="form-control text-right debit-input" name="lines[${lineIndex}][debit]" 
+                           step="0.01" min="0" value="0">
+                </td>
+                <td>
+                    <input type="number" class="form-control text-right credit-input" name="lines[${lineIndex}][credit]" 
+                           step="0.01" min="0" value="0">
+                </td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm remove-line">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
             `;
-            $('#linesBody').append(newRow);
+            tbody.appendChild(newRow);
+            newRow.querySelector('.debit-input').addEventListener('input', updateTotals);
+            newRow.querySelector('.credit-input').addEventListener('input', updateTotals);
             lineIndex++;
-        });
-        
-        $(document).on('click', '.remove-line', function() {
-            if ($('.line-row').length > 2) {
-                $(this).closest('tr').remove();
-                updateTotals();
-            }
-        });
-        
-        $(document).on('change', '.debit-input', function() {
-            if ($(this).val() > 0) {
-                $(this).closest('tr').find('.credit-input').val('0');
-            }
             updateTotals();
         });
         
-        $(document).on('change', '.credit-input', function() {
-            if ($(this).val() > 0) {
-                $(this).closest('tr').find('.debit-input').val('0');
+        document.getElementById('linesBody').addEventListener('click', function(e) {
+            if (e.target.closest('.remove-line')) {
+                const rows = document.querySelectorAll('.line-row');
+                if (rows.length > 2) {
+                    e.target.closest('.line-row').remove();
+                    updateTotals();
+                }
+            }
+        });
+        
+        document.getElementById('linesBody').addEventListener('change', function(e) {
+            if (e.target.classList.contains('debit-input') && parseFloat(e.target.value) > 0) {
+                e.target.closest('.line-row').querySelector('.credit-input').value = '0';
+            }
+            if (e.target.classList.contains('credit-input') && parseFloat(e.target.value) > 0) {
+                e.target.closest('.line-row').querySelector('.debit-input').value = '0';
             }
             updateTotals();
         });
         
         updateTotals();
-    });
+    })();
 </script>
 @endpush

@@ -52,6 +52,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/journals/create', [JournalController::class, 'create'])->name('journals.create');
         Route::post('/journals', [JournalController::class, 'store'])->name('journals.store');
         Route::get('/journals/{id}', [JournalController::class, 'show'])->name('journals.show');
+        Route::delete('/journals/{id}', [JournalController::class, 'destroy'])->name('journals.destroy');
 
         // General Ledger
         Route::get('/general-ledger', [JournalController::class, 'generalLedger'])->name('general-ledger');
