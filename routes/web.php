@@ -14,6 +14,8 @@ use Modules\Finance\Controllers\Web\SupplierInvoiceController;
 use Modules\Finance\Controllers\Web\CustomerInvoiceController;
 use Modules\Finance\Controllers\Web\TaxController;
 use Modules\Finance\Controllers\Web\CostCenterController;
+use Modules\Finance\Controllers\Web\CashAccountController;
+use Modules\Finance\Controllers\Web\BankAccountController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -52,6 +54,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Accounts Payable
         Route::get('/ap-aging', [ReportController::class, 'apReport'])->name('ap-aging');
+
+        // Accounts Receivable
+        Route::get('/ar-aging', [ReportController::class, 'arReport'])->name('ar-aging');
+
+        // Cash & Bank
+        Route::get('/bank-accounts', [BankAccountController::class, 'index'])->name('bank-accounts.index');
 
         // Suppliers
         Route::get('/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
@@ -108,6 +116,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/taxes/create', [TaxController::class, 'create'])->name('taxes.create');
         Route::post('/taxes', [TaxController::class, 'store'])->name('taxes.store');
         Route::get('/taxes/{id}', [TaxController::class, 'show'])->name('taxes.show');
+
+        // Cash Accounts
+        Route::get('/cash-accounts', [CashAccountController::class, 'index'])->name('cash-accounts.index');
+        Route::get('/cash-accounts/create', [CashAccountController::class, 'create'])->name('cash-accounts.create');
+        Route::post('/cash-accounts', [CashAccountController::class, 'store'])->name('cash-accounts.store');
+        Route::get('/cash-accounts/{id}/edit', [CashAccountController::class, 'edit'])->name('cash-accounts.edit');
+        Route::put('/cash-accounts/{id}', [CashAccountController::class, 'update'])->name('cash-accounts.update');
+        Route::delete('/cash-accounts/{id}', [CashAccountController::class, 'destroy'])->name('cash-accounts.destroy');
 
         // Cost Centers
         Route::get('/cost-centers', [CostCenterController::class, 'index'])->name('cost-centers.index');

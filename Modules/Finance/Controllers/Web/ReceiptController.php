@@ -4,7 +4,7 @@ namespace Modules\Finance\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\Receipt;
+use Modules\Finance\Models\CustomerReceipt;
 use Modules\Finance\Services\ReceiptService;
 
 class ReceiptController extends Controller
@@ -15,7 +15,7 @@ class ReceiptController extends Controller
 
     public function index(Request $request)
     {
-        $receipts = Receipt::with('receiptAccount')
+        $receipts = CustomerReceipt::with(['customer', 'bankAccount'])
             ->orderBy('receipt_date', 'desc')
             ->paginate(20);
 
@@ -50,7 +50,7 @@ class ReceiptController extends Controller
 
     public function show(string $id)
     {
-        $receipt = Receipt::with('receiptAccount')->findOrFail($id);
+        $receipt = CustomerReceipt::with(['customer', 'bankAccount'])->findOrFail($id);
 
         return view('finance.receipts.show', compact('receipt'));
     }

@@ -22,8 +22,8 @@
                     <tr>
                         <th>Receipt #</th>
                         <th>Date</th>
-                        <th>Payer</th>
-                        <th>Receipt Account</th>
+                        <th>Customer</th>
+                        <th>Bank Account</th>
                         <th class="text-right">Amount</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -34,11 +34,11 @@
                         <tr>
                             <td>{{ $receipt->receipt_number }}</td>
                             <td>{{ $receipt->receipt_date->format('Y-m-d') }}</td>
-                            <td>{{ $receipt->payer_name }}</td>
-                            <td>{{ $receipt->receiptAccount?->account_name ?? '-' }}</td>
+                            <td>{{ $receipt->customer?->name ?? '-' }}</td>
+                            <td>{{ $receipt->bankAccount?->account_name ?? '-' }}</td>
                             <td class="text-right">{{ number_format($receipt->amount, 2) }}</td>
                             <td>
-                                <span class="badge bg-{{ $receipt->status === 'COMPLETED' ? 'success' : ($receipt->status === 'PENDING' ? 'warning' : 'secondary') }}">
+                                <span class="badge bg-{{ $receipt->status === 'POSTED' ? 'success' : ($receipt->status === 'DRAFT' ? 'secondary' : 'warning') }}">
                                     {{ $receipt->status }}
                                 </span>
                             </td>

@@ -19,24 +19,20 @@
                     <td>{{ $receipt->receipt_date->format('Y-m-d') }}</td>
                 </tr>
                 <tr>
-                    <th>Receipt Type</th>
-                    <td>{{ $receipt->receipt_type }}</td>
+                    <th>Receipt Method</th>
+                    <td>{{ $receipt->receipt_method }}</td>
                 </tr>
                 <tr>
-                    <th>Receipt Account</th>
-                    <td>{{ $receipt->receiptAccount?->account_name ?? '-' }}</td>
+                    <th>Bank Account</th>
+                    <td>{{ $receipt->bankAccount?->account_name ?? '-' }}</td>
                 </tr>
                 <tr>
                     <th>Amount</th>
                     <td>{{ number_format($receipt->amount, 2) }}</td>
                 </tr>
                 <tr>
-                    <th>Payer Type</th>
-                    <td>{{ $receipt->payer_type }}</td>
-                </tr>
-                <tr>
-                    <th>Payer Name</th>
-                    <td>{{ $receipt->payer_name }}</td>
+                    <th>Customer</th>
+                    <td>{{ $receipt->customer?->name ?? '-' }}</td>
                 </tr>
                 <tr>
                     <th>Reference</th>
@@ -49,7 +45,7 @@
                 <tr>
                     <th>Status</th>
                     <td>
-                        <span class="badge bg-{{ $receipt->status === 'COMPLETED' ? 'success' : ($receipt->status === 'PENDING' ? 'warning' : 'secondary') }}">
+                        <span class="badge bg-{{ $receipt->status === 'POSTED' ? 'success' : ($receipt->status === 'DRAFT' ? 'secondary' : 'warning') }}">
                             {{ $receipt->status }}
                         </span>
                     </td>

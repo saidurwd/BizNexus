@@ -70,6 +70,14 @@ return [
         'label' => 'AP Aging',
         'parent' => null,
     ],
+    'finance.ar-aging' => [
+        'label' => 'AR Aging',
+        'parent' => null,
+    ],
+    'finance.bank-accounts.index' => [
+        'label' => 'Bank Accounts',
+        'parent' => null,
+    ],
 
     // Suppliers
     'finance.suppliers' => [
