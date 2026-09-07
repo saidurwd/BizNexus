@@ -54,8 +54,9 @@ Every financial transaction must follow double-entry accounting.
 
 ```text
 Total Debit = Total Credit
+```
 
-2.2 Modular Architecture
+### 2.2 Modular Architecture
 Modules must have clearly defined boundaries.
 ERP Core
    |
@@ -81,11 +82,15 @@ Future modules should integrate through:
 - APIs
 - Integration contracts
 Direct database manipulation between modules should be avoided.
-2.3 Multi-Company
+### 2.3 Multi-Company
+
 The system must support multiple companies/entities.
+
 Financial data must be isolated by company.
+
 A user assigned to Company A must not automatically access Company B.
-2.4 Auditability
+
+### ### 2.4 Auditability
 Important ERP and financial operations must be traceable.
 Examples:
 - Who created the transaction?
@@ -95,7 +100,7 @@ Examples:
 - When was it posted?
 - Was it reversed?
 - What was the original value?
-2.5 No Deletion of Posted Transactions
+### 2.5 No Deletion of Posted Transactions
 Posted financial transactions must never be physically deleted.
 Correction must be performed through:
 Original Journal
@@ -105,7 +110,7 @@ Reversal Journal
       |
       v
 Correct Journal
-2.6 Configuration Over Hard Coding
+### 2.6 Configuration Over Hard Coding
 Do not hard-code:
 - Account IDs
 - Tax rates

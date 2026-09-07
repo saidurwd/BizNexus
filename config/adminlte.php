@@ -37,9 +37,9 @@ return [
     |
     */
 
-    'title' => 'AdminLTE 4',
+    'title' => 'BizNexus ERP',
     'title_prefix' => '',
-    'title_postfix' => '',
+    'title_postfix' => ' | Finance',
 
     /*
     |--------------------------------------------------------------------------
@@ -77,12 +77,12 @@ return [
     |
     */
 
-    'logo' => '<b>Admin</b>LTE',
+    'logo' => '<b>Biz</b>Nexus',
     'logo_img' => 'vendor/adminlte/dist/assets/img/AdminLTELogo.png',
     'logo_img_class' => 'brand-image opacity-75 shadow',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs opacity-75',
-    'logo_img_alt' => 'Admin Logo',
+    'logo_img_alt' => 'BizNexus ERP Logo',
 
     /*
     |--------------------------------------------------------------------------
@@ -190,7 +190,7 @@ return [
     */
 
     'use_route_url' => false,
-    'dashboard_url' => 'home',
+    'dashboard_url' => 'finance/dashboard',
     'logout_url' => 'logout',
 
     // The HTTP method spoofed on the logout form. Set it to 'GET' when your
@@ -780,18 +780,220 @@ return [
             'type' => 'sidebar-menu-search',
             'text' => 'search',
         ],
+
+        // Finance Menu
         [
-            'text' => 'blog',
-            'url' => 'admin/blog',
-            'can' => 'manage-blog',
+            'text' => 'Dashboard',
+            'url' => 'finance/dashboard',
+            'icon' => 'bi bi-speedometer',
         ],
+
+        // Chart of Accounts
         [
-            'text' => 'pages',
-            'url' => 'admin/pages',
-            'icon' => 'bi bi-file-earmark',
-            'label' => 4,
-            'label_color' => 'success',
+            'text' => 'Chart of Accounts',
+            'url' => 'finance/accounts',
+            'icon' => 'bi bi-diagram-3',
         ],
+
+        // Journals
+        [
+            'text' => 'Journals',
+            'icon' => 'bi bi-journal-text',
+            'submenu' => [
+                [
+                    'text' => 'Journal Entry',
+                    'url' => 'finance/journals/create',
+                    'icon' => 'bi bi-plus-circle',
+                ],
+                [
+                    'text' => 'Journal Register',
+                    'url' => 'finance/journals',
+                    'icon' => 'bi bi-list-ul',
+                ],
+                [
+                    'text' => 'Recurring Journals',
+                    'url' => 'finance/recurring-journals',
+                    'icon' => 'bi bi-arrow-repeat',
+                ],
+            ],
+        ],
+
+        // General Ledger
+        [
+            'text' => 'General Ledger',
+            'url' => 'finance/general-ledger',
+            'icon' => 'bi bi-book',
+        ],
+
+        // Accounts Payable
+        [
+            'text' => 'Accounts Payable',
+            'icon' => 'bi bi-cart-dash',
+            'submenu' => [
+                [
+                    'text' => 'Suppliers',
+                    'url' => 'finance/suppliers',
+                    'icon' => 'bi bi-people',
+                ],
+                [
+                    'text' => 'Supplier Invoices',
+                    'url' => 'finance/supplier-invoices',
+                    'icon' => 'bi bi-file-text',
+                ],
+                [
+                    'text' => 'Payments',
+                    'url' => 'finance/payments',
+                    'icon' => 'bi bi-cash-stack',
+                ],
+                [
+                    'text' => 'AP Aging',
+                    'url' => 'finance/ap-aging',
+                    'icon' => 'bi bi-clock-history',
+                ],
+            ],
+        ],
+
+        // Accounts Receivable
+        [
+            'text' => 'Accounts Receivable',
+            'icon' => 'bi bi-cart-plus',
+            'submenu' => [
+                [
+                    'text' => 'Customers',
+                    'url' => 'finance/customers',
+                    'icon' => 'bi bi-people',
+                ],
+                [
+                    'text' => 'Customer Invoices',
+                    'url' => 'finance/customer-invoices',
+                    'icon' => 'bi bi-file-text',
+                ],
+                [
+                    'text' => 'Receipts',
+                    'url' => 'finance/receipts',
+                    'icon' => 'bi bi-cash-stack',
+                ],
+                [
+                    'text' => 'AR Aging',
+                    'url' => 'finance/ar-aging',
+                    'icon' => 'bi bi-clock-history',
+                ],
+            ],
+        ],
+
+        // Cash & Bank
+        [
+            'text' => 'Cash & Bank',
+            'icon' => 'bi bi-bank',
+            'submenu' => [
+                [
+                    'text' => 'Cash Accounts',
+                    'url' => 'finance/cash-accounts',
+                    'icon' => 'bi bi-wallet2',
+                ],
+                [
+                    'text' => 'Bank Accounts',
+                    'url' => 'finance/bank-accounts',
+                    'icon' => 'bi bi-building',
+                ],
+                [
+                    'text' => 'Bank Receipts',
+                    'url' => 'finance/bank-receipts',
+                    'icon' => 'bi bi-arrow-down-circle',
+                ],
+                [
+                    'text' => 'Bank Payments',
+                    'url' => 'finance/bank-payments',
+                    'icon' => 'bi bi-arrow-up-circle',
+                ],
+                [
+                    'text' => 'Reconciliation',
+                    'url' => 'finance/bank-reconciliation',
+                    'icon' => 'bi bi-check2-square',
+                ],
+            ],
+        ],
+
+        // Budget
+        [
+            'text' => 'Budget',
+            'icon' => 'bi bi-calculator',
+            'submenu' => [
+                [
+                    'text' => 'Budgets',
+                    'url' => 'finance/budgets',
+                    'icon' => 'bi bi-list-check',
+                ],
+                [
+                    'text' => 'Budget vs Actual',
+                    'url' => 'finance/budget-vs-actual',
+                    'icon' => 'bi bi-bar-chart',
+                ],
+            ],
+        ],
+
+        // Tax
+        [
+            'text' => 'Tax',
+            'url' => 'finance/taxes',
+            'icon' => 'bi bi-percent',
+        ],
+
+        // Cost Centers
+        [
+            'text' => 'Cost Centers',
+            'url' => 'finance/cost-centers',
+            'icon' => 'bi bi-pie-chart',
+        ],
+
+        // Reports
+        [
+            'text' => 'Reports',
+            'icon' => 'bi bi-graph-up',
+            'submenu' => [
+                [
+                    'text' => 'General Ledger',
+                    'url' => 'finance/reports/general-ledger',
+                    'icon' => 'bi bi-book',
+                ],
+                [
+                    'text' => 'Trial Balance',
+                    'url' => 'finance/reports/trial-balance',
+                    'icon' => 'bi bi-bar-chart-fill',
+                ],
+                [
+                    'text' => 'Profit & Loss',
+                    'url' => 'finance/reports/profit-loss',
+                    'icon' => 'bi bi-graph-up',
+                ],
+                [
+                    'text' => 'Balance Sheet',
+                    'url' => 'finance/reports/balance-sheet',
+                    'icon' => 'bi bi-card-checklist',
+                ],
+                [
+                    'text' => 'Cash Flow',
+                    'url' => 'finance/reports/cash-flow',
+                    'icon' => 'bi bi-water',
+                ],
+                [
+                    'text' => 'AP Reports',
+                    'url' => 'finance/reports/ap',
+                    'icon' => 'bi bi-cart-dash',
+                ],
+                [
+                    'text' => 'AR Reports',
+                    'url' => 'finance/reports/ar',
+                    'icon' => 'bi bi-cart-plus',
+                ],
+                [
+                    'text' => 'Management Reports',
+                    'url' => 'finance/reports/management',
+                    'icon' => 'bi bi-clipboard-data',
+                ],
+            ],
+        ],
+
         ['header' => 'account_settings'],
         [
             'text' => 'profile',
@@ -802,60 +1004,6 @@ return [
             'text' => 'change_password',
             'url' => 'admin/settings',
             'icon' => 'bi bi-lock',
-        ],
-        [
-            'text' => 'multilevel',
-            'icon' => 'bi bi-share',
-            'submenu' => [
-                [
-                    'text' => 'level_one',
-                    'url' => '#',
-                ],
-                [
-                    'text' => 'level_one',
-                    'url' => '#',
-                    'submenu' => [
-                        [
-                            'text' => 'level_two',
-                            'url' => '#',
-                        ],
-                        [
-                            'text' => 'level_two',
-                            'url' => '#',
-                            'submenu' => [
-                                [
-                                    'text' => 'level_three',
-                                    'url' => '#',
-                                ],
-                                [
-                                    'text' => 'level_three',
-                                    'url' => '#',
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-                [
-                    'text' => 'level_one',
-                    'url' => '#',
-                ],
-            ],
-        ],
-        ['header' => 'labels'],
-        [
-            'text' => 'important',
-            'icon_color' => 'danger',
-            'url' => '#',
-        ],
-        [
-            'text' => 'warning',
-            'icon_color' => 'warning',
-            'url' => '#',
-        ],
-        [
-            'text' => 'information',
-            'icon_color' => 'info',
-            'url' => '#',
         ],
     ],
 
