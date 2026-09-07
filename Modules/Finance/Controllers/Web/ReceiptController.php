@@ -27,6 +27,22 @@ class ReceiptController extends Controller
         return view('finance.receipts.create');
     }
 
+    public function bankReceipts(Request $request)
+    {
+        $companyId = $request->get('company_id', 1);
+
+        $receipts = CustomerReceipt::with(['customer', 'bankAccount'])
+            ->where('company_id', $companyId)
+            ->whereNotNull('bank_account_id')
+            ->orderBy('receipt_date', 'desc')
+            ->paginate(20);
+
+        return view('finance.receipts.index', [
+            'receipts' => $receipts,
+            'isBankReceipts' => true,
+        ]);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([

@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Receipts')
+@section('title', ($isBankReceipts ?? false) ? 'Bank Receipts' : 'Receipts')
 
 @section('content_header')
-    <h1>Receipts</h1>
+    <h1>{{ ($isBankReceipts ?? false) ? 'Bank Receipts' : 'Receipts' }}</h1>
     <div class="mt-2">
         <a href="{{ route('finance.receipts.create') }}" class="btn btn-primary">
             <i class="bi bi-plus-circle"></i> New Receipt
@@ -14,7 +14,7 @@
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Receipt Register</h3>
+            <h3 class="card-title">{{ ($isBankReceipts ?? false) ? 'Bank Receipt Register' : 'Receipt Register' }}</h3>
         </div>
         <div class="card-body table-responsive">
             <table class="table table-bordered table-striped">

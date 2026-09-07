@@ -16,6 +16,7 @@ use Modules\Finance\Controllers\Web\TaxController;
 use Modules\Finance\Controllers\Web\CostCenterController;
 use Modules\Finance\Controllers\Web\CashAccountController;
 use Modules\Finance\Controllers\Web\BankAccountController;
+use Modules\Finance\Controllers\Web\BankPaymentController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -60,6 +61,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Cash & Bank
         Route::get('/bank-accounts', [BankAccountController::class, 'index'])->name('bank-accounts.index');
+        Route::get('/bank-receipts', [ReceiptController::class, 'bankReceipts'])->name('bank-receipts.index');
 
         // Suppliers
         Route::get('/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
@@ -124,6 +126,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/cash-accounts/{id}/edit', [CashAccountController::class, 'edit'])->name('cash-accounts.edit');
         Route::put('/cash-accounts/{id}', [CashAccountController::class, 'update'])->name('cash-accounts.update');
         Route::delete('/cash-accounts/{id}', [CashAccountController::class, 'destroy'])->name('cash-accounts.destroy');
+
+        // Bank Accounts
+        Route::get('/bank-accounts', [BankAccountController::class, 'index'])->name('bank-accounts.index');
+        Route::get('/bank-accounts/create', [BankAccountController::class, 'create'])->name('bank-accounts.create');
+        Route::post('/bank-accounts', [BankAccountController::class, 'store'])->name('bank-accounts.store');
+        Route::get('/bank-accounts/{id}/edit', [BankAccountController::class, 'edit'])->name('bank-accounts.edit');
+        Route::put('/bank-accounts/{id}', [BankAccountController::class, 'update'])->name('bank-accounts.update');
+        Route::delete('/bank-accounts/{id}', [BankAccountController::class, 'destroy'])->name('bank-accounts.destroy');
+
+        // Bank Payments
+        Route::get('/bank-payments', [BankPaymentController::class, 'index'])->name('bank-payments.index');
+        Route::get('/bank-payments/create', [BankPaymentController::class, 'create'])->name('bank-payments.create');
+        Route::post('/bank-payments', [BankPaymentController::class, 'store'])->name('bank-payments.store');
 
         // Cost Centers
         Route::get('/cost-centers', [CostCenterController::class, 'index'])->name('cost-centers.index');

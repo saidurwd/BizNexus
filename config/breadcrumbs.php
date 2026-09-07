@@ -78,6 +78,10 @@ return [
         'label' => 'Bank Accounts',
         'parent' => null,
     ],
+    'finance.bank-receipts.index' => [
+        'label' => 'Bank Receipts',
+        'parent' => null,
+    ],
 
     // Suppliers
     'finance.suppliers' => [

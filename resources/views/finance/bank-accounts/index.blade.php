@@ -1,16 +1,18 @@
 @extends('adminlte::page')
 
-@section('title', 'Bank Accounts')
+@section('title', 'Bank Accounts - BizNexus')
 
 @section('content_header')
     <h1>Bank Accounts</h1>
+    <div class="mt-2">
+        <a href="{{ route('finance.bank-accounts.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add Bank Account
+        </a>
+    </div>
 @endsection
 
 @section('content')
     <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Bank Account Register</h3>
-        </div>
         <div class="card-body table-responsive">
             <table class="table table-bordered table-striped">
                 <thead>
@@ -23,6 +25,7 @@
                         <th>Currency</th>
                         <th class="text-right">Current Balance</th>
                         <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -40,10 +43,22 @@
                                     {{ $account->status }}
                                 </span>
                             </td>
+                            <td>
+                                <a href="{{ route('finance.bank-accounts.edit', $account->id) }}" class="btn btn-sm btn-warning">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form action="{{ route('finance.bank-accounts.destroy', $account->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete {{ addslashes($account->bank_name . ' - ' . $account->account_name) }}? This cannot be undone.')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center">No bank accounts found</td>
+                            <td colspan="9" class="text-center">No bank accounts found</td>
                         </tr>
                     @endforelse
                 </tbody>
