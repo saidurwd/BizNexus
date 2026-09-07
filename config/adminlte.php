@@ -862,218 +862,216 @@ return [
         // ============================================================
         [
             'text' => 'FINANCE',
-            'header' => true,
-        ],
-
-        // Finance Menu
-        [
-            'text' => 'Dashboard',
-            'url' => 'finance/dashboard',
-            'icon' => 'bi bi-speedometer',
-        ],
-
-        // Chart of Accounts
-        [
-            'text' => 'Chart of Accounts',
-            'url' => 'finance/accounts',
-            'icon' => 'bi bi-diagram-3',
-        ],
-
-        // Journals
-        [
-            'text' => 'Journals',
-            'icon' => 'bi bi-journal-text',
+            'icon' => 'bi bi-people-fill',
             'submenu' => [
+                // Dashboard Menu
                 [
-                    'text' => 'Journal Entry',
-                    'url' => 'finance/journals/create',
-                    'icon' => 'bi bi-plus-circle',
+                    'text' => 'Dashboard',
+                    'url' => 'finance/dashboard',
+                    'icon' => 'bi bi-speedometer',
                 ],
+                // Chart of Accounts
                 [
-                    'text' => 'Journal Register',
-                    'url' => 'finance/journals',
-                    'icon' => 'bi bi-list-ul',
+                    'text' => 'Chart of Accounts',
+                    'url' => 'finance/accounts',
+                    'icon' => 'bi bi-diagram-3',
                 ],
+                // Journals
                 [
-                    'text' => 'Recurring Journals',
-                    'url' => 'finance/recurring-journals',
-                    'icon' => 'bi bi-arrow-repeat',
+                    'text' => 'Journals',
+                    'icon' => 'bi bi-journal-text',
+                    'submenu' => [
+                        [
+                            'text' => 'Journal Entry',
+                            'url' => 'finance/journals/create',
+                            'icon' => 'bi bi-plus-circle',
+                        ],
+                        [
+                            'text' => 'Journal Register',
+                            'url' => 'finance/journals',
+                            'icon' => 'bi bi-list-ul',
+                        ],
+                        [
+                            'text' => 'Recurring Journals',
+                            'url' => 'finance/recurring-journals',
+                            'icon' => 'bi bi-arrow-repeat',
+                        ],
+                    ],
                 ],
-            ],
-        ],
-
-        // General Ledger
-        [
-            'text' => 'General Ledger',
-            'url' => 'finance/general-ledger',
-            'icon' => 'bi bi-book',
-        ],
-
-        // Accounts Payable
-        [
-            'text' => 'Accounts Payable',
-            'icon' => 'bi bi-cart-dash',
-            'submenu' => [
-                [
-                    'text' => 'Suppliers',
-                    'url' => 'finance/suppliers',
-                    'icon' => 'bi bi-people',
-                ],
-                [
-                    'text' => 'Supplier Invoices',
-                    'url' => 'finance/supplier-invoices',
-                    'icon' => 'bi bi-file-text',
-                ],
-                [
-                    'text' => 'Payments',
-                    'url' => 'finance/payments',
-                    'icon' => 'bi bi-cash-stack',
-                ],
-                [
-                    'text' => 'AP Aging',
-                    'url' => 'finance/ap-aging',
-                    'icon' => 'bi bi-clock-history',
-                ],
-            ],
-        ],
-
-        // Accounts Receivable
-        [
-            'text' => 'Accounts Receivable',
-            'icon' => 'bi bi-cart-plus',
-            'submenu' => [
-                [
-                    'text' => 'Customers',
-                    'url' => 'finance/customers',
-                    'icon' => 'bi bi-people',
-                ],
-                [
-                    'text' => 'Customer Invoices',
-                    'url' => 'finance/customer-invoices',
-                    'icon' => 'bi bi-file-text',
-                ],
-                [
-                    'text' => 'Receipts',
-                    'url' => 'finance/receipts',
-                    'icon' => 'bi bi-cash-stack',
-                ],
-                [
-                    'text' => 'AR Aging',
-                    'url' => 'finance/ar-aging',
-                    'icon' => 'bi bi-clock-history',
-                ],
-            ],
-        ],
-
-        // Cash & Bank
-        [
-            'text' => 'Cash & Bank',
-            'icon' => 'bi bi-bank',
-            'submenu' => [
-                [
-                    'text' => 'Cash Accounts',
-                    'url' => 'finance/cash-accounts',
-                    'icon' => 'bi bi-wallet2',
-                ],
-                [
-                    'text' => 'Bank Accounts',
-                    'url' => 'finance/bank-accounts',
-                    'icon' => 'bi bi-building',
-                ],
-                [
-                    'text' => 'Bank Receipts',
-                    'url' => 'finance/bank-receipts',
-                    'icon' => 'bi bi-arrow-down-circle',
-                ],
-                [
-                    'text' => 'Bank Payments',
-                    'url' => 'finance/bank-payments',
-                    'icon' => 'bi bi-arrow-up-circle',
-                ],
-                [
-                    'text' => 'Reconciliation',
-                    'url' => 'finance/bank-reconciliation',
-                    'icon' => 'bi bi-check2-square',
-                ],
-            ],
-        ],
-
-        // Budget
-        [
-            'text' => 'Budget',
-            'icon' => 'bi bi-calculator',
-            'submenu' => [
-                [
-                    'text' => 'Budgets',
-                    'url' => 'finance/budgets',
-                    'icon' => 'bi bi-list-check',
-                ],
-                [
-                    'text' => 'Budget vs Actual',
-                    'url' => 'finance/budget-vs-actual',
-                    'icon' => 'bi bi-bar-chart',
-                ],
-            ],
-        ],
-
-        // Tax
-        [
-            'text' => 'Tax',
-            'url' => 'finance/taxes',
-            'icon' => 'bi bi-percent',
-        ],
-
-        // Cost Centers
-        [
-            'text' => 'Cost Centers',
-            'url' => 'finance/cost-centers',
-            'icon' => 'bi bi-pie-chart',
-        ],
-
-        // Reports
-        [
-            'text' => 'Reports',
-            'icon' => 'bi bi-graph-up',
-            'submenu' => [
+                // General Ledger
                 [
                     'text' => 'General Ledger',
-                    'url' => 'finance/reports/general-ledger',
+                    'url' => 'finance/general-ledger',
                     'icon' => 'bi bi-book',
                 ],
+
+                // Accounts Payable
                 [
-                    'text' => 'Trial Balance',
-                    'url' => 'finance/reports/trial-balance',
-                    'icon' => 'bi bi-bar-chart-fill',
-                ],
-                [
-                    'text' => 'Profit & Loss',
-                    'url' => 'finance/reports/profit-loss',
-                    'icon' => 'bi bi-graph-up',
-                ],
-                [
-                    'text' => 'Balance Sheet',
-                    'url' => 'finance/reports/balance-sheet',
-                    'icon' => 'bi bi-card-checklist',
-                ],
-                [
-                    'text' => 'Cash Flow',
-                    'url' => 'finance/reports/cash-flow',
-                    'icon' => 'bi bi-water',
-                ],
-                [
-                    'text' => 'AP Reports',
-                    'url' => 'finance/reports/ap',
+                    'text' => 'Accounts Payable',
                     'icon' => 'bi bi-cart-dash',
+                    'submenu' => [
+                        [
+                            'text' => 'Suppliers',
+                            'url' => 'finance/suppliers',
+                            'icon' => 'bi bi-people',
+                        ],
+                        [
+                            'text' => 'Supplier Invoices',
+                            'url' => 'finance/supplier-invoices',
+                            'icon' => 'bi bi-file-text',
+                        ],
+                        [
+                            'text' => 'Payments',
+                            'url' => 'finance/payments',
+                            'icon' => 'bi bi-cash-stack',
+                        ],
+                        [
+                            'text' => 'AP Aging',
+                            'url' => 'finance/ap-aging',
+                            'icon' => 'bi bi-clock-history',
+                        ],
+                    ],
                 ],
+
+                // Accounts Receivable
                 [
-                    'text' => 'AR Reports',
-                    'url' => 'finance/reports/ar',
+                    'text' => 'Accounts Receivable',
                     'icon' => 'bi bi-cart-plus',
+                    'submenu' => [
+                        [
+                            'text' => 'Customers',
+                            'url' => 'finance/customers',
+                            'icon' => 'bi bi-people',
+                        ],
+                        [
+                            'text' => 'Customer Invoices',
+                            'url' => 'finance/customer-invoices',
+                            'icon' => 'bi bi-file-text',
+                        ],
+                        [
+                            'text' => 'Receipts',
+                            'url' => 'finance/receipts',
+                            'icon' => 'bi bi-cash-stack',
+                        ],
+                        [
+                            'text' => 'AR Aging',
+                            'url' => 'finance/ar-aging',
+                            'icon' => 'bi bi-clock-history',
+                        ],
+                    ],
                 ],
+
+                // Cash & Bank
                 [
-                    'text' => 'Management Reports',
-                    'url' => 'finance/reports/management',
-                    'icon' => 'bi bi-clipboard-data',
+                    'text' => 'Cash & Bank',
+                    'icon' => 'bi bi-bank',
+                    'submenu' => [
+                        [
+                            'text' => 'Cash Accounts',
+                            'url' => 'finance/cash-accounts',
+                            'icon' => 'bi bi-wallet2',
+                        ],
+                        [
+                            'text' => 'Bank Accounts',
+                            'url' => 'finance/bank-accounts',
+                            'icon' => 'bi bi-building',
+                        ],
+                        [
+                            'text' => 'Bank Receipts',
+                            'url' => 'finance/bank-receipts',
+                            'icon' => 'bi bi-arrow-down-circle',
+                        ],
+                        [
+                            'text' => 'Bank Payments',
+                            'url' => 'finance/bank-payments',
+                            'icon' => 'bi bi-arrow-up-circle',
+                        ],
+                        [
+                            'text' => 'Reconciliation',
+                            'url' => 'finance/bank-reconciliation',
+                            'icon' => 'bi bi-check2-square',
+                        ],
+                    ],
+                ],
+
+                // Budget
+                [
+                    'text' => 'Budget',
+                    'icon' => 'bi bi-calculator',
+                    'submenu' => [
+                        [
+                            'text' => 'Budgets',
+                            'url' => 'finance/budgets',
+                            'icon' => 'bi bi-list-check',
+                        ],
+                        [
+                            'text' => 'Budget vs Actual',
+                            'url' => 'finance/budget-vs-actual',
+                            'icon' => 'bi bi-bar-chart',
+                        ],
+                    ],
+                ],
+
+                // Tax
+                [
+                    'text' => 'Tax',
+                    'url' => 'finance/taxes',
+                    'icon' => 'bi bi-percent',
+                ],
+
+                // Cost Centers
+                [
+                    'text' => 'Cost Centers',
+                    'url' => 'finance/cost-centers',
+                    'icon' => 'bi bi-pie-chart',
+                ],
+
+                // Reports
+                [
+                    'text' => 'Reports',
+                    'icon' => 'bi bi-graph-up',
+                    'submenu' => [
+                        [
+                            'text' => 'General Ledger',
+                            'url' => 'finance/reports/general-ledger',
+                            'icon' => 'bi bi-book',
+                        ],
+                        [
+                            'text' => 'Trial Balance',
+                            'url' => 'finance/reports/trial-balance',
+                            'icon' => 'bi bi-bar-chart-fill',
+                        ],
+                        [
+                            'text' => 'Profit & Loss',
+                            'url' => 'finance/reports/profit-loss',
+                            'icon' => 'bi bi-graph-up',
+                        ],
+                        [
+                            'text' => 'Balance Sheet',
+                            'url' => 'finance/reports/balance-sheet',
+                            'icon' => 'bi bi-card-checklist',
+                        ],
+                        [
+                            'text' => 'Cash Flow',
+                            'url' => 'finance/reports/cash-flow',
+                            'icon' => 'bi bi-water',
+                        ],
+                        [
+                            'text' => 'AP Reports',
+                            'url' => 'finance/reports/ap',
+                            'icon' => 'bi bi-cart-dash',
+                        ],
+                        [
+                            'text' => 'AR Reports',
+                            'url' => 'finance/reports/ar',
+                            'icon' => 'bi bi-cart-plus',
+                        ],
+                        [
+                            'text' => 'Management Reports',
+                            'url' => 'finance/reports/management',
+                            'icon' => 'bi bi-clipboard-data',
+                        ],
+                    ],
                 ],
             ],
         ],
