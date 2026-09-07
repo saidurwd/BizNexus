@@ -4,7 +4,7 @@ namespace Modules\Finance\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\Payment;
+use Modules\Finance\Models\SupplierPayment;
 use Modules\Finance\Services\PaymentService;
 
 class PaymentController extends Controller
@@ -15,7 +15,7 @@ class PaymentController extends Controller
 
     public function index(Request $request)
     {
-        $payments = Payment::with('paymentAccount')
+        $payments = SupplierPayment::with('bankAccount')
             ->orderBy('payment_date', 'desc')
             ->paginate(20);
 
@@ -31,11 +31,10 @@ class PaymentController extends Controller
     {
         $validated = $request->validate([
             'payment_date' => 'required|date',
-            'payment_type' => 'required|in:CASH,BANK_TRANSFER,CHECK',
-            'payment_account_id' => 'required|exists:finance_accounts,id',
+            'payment_method' => 'required|in:CASH,BANK_TRANSFER,CHECK',
+            'supplier_id' => 'required|exists:suppliers,id',
+            'bank_account_id' => 'nullable|exists:bank_accounts,id',
             'amount' => 'required|numeric|min:0.01',
-            'payee_type' => 'required|in:SUPPLIER,CUSTOMER,OTHER',
-            'payee_name' => 'required|string|max:255',
             'reference' => 'nullable|string|max:100',
             'description' => 'nullable|string',
             'company_id' => 'required|exists:companies,id',
@@ -50,7 +49,7 @@ class PaymentController extends Controller
 
     public function show(string $id)
     {
-        $payment = Payment::with('paymentAccount')->findOrFail($id);
+        $payment = SupplierPayment::with('bankAccount')->findOrFail($id);
 
         return view('finance.payments.show', compact('payment'));
     }

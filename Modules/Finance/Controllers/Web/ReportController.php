@@ -90,9 +90,37 @@ class ReportController extends Controller
         $companyId = $request->get('company_id', 1);
 
         $aging = $this->paymentService->getAPAging($companyId);
+        $apAging = collect($aging['invoices'])
+            ->groupBy('supplier_name')
+            ->map(function ($invoices, $supplierName) {
+                $summary = [
+                    'supplier_name' => $supplierName,
+                    'current' => 0,
+                    'days_1_30' => 0,
+                    'days_31_60' => 0,
+                    'days_61_90' => 0,
+                    'over_90_days' => 0,
+                    'total' => 0,
+                ];
 
-        return view('finance.reports.ap-report', [
-            'aging' => $aging,
+                foreach ($invoices as $invoice) {
+                    $amount = $invoice['amount'];
+                    $summary['total'] += $amount;
+
+                    if (in_array($invoice['bucket'], ['days_91_180', 'days_180_plus'])) {
+                        $summary['over_90_days'] += $amount;
+                    } else {
+                        $summary[$invoice['bucket']] += $amount;
+                    }
+                }
+
+                return $summary;
+            })
+            ->values();
+
+        return view('finance.reports.ap', [
+            'apAging' => $apAging,
+            'asOfDate' => Carbon::today()->toDateString(),
         ]);
     }
 

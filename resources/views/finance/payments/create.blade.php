@@ -22,10 +22,10 @@
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="payment_type">Payment Type</label>
-                            <select class="form-control" name="payment_type" required>
-                                <option value="CASH">Cash</option>
+                            <label for="payment_method">Payment Method</label>
+                            <select class="form-control" name="payment_method" required>
                                 <option value="BANK_TRANSFER">Bank Transfer</option>
+                                <option value="CASH">Cash</option>
                                 <option value="CHECK">Check</option>
                             </select>
                         </div>
@@ -35,9 +35,14 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="payment_account_id">Payment Account</label>
-                            <select class="form-control" name="payment_account_id" required>
-                                <option value="">Select Account</option>
+                            <label for="supplier_id">Supplier</label>
+                            <select class="form-control" name="supplier_id" required>
+                                <option value="">Select Supplier</option>
+                                @foreach(\Modules\Finance\Models\Supplier::where('status', 'active')->get() as $supplier)
+                                    <option value="{{ $supplier->id }}" @selected(old('supplier_id') == $supplier->id)>
+                                        {{ $supplier->supplier_code }} — {{ $supplier->name }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
@@ -52,32 +57,23 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="payee_type">Payee Type</label>
-                            <select class="form-control" name="payee_type" required>
-                                <option value="SUPPLIER">Supplier</option>
-                                <option value="CUSTOMER">Customer</option>
-                                <option value="OTHER">Other</option>
+                            <label for="bank_account_id">Bank Account</label>
+                            <select class="form-control" name="bank_account_id">
+                                <option value="">— None —</option>
+                                @foreach(\Modules\Finance\Models\BankAccount::where('status', 'active')->get() as $account)
+                                    <option value="{{ $account->id }}" @selected(old('bank_account_id') == $account->id)>
+                                        {{ $account->bank_name }} — {{ $account->account_number }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="payee_id">Payee</label>
-                            <select class="form-control" name="payee_id">
-                                <option value="">Select Payee</option>
-                            </select>
+                            <label for="reference">Reference</label>
+                            <input type="text" class="form-control" name="reference" value="{{ old('reference') }}">
                         </div>
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="payee_name">Payee Name</label>
-                    <input type="text" class="form-control" name="payee_name" value="{{ old('payee_name') }}" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="reference">Reference</label>
-                    <input type="text" class="form-control" name="reference" value="{{ old('reference') }}">
                 </div>
 
                 <div class="form-group">

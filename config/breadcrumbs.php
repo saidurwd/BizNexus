@@ -66,6 +66,10 @@ return [
         'label' => 'General Ledger',
         'parent' => null,
     ],
+    'finance.ap-aging' => [
+        'label' => 'AP Aging',
+        'parent' => null,
+    ],
 
     // Suppliers
     'finance.suppliers' => [

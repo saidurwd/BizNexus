@@ -41,39 +41,36 @@
         {{-- Content Wrapper --}}
         <main class="{{ $layoutHelper->makeContentWrapperClasses() }}">
 
-            {{-- Breadcrumbs (rendered before content header) --}}
-            @if($breadcrumbs->count() > 0)
-                <div class="app-content-breadcrumbs">
-                    <div class="container-fluid">
-                        <ol class="breadcrumb mb-0">
-                            <li class="breadcrumb-item">
-                                <a href="{{ route('dashboard') }}">
-                                    <i class="bi bi-house"></i>
-                                </a>
-                            </li>
-                            @foreach($breadcrumbs as $crumb)
-                                @if($loop->last)
-                                    <li class="breadcrumb-item active">
-                                        {{ $crumb['label'] }}
-                                    </li>
-                                @else
-                                    <li class="breadcrumb-item">
-                                        <a href="{{ $crumb['url'] ?? '#' }}">
-                                            {{ $crumb['label'] }}
-                                        </a>
-                                    </li>
-                                @endif
-                            @endforeach
-                        </ol>
-                    </div>
-                </div>
-            @endif
-
-            {{-- Content Header --}}
-            @hasSection('content_header')
+            {{-- Content Header (AdminLTE v4 layout) --}}
+            @if(View::hasSection('content_header') || $breadcrumbs->isNotEmpty())
                 <div class="app-content-header">
                     <div class="container-fluid">
-                        @yield('content_header')
+                        <div class="row">
+                            <div class="col-sm-6">
+                                @hasSection('content_header')
+                                    @yield('content_header')
+                                @endif
+                            </div>
+
+                            @if($breadcrumbs->isNotEmpty())
+                                <div class="col-sm-6">
+                                    <nav aria-label="{{ __('adminlte::adminlte.breadcrumb') }}">
+                                        <ol class="breadcrumb float-sm-end">
+                                            @foreach($breadcrumbs as $crumb)
+                                                <li class="breadcrumb-item{{ $crumb['active'] ? ' active' : '' }}"
+                                                    @if($crumb['active']) aria-current="page" @endif>
+                                                    @if($crumb['url'])
+                                                        <a href="{{ $crumb['url'] }}">{{ $crumb['label'] }}</a>
+                                                    @else
+                                                        {{ $crumb['label'] }}
+                                                    @endif
+                                                </li>
+                                            @endforeach
+                                        </ol>
+                                    </nav>
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
             @endif
@@ -99,41 +96,6 @@
 
     </div>
 @stop
-
-@push('css')
-    <style>
-        .app-content-breadcrumbs {
-            background: #f8f9fa;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #dee2e6;
-        }
-        .breadcrumb {
-            background: transparent;
-            padding: 0;
-            margin: 0;
-            font-size: 0.875rem;
-        }
-        .breadcrumb-item + .breadcrumb-item::before {
-            content: "›";
-            color: #6c757d;
-        }
-        .breadcrumb-item a {
-            color: #007bff;
-            text-decoration: none;
-        }
-        .breadcrumb-item a:hover {
-            text-decoration: underline;
-        }
-        .breadcrumb-item.active {
-            color: #6c757d;
-        }
-        @media (max-width: 576px) {
-            .app-content-breadcrumbs .breadcrumb {
-                font-size: 0.75rem;
-            }
-        }
-    </style>
-@endpush
 
 @section('adminlte_css')
     @stack('css')

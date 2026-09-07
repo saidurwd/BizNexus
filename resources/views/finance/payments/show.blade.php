@@ -20,11 +20,11 @@
                 </tr>
                 <tr>
                     <th>Payment Type</th>
-                    <td>{{ $payment->payment_type }}</td>
+                    <td>{{ $payment->payment_method }}</td>
                 </tr>
                 <tr>
                     <th>Payment Account</th>
-                    <td>{{ $payment->paymentAccount?->account_name ?? '-' }}</td>
+                    <td>{{ $payment->bankAccount?->gl_account?->account_name ?? '-' }}</td>
                 </tr>
                 <tr>
                     <th>Amount</th>
@@ -49,7 +49,7 @@
                 <tr>
                     <th>Status</th>
                     <td>
-                        <span class="badge bg-{{ $payment->status === 'COMPLETED' ? 'success' : ($payment->status === 'PENDING' ? 'warning' : 'secondary') }}">
+                        <span class="badge bg-{{ $payment->status === 'POSTED' ? 'success' : ($payment->status === 'DRAFT' ? 'secondary' : 'warning') }}">
                             {{ $payment->status }}
                         </span>
                     </td>

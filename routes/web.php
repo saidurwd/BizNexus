@@ -50,6 +50,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // General Ledger
         Route::get('/general-ledger', [JournalController::class, 'generalLedger'])->name('general-ledger');
 
+        // Accounts Payable
+        Route::get('/ap-aging', [ReportController::class, 'apReport'])->name('ap-aging');
+
         // Suppliers
         Route::get('/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
         Route::get('/suppliers/create', [SupplierController::class, 'create'])->name('suppliers.create');
