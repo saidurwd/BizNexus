@@ -30,12 +30,12 @@
                             <td>{{ $user->name }}</td>
                             <td>{{ $user->email }}</td>
                             <td>
-                                @foreach($user->userCompanies as $uc)
+                                @foreach($user->userCompanies ?? [] as $uc)
                                     <span class="badge bg-info">{{ $uc->company->code }}</span>
                                 @endforeach
                             </td>
                             <td>
-                                @foreach($user->companyUserRoles as $cur)
+                                @foreach($user->companyUserRoles ?? [] as $cur)
                                     <span class="badge bg-success">{{ $cur->role->name }}</span>
                                 @endforeach
                             </td>
