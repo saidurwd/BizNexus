@@ -31,7 +31,7 @@
                             <td>{{ $role->slug }}</td>
                             <td>{{ $role->description ?? '-' }}</td>
                             <td>
-                                @foreach($role->permissions as $permission)
+                                @foreach($role->permissions ?? [] as $permission)
                                     <span class="badge bg-info">{{ $permission->slug }}</span>
                                 @endforeach
                             </td>
