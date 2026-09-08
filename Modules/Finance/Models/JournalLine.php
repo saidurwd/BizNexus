@@ -4,6 +4,9 @@ namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Finance\Scopes\BranchScope;
+use Modules\Finance\Scopes\CompanyScope;
+use Modules\Finance\Scopes\DepartmentScope;
 
 class JournalLine extends Model
 {
