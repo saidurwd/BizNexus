@@ -25,6 +25,7 @@ use Modules\Finance\Controllers\Web\SupplierStatementController;
 use Modules\Finance\Controllers\Web\CustomerStatementController;
 use Modules\Core\Controllers\Web\CompanyController;
 use Modules\Core\Controllers\Web\BranchController;
+use Modules\Core\Controllers\Web\DepartmentController;
 use Modules\Core\Controllers\Web\UserController;
 use Modules\Core\Controllers\Web\RoleController;
 use Modules\Core\Controllers\Web\PermissionController;
@@ -73,7 +74,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/branches/{id}', [BranchController::class, 'update'])->name('core.branches.update');
     Route::delete('/branches/{id}', [BranchController::class, 'destroy'])->name('core.branches.destroy');
 
-
+    Route::get('/departments', [DepartmentController::class, 'index'])->name('core.departments.index');
+    Route::get('/departments/create', [DepartmentController::class, 'create'])->name('core.departments.create');
+    Route::post('/departments', [DepartmentController::class, 'store'])->name('core.departments.store');
+    Route::get('/departments/{id}/edit', [DepartmentController::class, 'edit'])->name('core.departments.edit');
+    Route::put('/departments/{id}', [DepartmentController::class, 'update'])->name('core.departments.update');
+    Route::delete('/departments/{id}', [DepartmentController::class, 'destroy'])->name('core.departments.destroy');
 
     // Main Dashboard
     Route::get('/dashboard', function () {
