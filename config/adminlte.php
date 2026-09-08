@@ -439,8 +439,21 @@ return [
     'rtl' => [
         'enabled' => null,
         'locales' => [
-            'ar', 'arc', 'ckb', 'dv', 'fa', 'ha', 'he', 'khw', 'ks', 'ps',
-            'sd', 'ug', 'ur', 'uz-AF', 'yi',
+            'ar',
+            'arc',
+            'ckb',
+            'dv',
+            'fa',
+            'ha',
+            'he',
+            'khw',
+            'ks',
+            'ps',
+            'sd',
+            'ug',
+            'ur',
+            'uz-AF',
+            'yi',
         ],
     ],
 
@@ -789,14 +802,8 @@ return [
                 ['text' => 'Roles', 'url' => 'roles', 'icon' => 'bi bi-shield-lock', 'permission' => 'core.roles.view'],
                 ['text' => 'Permissions', 'url' => 'permissions', 'icon' => 'bi bi-key', 'permission' => 'core.permissions.view'],
                 ['header' => 'Company Management'],
-                [
-                    'text' => 'Companies',
-                    'icon' => 'bi bi-person-badge',
-                    'submenu' => [
-                        ['text' => 'Companies', 'url' => 'companies', 'icon' => 'bi bi-building', 'permission' => 'core.companies.view'],
-                        ['text' => 'Branches', 'url' => 'branches', 'icon' => 'bi bi-shop', 'permission' => 'core.branches.view'],
-                    ],
-                ],
+                ['text' => 'Companies', 'url' => 'companies', 'icon' => 'bi bi-building', 'permission' => 'core.companies.view'],
+                ['text' => 'Branches', 'url' => 'branches', 'icon' => 'bi bi-shop', 'permission' => 'core.branches.view'],
                 ['text' => 'Departments', 'url' => '#', 'icon' => 'bi bi-diagram-3', 'permission' => 'core.departments.view'],
                 ['header' => 'Access Management'],
                 ['text' => 'User Companies', 'url' => '#', 'icon' => 'bi bi-building', 'permission' => 'core.companies.view'],
@@ -913,7 +920,7 @@ return [
                         ],
                     ],
                 ],
-                
+
                 // General Ledger
                 [
                     'text' => 'General Ledger',

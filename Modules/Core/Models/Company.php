@@ -5,6 +5,7 @@ namespace Modules\Core\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Core\Models\UserCompany;
 
 class Company extends Model
 {
@@ -87,6 +88,11 @@ class Company extends Model
     public function budgets(): HasMany
     {
         return $this->hasMany(\Modules\Finance\Models\Budget::class);
+    }
+
+    public function userCompanies(): HasMany
+    {
+        return $this->hasMany(UserCompany::class);
     }
 
     public function currentFiscalYear()

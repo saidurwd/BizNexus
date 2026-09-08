@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Core\Models\Company;
 use Modules\Core\Models\Role;
-use Modules\Core\Models\User;
+use App\Models\User;
 use Modules\Core\Models\UserCompany;
 use Modules\Core\Models\CompanyUserRole;
 use Modules\Core\Models\UserBranch;
