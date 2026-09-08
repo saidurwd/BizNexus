@@ -18,7 +18,7 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    public function companies()
+    public function userCompanies()
     {
         return $this->hasMany(\Modules\Core\Models\UserCompany::class);
     }

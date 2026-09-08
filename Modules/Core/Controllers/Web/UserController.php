@@ -18,7 +18,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::all();
+        $users = User::with(['userCompanies.company', 'companyUserRoles.role'])->get();
 
         return view('core.users.index', compact('users'));
     }

@@ -46,4 +46,21 @@ class CompanySelectionController extends Controller
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
+    
+    public function switch(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'company_id' => 'required|exists:companies,id',
+        ]);
+
+        $companyId = (int) $request->input('company_id');
+
+        if (!$this->companyContext->hasCompanyAccess($companyId)) {
+            return back()->with('error', 'You do not have access to the selected company.');
+        }
+
+        $this->companyContext->setActiveCompany($companyId);
+
+        return redirect()->back();
+    }
 }

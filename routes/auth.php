@@ -39,6 +39,8 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('company-selection', [\App\Http\Controllers\Auth\CompanySelectionController::class, 'index'])->name('company.selection');
     Route::post('company-selection', [\App\Http\Controllers\Auth\CompanySelectionController::class, 'select'])->name('company.selection.submit');
+Route::post('company/switch', [\App\Http\Controllers\Auth\CompanySelectionController::class, 'switch'])->name('company.switch');
+
 });
 
 Route::middleware('auth')->group(function () {

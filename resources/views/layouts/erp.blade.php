@@ -97,14 +97,14 @@
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-building"></i>
-                    <span class="d-none d-md-inline">
+                    <span class="d-none d-md-inline ms-1">
                         {{ $companies->firstWhere('id', $activeCompanyId)?->code ?? 'Select Company' }}
                     </span>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end">
+                <ul class="dropdown-menu dropdown-menu-end shadow">
                     @foreach($companies as $company)
                         <li>
-                            <form method="POST" action="{{ route('company.selection.submit') }}" class="dropdown-item-form">
+                            <form method="POST" action="{{ route('company.switch') }}" class="company-switch-form">
                                 @csrf
                                 <input type="hidden" name="company_id" value="{{ $company->id }}">
                                 <button type="submit" class="dropdown-item {{ $company->id == $activeCompanyId ? 'active' : '' }}">
@@ -125,6 +125,26 @@
 @section('adminlte_css')
     @stack('css')
     @yield('css')
+    <style>
+        .company-switch-form {
+            margin: 0;
+            padding: 0;
+            border: none;
+            background: none;
+        }
+        .company-switch-form .dropdown-item {
+            margin: 0;
+            border-radius: 0;
+        }
+        .company-switch-form .dropdown-item:first-child {
+            border-top-left-radius: 0.25rem;
+            border-top-right-radius: 0.25rem;
+        }
+        .company-switch-form .dropdown-item:last-child {
+            border-bottom-left-radius: 0.25rem;
+            border-bottom-right-radius: 0.25rem;
+        }
+    </style>
 @stop
 
 @section('adminlte_js')
