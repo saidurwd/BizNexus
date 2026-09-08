@@ -23,6 +23,11 @@ class User extends Authenticatable
         return $this->hasMany(\Modules\Core\Models\UserCompany::class);
     }
 
+    public function companyUserRoles()
+    {
+        return $this->hasMany(\Modules\Core\Models\CompanyUserRole::class);
+    }
+
     /**
      * Get the attributes that should be cast.
      *
