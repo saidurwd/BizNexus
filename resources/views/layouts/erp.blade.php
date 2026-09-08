@@ -101,10 +101,10 @@
                         {{ $companies->firstWhere('id', $activeCompanyId)?->code ?? 'Select Company' }}
                     </span>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow">
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                     @foreach($companies as $company)
                         <li>
-                            <form method="POST" action="{{ route('company.switch') }}" class="company-switch-form">
+                            <form method="POST" action="{{ route('company.switch') }}" class="m-0 p-0">
                                 @csrf
                                 <input type="hidden" name="company_id" value="{{ $company->id }}">
                                 <button type="submit" class="dropdown-item {{ $company->id == $activeCompanyId ? 'active' : '' }}">
@@ -122,29 +122,28 @@
     @endauth
 @show
 
+@section('footer')
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-sm-6">
+                <strong>
+                    <a href="{{ config('app.url') }}" target="_blank" rel="noopener noreferrer">
+                        {{ config('app.name', 'BizNexus') }}
+                    </a>
+                </strong>
+            </div>
+            <div class="col-sm-6 text-sm-end">
+                <span class="text-body-secondary">
+                    &copy; {{ now()->format('Y') }} All rights reserved.
+                </span>
+            </div>
+        </div>
+    </div>
+@stop
+
 @section('adminlte_css')
     @stack('css')
     @yield('css')
-    <style>
-        .company-switch-form {
-            margin: 0;
-            padding: 0;
-            border: none;
-            background: none;
-        }
-        .company-switch-form .dropdown-item {
-            margin: 0;
-            border-radius: 0;
-        }
-        .company-switch-form .dropdown-item:first-child {
-            border-top-left-radius: 0.25rem;
-            border-top-right-radius: 0.25rem;
-        }
-        .company-switch-form .dropdown-item:last-child {
-            border-bottom-left-radius: 0.25rem;
-            border-bottom-right-radius: 0.25rem;
-        }
-    </style>
 @stop
 
 @section('adminlte_js')
