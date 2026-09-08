@@ -6,9 +6,12 @@ use Modules\Core\Models\Currency;
 use Modules\Core\Models\ExchangeRate;
 use Carbon\Carbon;
 use InvalidArgumentException;
+use Modules\Core\Services\AuditService;
 
 class ExchangeRateService
 {
+    public function __construct(protected AuditService $audit) {}
+
     public function getRate(int $fromCurrencyId, int $toCurrencyId, ?Carbon $date = null): ?float
     {
         $date = $date ?? Carbon::today();
@@ -44,7 +47,7 @@ class ExchangeRateService
     {
         $rateDate = $rateDate ?? Carbon::today();
 
-        return ExchangeRate::updateOrCreate(
+        $rate = ExchangeRate::updateOrCreate(
             [
                 'company_id' => $companyId,
                 'currency_id' => $currencyId,
@@ -56,6 +59,10 @@ class ExchangeRateService
                 'status' => 'active',
             ]
         );
+
+        $this->audit->logCustom('Finance', 'ExchangeRate', $rate->id, $rate->wasRecentlyCreated ? 'CREATE' : 'UPDATE', $rate->toArray());
+
+        return $rate;
     }
 
     public function getHistoricalRate(int $currencyId, Carbon $date): ?float
@@ -80,7 +87,7 @@ class ExchangeRateService
         $rate = $this->getHistoricalRate($currencyId, $date ?? Carbon::today());
         
         if (!$rate) {
-            throw new InvalidArgumentException("No exchange rate available for currency: {$currency->code}");
+            throw new InvalidArgumentException('Exchange rate not available for the specified currency.');
         }
 
         return round($amount * $rate, 4);

@@ -5,6 +5,7 @@ namespace Modules\Finance\Services;
 use Modules\Finance\Models\BankAccount;
 use Modules\Finance\Models\BankTransaction;
 use Modules\Core\Services\DocumentNumberService;
+use Modules\Core\Services\AuditService;
 use InvalidArgumentException;
 
 class BankService
@@ -31,6 +32,7 @@ class BankService
 
             $account->increment('current_balance', $amount);
 
+            $this->audit->logCreate('Finance', 'BankTransaction', $transaction->id, $transaction->toArray());
             return $transaction;
         });
     }
@@ -61,6 +63,7 @@ class BankService
 
             $account->decrement('current_balance', $amount);
 
+            $this->audit->logCreate('Finance', 'BankTransaction', $transaction->id, $transaction->toArray());
             return $transaction;
         });
     }

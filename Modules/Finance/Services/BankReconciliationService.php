@@ -5,6 +5,7 @@ namespace Modules\Finance\Services;
 use Modules\Finance\Models\BankAccount;
 use Modules\Finance\Models\BankReconciliation;
 use Modules\Finance\Models\BankTransaction;
+use Modules\Core\Services\AuditService;
 use Carbon\Carbon;
 
 class BankReconciliationService
@@ -27,6 +28,7 @@ class BankReconciliationService
         ]);
 
         $reconciliation->save();
+            $this->audit->logCreate('Finance', 'BankReconciliation', $reconciliation->id, $reconciliation->toArray());
 
         return $reconciliation;
     }
