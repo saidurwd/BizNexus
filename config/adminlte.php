@@ -784,16 +784,24 @@ return [
             'text' => 'Administration',
             'icon' => 'bi bi-gear',
             'submenu' => [
+                ['header' => 'User Management'],
+                ['text' => 'Users', 'url' => 'users', 'icon' => 'bi bi-people', 'permission' => 'core.users.view'],
+                ['text' => 'Roles', 'url' => 'roles', 'icon' => 'bi bi-shield-lock', 'permission' => 'core.roles.view'],
+                ['text' => 'Permissions', 'url' => 'permissions', 'icon' => 'bi bi-key', 'permission' => 'core.permissions.view'],
                 ['header' => 'Company Management'],
-            [
-                'text' => 'Companies',
-                'icon' => 'bi bi-person-badge',
-                'submenu' => [
-                    ['text' => 'Companies', 'url' => 'companies', 'icon' => 'bi bi-building'],
-                    ['text' => 'Branches', 'url' => 'branches', 'icon' => 'bi bi-shop'],
+                [
+                    'text' => 'Companies',
+                    'icon' => 'bi bi-person-badge',
+                    'submenu' => [
+                        ['text' => 'Companies', 'url' => 'companies', 'icon' => 'bi bi-building', 'permission' => 'core.companies.view'],
+                        ['text' => 'Branches', 'url' => 'branches', 'icon' => 'bi bi-shop', 'permission' => 'core.branches.view'],
+                    ],
                 ],
-            ],
-                ['text' => 'Departments', 'url' => '#', 'icon' => 'bi bi-diagram-3'],
+                ['text' => 'Departments', 'url' => '#', 'icon' => 'bi bi-diagram-3', 'permission' => 'core.departments.view'],
+                ['header' => 'Access Management'],
+                ['text' => 'User Companies', 'url' => '#', 'icon' => 'bi bi-building', 'permission' => 'core.companies.view'],
+                ['text' => 'User Branches', 'url' => '#', 'icon' => 'bi bi-shop', 'permission' => 'core.branches.view'],
+                ['text' => 'User Departments', 'url' => '#', 'icon' => 'bi bi-diagram-3', 'permission' => 'core.departments.view'],
             ],
         ],
         // ============================================================

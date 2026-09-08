@@ -2,16 +2,27 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use App\Http\Controllers\Controller;
+use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Modules\Finance\Models\Supplier;
 use Modules\Finance\Models\Tax;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\PermissionService;
 
 class SupplierInvoiceController extends Controller
 {
+    public function __construct(
+        CompanyContextService $companyContext,
+        PermissionService $permissionService
+    ) {
+        parent::__construct($companyContext, $permissionService);
+    }
+
     public function index()
     {
+        $this->checkPermission('finance.suppliers.view');
+
         $invoices = \Modules\Finance\Models\SupplierInvoice::with(['supplier', 'tax'])
             ->orderByDesc('invoice_date')
             ->get();
@@ -21,6 +32,8 @@ class SupplierInvoiceController extends Controller
 
     public function create()
     {
+        $this->checkPermission('finance.suppliers.create');
+
         $suppliers = Supplier::where('status', 'active')->get();
         $taxes = Tax::where('status', 'active')->get();
 
@@ -29,8 +42,9 @@ class SupplierInvoiceController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->checkPermission('finance.suppliers.create');
+
         $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
             'supplier_id' => 'required|exists:suppliers,id',
             'invoice_number' => 'required|string|max:50|unique:finance_supplier_invoices,invoice_number',
             'invoice_date' => 'required|date',
@@ -50,6 +64,8 @@ class SupplierInvoiceController extends Controller
 
     public function show(int $id)
     {
+        $this->checkPermission('finance.suppliers.view');
+
         $invoice = \Modules\Finance\Models\SupplierInvoice::with(['supplier', 'tax', 'lines'])
             ->findOrFail($id);
 

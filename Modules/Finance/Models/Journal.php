@@ -5,6 +5,7 @@ namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Modules\Finance\Scopes\CompanyScope;
+use Modules\Finance\Scopes\BranchScope;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -15,6 +16,7 @@ class Journal extends Model
     protected static function booted()
     {
         static::addGlobalScope(new CompanyScope);
+        static::addGlobalScope(new BranchScope);
     }
     protected $fillable = [
         'company_id',

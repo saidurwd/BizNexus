@@ -2,15 +2,26 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use App\Http\Controllers\Controller;
+use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Modules\Finance\Models\CashAccount;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\PermissionService;
 
 class CashAccountController extends Controller
 {
+    public function __construct(
+        CompanyContextService $companyContext,
+        PermissionService $permissionService
+    ) {
+        parent::__construct($companyContext, $permissionService);
+    }
+
     public function index()
     {
+        $this->checkPermission('finance.accounts.view');
+
         $cashAccounts = CashAccount::with('glAccount')
             ->orderBy('code')
             ->get();
@@ -20,6 +31,8 @@ class CashAccountController extends Controller
 
     public function create()
     {
+        $this->checkPermission('finance.accounts.create');
+
         $glOptions = \Modules\Finance\Models\Account::where('is_postable', true)
             ->whereIn('account_code', ['1110', '1120'])
             ->orderBy('account_code')
@@ -30,6 +43,8 @@ class CashAccountController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->checkPermission('finance.accounts.create');
+
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:cash_accounts,code',
             'name' => 'required|string|max:255',
@@ -41,7 +56,6 @@ class CashAccountController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $validated['company_id'] = 1;
         $validated['current_balance'] = $validated['opening_balance'];
         $validated['created_by'] = auth()->id();
         $validated['updated_by'] = auth()->id();
@@ -54,6 +68,8 @@ class CashAccountController extends Controller
 
     public function edit(int $id)
     {
+        $this->checkPermission('finance.accounts.update');
+
         $cashAccount = CashAccount::findOrFail($id);
         $glOptions = \Modules\Finance\Models\Account::where('is_postable', true)
             ->whereIn('account_code', ['1110', '1120'])
@@ -65,6 +81,8 @@ class CashAccountController extends Controller
 
     public function update(Request $request, int $id): RedirectResponse
     {
+        $this->checkPermission('finance.accounts.update');
+
         $cashAccount = CashAccount::findOrFail($id);
 
         $validated = $request->validate([
@@ -88,6 +106,8 @@ class CashAccountController extends Controller
 
     public function destroy(int $id): RedirectResponse
     {
+        $this->checkPermission('finance.accounts.delete');
+
         $cashAccount = CashAccount::findOrFail($id);
         $cashAccount->delete();
 

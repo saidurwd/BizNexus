@@ -2,19 +2,27 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use App\Http\Controllers\Controller;
+use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Finance\Models\SupplierPayment;
 use Modules\Finance\Services\PaymentService;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\PermissionService;
 
 class PaymentController extends Controller
 {
     public function __construct(
-        private PaymentService $paymentService
-    ) {}
+        protected PaymentService $paymentService,
+        CompanyContextService $companyContext,
+        PermissionService $permissionService
+    ) {
+        parent::__construct($companyContext, $permissionService);
+    }
 
     public function index(Request $request)
     {
+        $this->checkPermission('finance.suppliers.view');
+
         $payments = SupplierPayment::with('bankAccount')
             ->orderBy('payment_date', 'desc')
             ->paginate(20);
@@ -24,11 +32,15 @@ class PaymentController extends Controller
 
     public function create()
     {
+        $this->checkPermission('finance.suppliers.create');
+
         return view('finance.payments.create');
     }
 
     public function store(Request $request)
     {
+        $this->checkPermission('finance.suppliers.create');
+
         $validated = $request->validate([
             'payment_date' => 'required|date',
             'payment_method' => 'required|in:CASH,BANK_TRANSFER,CHECK',

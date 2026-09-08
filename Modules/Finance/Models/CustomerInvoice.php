@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Finance\Scopes\CompanyScope;
+use Modules\Finance\Scopes\BranchScope;
 
 class CustomerInvoice extends Model
 {
@@ -32,6 +33,7 @@ class CustomerInvoice extends Model
     protected static function booted()
     {
         static::addGlobalScope(new CompanyScope);
+        static::addGlobalScope(new BranchScope);
     }
 
     protected $casts = [

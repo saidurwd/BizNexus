@@ -2,19 +2,27 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use App\Http\Controllers\Controller;
+use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Modules\Finance\Models\BankAccount;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\PermissionService;
 
 class BankAccountController extends Controller
 {
+    public function __construct(
+        CompanyContextService $companyContext,
+        PermissionService $permissionService
+    ) {
+        parent::__construct($companyContext, $permissionService);
+    }
+
     public function index(Request $request)
     {
-        $companyId = $request->get('company_id', 1);
+        $this->checkPermission('finance.accounts.view');
 
         $bankAccounts = BankAccount::with(['currency', 'glAccount'])
-            ->where('company_id', $companyId)
             ->orderBy('bank_name')
             ->orderBy('account_name')
             ->get();
@@ -24,6 +32,8 @@ class BankAccountController extends Controller
 
     public function create()
     {
+        $this->checkPermission('finance.accounts.create');
+
         $glOptions = \Modules\Finance\Models\Account::where('is_postable', true)
             ->where('account_code', 'like', '1120%')
             ->orderBy('account_code')
@@ -36,8 +46,9 @@ class BankAccountController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->checkPermission('finance.accounts.create');
+
         $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
             'bank_name' => 'required|string|max:255',
             'branch_name' => 'nullable|string|max:255',
             'account_name' => 'required|string|max:255',
@@ -60,6 +71,8 @@ class BankAccountController extends Controller
 
     public function edit(int $id)
     {
+        $this->checkPermission('finance.accounts.update');
+
         $bankAccount = BankAccount::findOrFail($id);
 
         $glOptions = \Modules\Finance\Models\Account::where('is_postable', true)
@@ -74,10 +87,11 @@ class BankAccountController extends Controller
 
     public function update(Request $request, int $id): RedirectResponse
     {
+        $this->checkPermission('finance.accounts.update');
+
         $bankAccount = BankAccount::findOrFail($id);
 
         $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
             'bank_name' => 'required|string|max:255',
             'branch_name' => 'nullable|string|max:255',
             'account_name' => 'required|string|max:255',
@@ -98,6 +112,8 @@ class BankAccountController extends Controller
 
     public function destroy(int $id): RedirectResponse
     {
+        $this->checkPermission('finance.accounts.delete');
+
         $bankAccount = BankAccount::findOrFail($id);
         $bankAccount->delete();
 

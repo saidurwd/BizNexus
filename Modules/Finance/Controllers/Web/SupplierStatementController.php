@@ -2,14 +2,25 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use App\Http\Controllers\Controller;
+use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Finance\Models\Supplier;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\PermissionService;
 
 class SupplierStatementController extends Controller
 {
+    public function __construct(
+        CompanyContextService $companyContext,
+        PermissionService $permissionService
+    ) {
+        parent::__construct($companyContext, $permissionService);
+    }
+
     public function index(Request $request)
     {
+        $this->checkPermission('finance.suppliers.view');
+
         $suppliers = Supplier::where('status', 'active')
             ->orderBy('name')
             ->get(['id', 'supplier_code', 'name', 'email', 'phone']);
@@ -19,6 +30,8 @@ class SupplierStatementController extends Controller
 
     public function show(Request $request, int $id)
     {
+        $this->checkPermission('finance.suppliers.view');
+
         $supplier = Supplier::with(['invoices', 'payments'])->findOrFail($id);
 
         $startDate = $request->get('start_date') ? \Carbon\Carbon::parse($request->get('start_date')) : null;

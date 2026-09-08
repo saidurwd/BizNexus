@@ -2,19 +2,27 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use App\Http\Controllers\Controller;
+use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Finance\Models\CustomerReceipt;
 use Modules\Finance\Services\ReceiptService;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\PermissionService;
 
 class ReceiptController extends Controller
 {
     public function __construct(
-        private ReceiptService $receiptService
-    ) {}
+        protected ReceiptService $receiptService,
+        CompanyContextService $companyContext,
+        PermissionService $permissionService
+    ) {
+        parent::__construct($companyContext, $permissionService);
+    }
 
     public function index(Request $request)
     {
+        $this->checkPermission('finance.customers.view');
+
         $receipts = CustomerReceipt::with(['customer', 'bankAccount'])
             ->orderBy('receipt_date', 'desc')
             ->paginate(20);
@@ -24,15 +32,16 @@ class ReceiptController extends Controller
 
     public function create()
     {
+        $this->checkPermission('finance.customers.create');
+
         return view('finance.receipts.create');
     }
 
     public function bankReceipts(Request $request)
     {
-        $companyId = $request->get('company_id', 1);
+        $this->checkPermission('finance.customers.view');
 
         $receipts = CustomerReceipt::with(['customer', 'bankAccount'])
-            ->where('company_id', $companyId)
             ->whereNotNull('bank_account_id')
             ->orderBy('receipt_date', 'desc')
             ->paginate(20);
@@ -45,6 +54,8 @@ class ReceiptController extends Controller
 
     public function store(Request $request)
     {
+        $this->checkPermission('finance.customers.create');
+
         $validated = $request->validate([
             'receipt_date' => 'required|date',
             'receipt_type' => 'required|in:CASH,BANK_TRANSFER,CHECK',

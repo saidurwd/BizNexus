@@ -7,6 +7,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class JournalLine extends Model
 {
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new CompanyScope);
+        static::addGlobalScope(new BranchScope);
+        static::addGlobalScope(new DepartmentScope);
+    }
     protected $fillable = [
         'journal_id',
         'account_id',

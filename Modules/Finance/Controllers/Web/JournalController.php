@@ -8,21 +8,26 @@ use Modules\Finance\Models\Journal;
 use Modules\Finance\Services\JournalService;
 use Modules\Finance\Services\LedgerService;
 use Modules\Finance\Services\FinancialReportService;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\PermissionService;
 
 class JournalController extends Controller
 {
     public function __construct(
         protected JournalService $journalService,
         protected LedgerService $ledgerService,
-        protected FinancialReportService $reportService
-    ) {}
+        protected FinancialReportService $reportService,
+        CompanyContextService $companyContext,
+        PermissionService $permissionService
+    ) {
+        parent::__construct($companyContext, $permissionService);
+    }
 
     public function index(Request $request)
     {
-        $companyId = $request->get('company_id', 1);
+        $this->checkPermission('finance.journals.view');
 
         $journals = Journal::with(['lines.account', 'fiscalPeriod'])
-            ->where('company_id', $companyId)
             ->when($request->get('status'), fn($q, $status) => $q->where('status', $status))
             ->orderBy('journal_date', 'desc')
             ->paginate(20);
@@ -34,6 +39,8 @@ class JournalController extends Controller
 
     public function create()
     {
+        $this->checkPermission('finance.journals.create');
+
         $accounts = \Modules\Finance\Models\Account::postable()
             ->orderByRaw("CAST(account_code AS UNSIGNED)")
             ->get(['id', 'account_code', 'account_name']);
@@ -43,6 +50,8 @@ class JournalController extends Controller
 
     public function store(Request $request)
     {
+        $this->checkPermission('finance.journals.create');
+
         $validated = $request->validate([
             'company_id' => 'required|exists:companies,id',
             'journal_date' => 'required|date',
@@ -64,6 +73,8 @@ class JournalController extends Controller
 
     public function show(int $id)
     {
+        $this->checkPermission('finance.journals.view');
+
         $journal = Journal::with(['lines.account', 'fiscalPeriod', 'postedBy', 'createdBy'])
             ->findOrFail($id);
 
@@ -74,10 +85,10 @@ class JournalController extends Controller
 
     public function generalLedger(Request $request)
     {
-        $companyId = $request->get('company_id', 1);
+        $this->checkPermission('finance.journals.view');
 
         $ledger = $this->ledgerService->getGeneralLedger(
-            $companyId,
+            $this->getActiveCompanyId(),
             $request->get('start_date') ? \Carbon\Carbon::parse($request->get('start_date')) : null,
             $request->get('end_date') ? \Carbon\Carbon::parse($request->get('end_date')) : null
         );
@@ -89,6 +100,8 @@ class JournalController extends Controller
 
     public function destroy(int $id)
     {
+        $this->checkPermission('finance.journals.delete');
+
         $journal = Journal::findOrFail($id);
 
         if ($journal->status !== 'DRAFT') {

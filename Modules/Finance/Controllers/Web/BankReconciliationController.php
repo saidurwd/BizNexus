@@ -2,16 +2,27 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use App\Http\Controllers\Controller;
+use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Modules\Finance\Models\BankAccount;
 use Modules\Finance\Models\BankReconciliation;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\PermissionService;
 
 class BankReconciliationController extends Controller
 {
+    public function __construct(
+        CompanyContextService $companyContext,
+        PermissionService $permissionService
+    ) {
+        parent::__construct($companyContext, $permissionService);
+    }
+
     public function index()
     {
+        $this->checkPermission('finance.accounts.view');
+
         $reconciliations = BankReconciliation::with(['bankAccount', 'reconciledBy'])
             ->orderByDesc('statement_date')
             ->get();
@@ -21,6 +32,8 @@ class BankReconciliationController extends Controller
 
     public function create()
     {
+        $this->checkPermission('finance.accounts.create');
+
         $bankAccounts = BankAccount::where('status', 'active')->get();
 
         return view('finance.bank-reconciliation.create', compact('bankAccounts'));
@@ -28,6 +41,8 @@ class BankReconciliationController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->checkPermission('finance.accounts.create');
+
         $validated = $request->validate([
             'bank_account_id' => 'required|exists:bank_accounts,id',
             'statement_date' => 'required|date',
@@ -36,7 +51,6 @@ class BankReconciliationController extends Controller
         ]);
 
         $reconciliation = new BankReconciliation($validated);
-        $reconciliation->company_id = 1;
         $reconciliation->calculateDifference();
         $reconciliation->save();
 

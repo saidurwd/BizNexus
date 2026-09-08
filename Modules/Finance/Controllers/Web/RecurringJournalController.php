@@ -2,15 +2,26 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use App\Http\Controllers\Controller;
+use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Modules\Finance\Models\RecurringJournal;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\PermissionService;
 
 class RecurringJournalController extends Controller
 {
+    public function __construct(
+        CompanyContextService $companyContext,
+        PermissionService $permissionService
+    ) {
+        parent::__construct($companyContext, $permissionService);
+    }
+
     public function index()
     {
+        $this->checkPermission('finance.journals.view');
+
         $recurringJournals = RecurringJournal::with(['company', 'createdBy'])
             ->orderByDesc('next_run_date')
             ->get();
@@ -20,11 +31,15 @@ class RecurringJournalController extends Controller
 
     public function create()
     {
+        $this->checkPermission('finance.journals.create');
+
         return view('finance.recurring-journals.create');
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $this->checkPermission('finance.journals.create');
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'frequency' => 'required|in:DAILY,WEEKLY,MONTHLY,QUARTERLY,YEARLY',
@@ -38,7 +53,6 @@ class RecurringJournalController extends Controller
             'status' => 'required|in:active,paused,completed',
         ]);
 
-        $validated['company_id'] = 1;
         $validated['created_by'] = auth()->id();
         $validated['updated_by'] = auth()->id();
 
@@ -50,6 +64,8 @@ class RecurringJournalController extends Controller
 
     public function edit(int $id)
     {
+        $this->checkPermission('finance.journals.update');
+
         $recurringJournal = RecurringJournal::findOrFail($id);
 
         return view('finance.recurring-journals.edit', compact('recurringJournal'));
@@ -57,6 +73,8 @@ class RecurringJournalController extends Controller
 
     public function update(Request $request, int $id): RedirectResponse
     {
+        $this->checkPermission('finance.journals.update');
+
         $recurringJournal = RecurringJournal::findOrFail($id);
 
         $validated = $request->validate([
@@ -82,6 +100,8 @@ class RecurringJournalController extends Controller
 
     public function destroy(int $id): RedirectResponse
     {
+        $this->checkPermission('finance.journals.delete');
+
         $recurringJournal = RecurringJournal::findOrFail($id);
         $recurringJournal->delete();
 

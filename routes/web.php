@@ -25,6 +25,9 @@ use Modules\Finance\Controllers\Web\SupplierStatementController;
 use Modules\Finance\Controllers\Web\CustomerStatementController;
 use Modules\Core\Controllers\Web\CompanyController;
 use Modules\Core\Controllers\Web\BranchController;
+use Modules\Core\Controllers\Web\UserController;
+use Modules\Core\Controllers\Web\RoleController;
+use Modules\Core\Controllers\Web\PermissionController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -37,6 +40,31 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/companies/{id}/edit', [CompanyController::class, 'edit'])->name('core.companies.edit');
     Route::put('/companies/{id}', [CompanyController::class, 'update'])->name('core.companies.update');
     Route::delete('/companies/{id}', [CompanyController::class, 'destroy'])->name('core.companies.destroy');
+
+    // Users
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{id}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
+
+    // Roles
+    Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
+    Route::get('/roles/create', [RoleController::class, 'create'])->name('roles.create');
+    Route::post('/roles', [RoleController::class, 'store'])->name('roles.store');
+    Route::get('/roles/{id}/edit', [RoleController::class, 'edit'])->name('roles.edit');
+    Route::put('/roles/{id}', [RoleController::class, 'update'])->name('roles.update');
+    Route::delete('/roles/{id}', [RoleController::class, 'destroy'])->name('roles.destroy');
+
+    // Permissions
+    Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
+    Route::get('/permissions/create', [PermissionController::class, 'create'])->name('permissions.create');
+    Route::post('/permissions', [PermissionController::class, 'store'])->name('permissions.store');
+    Route::get('/permissions/{id}/edit', [PermissionController::class, 'edit'])->name('permissions.edit');
+    Route::put('/permissions/{id}', [PermissionController::class, 'update'])->name('permissions.update');
+    Route::delete('/permissions/{id}', [PermissionController::class, 'destroy'])->name('permissions.destroy');
+
 
     Route::get('/branches', [BranchController::class, 'index'])->name('core.branches.index');
     Route::get('/branches/create', [BranchController::class, 'create'])->name('core.branches.create');

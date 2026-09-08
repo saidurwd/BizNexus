@@ -9,6 +9,8 @@ use Modules\Finance\Services\LedgerService;
 use Modules\Finance\Services\FinancialReportService;
 use Modules\Finance\Services\PaymentService;
 use Modules\Finance\Services\ReceiptService;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\PermissionService;
 
 class ReportController extends Controller
 {
@@ -17,15 +19,19 @@ class ReportController extends Controller
         protected FinancialReportService $financialReportService,
         protected PaymentService $paymentService,
         protected ReceiptService $receiptService,
-        protected \Modules\Finance\Services\BudgetService $budgetService
-    ) {}
+        protected \Modules\Finance\Services\BudgetService $budgetService,
+        CompanyContextService $companyContext,
+        PermissionService $permissionService
+    ) {
+        parent::__construct($companyContext, $permissionService);
+    }
 
     public function generalLedger(Request $request)
     {
-        $companyId = $request->get('company_id', 1);
+        $this->checkPermission('finance.reports.view');
 
         $ledger = $this->ledgerService->getGeneralLedger(
-            $companyId,
+            $this->getActiveCompanyId(),
             $request->get('start_date') ? Carbon::parse($request->get('start_date')) : null,
             $request->get('end_date') ? Carbon::parse($request->get('end_date')) : null
         );
@@ -37,10 +43,10 @@ class ReportController extends Controller
 
     public function trialBalance(Request $request)
     {
-        $companyId = $request->get('company_id', 1);
+        $this->checkPermission('finance.reports.view');
 
         $trialBalance = $this->ledgerService->getTrialBalance(
-            $companyId,
+            $this->getActiveCompanyId(),
             $request->get('fiscal_period_id'),
             $request->get('date') ? Carbon::parse($request->get('date')) : null
         );
@@ -56,10 +62,10 @@ class ReportController extends Controller
 
     public function profitLoss(Request $request)
     {
-        $companyId = $request->get('company_id', 1);
+        $this->checkPermission('finance.reports.view');
 
         $report = $this->financialReportService->getProfitAndLoss(
-            $companyId,
+            $this->getActiveCompanyId(),
             $request->get('fiscal_period_id'),
             $request->get('start_date') ? Carbon::parse($request->get('start_date')) : null,
             $request->get('end_date') ? Carbon::parse($request->get('end_date')) : null
@@ -81,10 +87,10 @@ class ReportController extends Controller
 
     public function balanceSheet(Request $request)
     {
-        $companyId = $request->get('company_id', 1);
+        $this->checkPermission('finance.reports.view');
 
         $report = $this->financialReportService->getBalanceSheet(
-            $companyId,
+            $this->getActiveCompanyId(),
             $request->get('as_of_date') ? Carbon::parse($request->get('as_of_date')) : null,
             $request->get('fiscal_period_id')
         );
@@ -104,11 +110,12 @@ class ReportController extends Controller
 
     public function cashFlow(Request $request)
     {
-        $companyId = $request->get('company_id', 1);
+        $this->checkPermission('finance.reports.view');
+
         $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : Carbon::now()->startOfMonth();
         $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : Carbon::now()->endOfMonth();
 
-        $cashFlow = $this->financialReportService->getCashFlow($companyId, $startDate, $endDate);
+        $cashFlow = $this->financialReportService->getCashFlow($this->getActiveCompanyId(), $startDate, $endDate);
 
         return view('finance.reports.cash-flow', [
             'startDate' => $cashFlow['start_date'],
@@ -125,9 +132,9 @@ class ReportController extends Controller
 
     public function apReport(Request $request)
     {
-        $companyId = $request->get('company_id', 1);
+        $this->checkPermission('finance.reports.view');
 
-        $aging = $this->paymentService->getAPAging($companyId);
+        $aging = $this->paymentService->getAPAging($this->getActiveCompanyId());
         $apAging = collect($aging['invoices'])
             ->groupBy('supplier_name')
             ->map(function ($invoices, $supplierName) {
@@ -164,9 +171,9 @@ class ReportController extends Controller
 
     public function arReport(Request $request)
     {
-        $companyId = $request->get('company_id', 1);
+        $this->checkPermission('finance.reports.view');
 
-        $aging = $this->receiptService->getARAging($companyId);
+        $aging = $this->receiptService->getARAging($this->getActiveCompanyId());
         $arAging = collect($aging['invoices'])
             ->groupBy('customer_name')
             ->map(function ($invoices, $customerName) {
@@ -203,17 +210,19 @@ class ReportController extends Controller
 
     public function budgetVsActual(Request $request)
     {
+        $this->checkPermission('finance.reports.view');
+
         return view('finance.reports.budget-vs-actual');
     }
 
     public function paymentRegister(Request $request)
     {
-        $companyId = $request->get('company_id', 1);
+        $this->checkPermission('finance.reports.view');
+
         $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : Carbon::now()->subMonth();
         $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : Carbon::now();
 
         $payments = \Modules\Finance\Models\SupplierPayment::with(['supplier', 'bankAccount'])
-            ->where('company_id', $companyId)
             ->whereBetween('payment_date', [$startDate, $endDate])
             ->orderBy('payment_date', 'desc')
             ->get();
@@ -228,12 +237,12 @@ class ReportController extends Controller
 
     public function receiptRegister(Request $request)
     {
-        $companyId = $request->get('company_id', 1);
+        $this->checkPermission('finance.reports.view');
+
         $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : Carbon::now()->subMonth();
         $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : Carbon::now();
 
         $receipts = \Modules\Finance\Models\CustomerReceipt::with(['customer', 'bankAccount'])
-            ->where('company_id', $companyId)
             ->whereBetween('receipt_date', [$startDate, $endDate])
             ->orderBy('receipt_date', 'desc')
             ->get();
@@ -248,20 +257,18 @@ class ReportController extends Controller
 
     public function cashBook(Request $request)
     {
-        $companyId = $request->get('company_id', 1);
+        $this->checkPermission('finance.reports.view');
+
         $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : Carbon::now()->subMonth();
         $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : Carbon::now();
 
         $transactions = \Modules\Finance\Models\BankTransaction::with(['bankAccount'])
-            ->whereHas('bankAccount', function ($q) use ($companyId) {
-                $q->where('company_id', $companyId);
-            })
+            ->whereHas('bankAccount')
             ->whereBetween('transaction_date', [$startDate, $endDate])
             ->orderBy('transaction_date', 'asc')
             ->get();
 
-        $openingBalance = \Modules\Finance\Models\BankAccount::where('company_id', $companyId)
-            ->sum('opening_balance');
+        $openingBalance = \Modules\Finance\Models\BankAccount::sum('opening_balance');
 
         $closingBalance = $openingBalance + $transactions->where('transaction_type', 'DEPOSIT')->sum('amount') - $transactions->where('transaction_type', 'WITHDRAWAL')->sum('amount') - $transactions->where('transaction_type', 'CHARGE')->sum('amount');
 
@@ -276,20 +283,20 @@ class ReportController extends Controller
 
     public function bankBook(Request $request)
     {
-        $companyId = $request->get('company_id', 1);
+        $this->checkPermission('finance.reports.view');
+
         $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : Carbon::now()->subMonth();
         $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : Carbon::now();
 
         $transactions = \Modules\Finance\Models\BankTransaction::with(['bankAccount'])
-            ->whereHas('bankAccount', function ($q) use ($companyId) {
-                $q->where('company_id', $companyId)->whereIn('account_type', ['BANK', 'PETTY_CASH']);
+            ->whereHas('bankAccount', function ($q) {
+                $q->whereIn('account_type', ['BANK', 'PETTY_CASH']);
             })
             ->whereBetween('transaction_date', [$startDate, $endDate])
             ->orderBy('transaction_date', 'asc')
             ->get();
 
-        $openingBalance = \Modules\Finance\Models\BankAccount::where('company_id', $companyId)
-            ->whereIn('account_type', ['BANK', 'PETTY_CASH'])
+        $openingBalance = \Modules\Finance\Models\BankAccount::whereIn('account_type', ['BANK', 'PETTY_CASH'])
             ->sum('opening_balance');
 
         $closingBalance = $openingBalance + $transactions->where('transaction_type', 'DEPOSIT')->sum('amount') - $transactions->where('transaction_type', 'WITHDRAWAL')->sum('amount') - $transactions->where('transaction_type', 'CHARGE')->sum('amount') - $transactions->where('transaction_type', 'TRANSFER')->sum('amount');
@@ -305,10 +312,11 @@ class ReportController extends Controller
 
     public function management(Request $request)
     {
-        $companyId = $request->get('company_id', 1);
+        $this->checkPermission('finance.reports.view');
+
         $fiscalYearId = $request->get('fiscal_year_id');
 
-        $budgetData = $this->budgetService->getBudgetVsActual($companyId, $fiscalYearId);
+        $budgetData = $this->budgetService->getBudgetVsActual($this->getActiveCompanyId(), $fiscalYearId);
 
         return view('finance.reports.management', [
             'budgetData' => $budgetData,

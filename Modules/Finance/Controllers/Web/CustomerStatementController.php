@@ -2,14 +2,25 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use App\Http\Controllers\Controller;
+use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Finance\Models\Customer;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\PermissionService;
 
 class CustomerStatementController extends Controller
 {
+    public function __construct(
+        CompanyContextService $companyContext,
+        PermissionService $permissionService
+    ) {
+        parent::__construct($companyContext, $permissionService);
+    }
+
     public function index(Request $request)
     {
+        $this->checkPermission('finance.customers.view');
+
         $customers = Customer::where('status', 'active')
             ->orderBy('name')
             ->get(['id', 'customer_code', 'name', 'email', 'phone']);
@@ -19,6 +30,8 @@ class CustomerStatementController extends Controller
 
     public function show(Request $request, int $id)
     {
+        $this->checkPermission('finance.customers.view');
+
         $customer = Customer::with(['invoices', 'receipts'])->findOrFail($id);
 
         $startDate = $request->get('start_date') ? \Carbon\Carbon::parse($request->get('start_date')) : null;
