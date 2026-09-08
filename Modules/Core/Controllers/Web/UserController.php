@@ -4,6 +4,7 @@ namespace Modules\Core\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Modules\Core\Models\Company;
 use Modules\Core\Models\Role;
 use App\Models\User;
@@ -37,6 +38,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'companies' => 'required|array|min:1',
             'companies.*' => 'exists:companies,id',
             'roles' => 'required|array|min:1',
@@ -47,11 +49,18 @@ class UserController extends Controller
             'departments.*' => 'exists:departments,id',
         ]);
 
-        $user = User::create([
+        $data = [
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
-        ]);
+        ];
+
+        if ($request->hasFile('profile_picture')) {
+            $path = $request->file('profile_picture')->store('profile-pictures', 'public');
+            $data['profile_picture'] = $path;
+        }
+
+        $user = User::create($data);
 
         foreach ($validated['companies'] as $companyId) {
             UserCompany::create([
@@ -121,6 +130,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $id,
             'password' => 'nullable|string|min:8|confirmed',
+            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'companies' => 'required|array|min:1',
             'companies.*' => 'exists:companies,id',
             'roles' => 'required|array|min:1',
@@ -131,11 +141,24 @@ class UserController extends Controller
             'departments.*' => 'exists:departments,id',
         ]);
 
-        $user->update([
+        $data = [
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => $validated['password'] ? bcrypt($validated['password']) : $user->password,
-        ]);
+        ];
+
+        if ($validated['password']) {
+            $data['password'] = bcrypt($validated['password']);
+        }
+
+        if ($request->hasFile('profile_picture')) {
+            if ($user->profile_picture) {
+                Storage::disk('public')->delete($user->profile_picture);
+            }
+            $path = $request->file('profile_picture')->store('profile-pictures', 'public');
+            $data['profile_picture'] = $path;
+        }
+
+        $user->update($data);
 
         UserCompany::where('user_id', $id)->delete();
         CompanyUserRole::where('user_id', $id)->delete();

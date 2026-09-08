@@ -17,6 +17,7 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
+                        <th width="80">Profile</th>
                         <th>Name</th>
                         <th>Email</th>
                         <th>Companies</th>
@@ -27,6 +28,21 @@
                 <tbody>
                     @forelse($users as $user)
                         <tr>
+                            <td class="text-center">
+                                @if($user->profile_picture)
+                                    <img src="{{ asset('storage/' . $user->profile_picture) }}" 
+                                         alt="{{ $user->name }}" 
+                                         class="img-circle elevation-2" 
+                                         width="40" height="40"
+                                         style="object-fit: cover;">
+                                @else
+                                    <div class="img-circle bg-secondary d-inline-flex align-items-center justify-content-center text-white" 
+                                         width="40" height="40" 
+                                         style="width: 40px; height: 40px; border-radius: 50%;">
+                                        <i class="bi bi-person" style="font-size: 20px;"></i>
+                                    </div>
+                                @endif
+                            </td>
                             <td>{{ $user->name }}</td>
                             <td>{{ $user->email }}</td>
                             <td>
@@ -54,7 +70,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center">No users found</td>
+                            <td colspan="6" class="text-center">No users found</td>
                         </tr>
                     @endforelse
                 </tbody>

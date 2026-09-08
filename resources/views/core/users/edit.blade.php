@@ -9,7 +9,7 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            <form action="{{ route('core.users.update', $user->id) }}" method="POST">
+            <form action="{{ route('core.users.update', $user->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 <div class="row">
@@ -40,6 +40,17 @@
                             <input type="password" class="form-control" name="password_confirmation">
                         </div>
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="profile_picture">Profile Picture</label>
+                    <input type="file" class="form-control" name="profile_picture" accept="image/*">
+                    <small class="form-text text-muted">Max size: 2MB. Formats: jpeg, png, jpg, gif</small>
+                    @if($user->profile_picture)
+                        <div class="mt-2">
+                            <img src="{{ asset('storage/' . $user->profile_picture) }}" alt="Profile" width="100" class="img-thumbnail">
+                        </div>
+                    @endif
                 </div>
 
                 <div class="form-group">

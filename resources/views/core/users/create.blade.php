@@ -9,7 +9,7 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            <form action="{{ route('core.users.store') }}" method="POST">
+            <form action="{{ route('core.users.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="row">
                     <div class="col-md-6">
@@ -39,6 +39,12 @@
                             <input type="password" class="form-control" name="password_confirmation" required>
                         </div>
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="profile_picture">Profile Picture</label>
+                    <input type="file" class="form-control" name="profile_picture" accept="image/*">
+                    <small class="form-text text-muted">Max size: 2MB. Formats: jpeg, png, jpg, gif</small>
                 </div>
 
                 <div class="form-group">
