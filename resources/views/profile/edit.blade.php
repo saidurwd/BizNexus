@@ -15,12 +15,16 @@
                 </div>
                 <div class="card-body text-center">
                     <div class="mb-3">
-                        <i class="bi bi-person-circle" style="font-size: 4rem; color: #6c757d;"></i>
+                        @if($user->profile_picture && Storage::disk('public')->exists($user->profile_picture))
+                            <img src="{{ asset('storage/' . $user->profile_picture) }}" alt="{{ $user->name }}" class="rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+                        @else
+                            <i class="bi bi-person-circle" style="font-size: 6rem; color: #6c757d;"></i>
+                        @endif
                     </div>
-                    <h4>{{ Auth::user()->name }}</h4>
-                    <p class="text-muted">{{ Auth::user()->email }}</p>
+                    <h4>{{ $user->name }}</h4>
+                    <p class="text-muted">{{ $user->email }}</p>
                     <p class="text-muted">
-                        <small>Member since {{ Auth::user()->created_at->format('Y-m-d') }}</small>
+                        <small>Member since {{ $user->created_at->format('Y-m-d') }}</small>
                     </p>
                 </div>
             </div>

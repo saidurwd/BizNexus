@@ -1125,11 +1125,6 @@ return [
             'url' => 'profile',
             'icon' => 'bi bi-person',
         ],
-        [
-            'text' => 'change_password',
-            'url' => '#',
-            'icon' => 'bi bi-lock',
-        ],
     ],
 
     /*
