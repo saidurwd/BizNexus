@@ -785,7 +785,14 @@ return [
             'icon' => 'bi bi-gear',
             'submenu' => [
                 ['header' => 'Company Management'],
-                ['text' => 'Companies', 'url' => '#', 'icon' => 'bi bi-person-badge'],
+            [
+                'text' => 'Companies',
+                'icon' => 'bi bi-person-badge',
+                'submenu' => [
+                    ['text' => 'Companies', 'url' => 'companies', 'icon' => 'bi bi-building'],
+                    ['text' => 'Branches', 'url' => 'branches', 'icon' => 'bi bi-shop'],
+                ],
+            ],
                 ['text' => 'Departments', 'url' => '#', 'icon' => 'bi bi-diagram-3'],
             ],
         ],

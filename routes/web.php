@@ -23,12 +23,29 @@ use Modules\Finance\Controllers\Web\BankReconciliationController;
 use Modules\Finance\Controllers\Web\RecurringJournalController;
 use Modules\Finance\Controllers\Web\SupplierStatementController;
 use Modules\Finance\Controllers\Web\CustomerStatementController;
+use Modules\Core\Controllers\Web\CompanyController;
+use Modules\Core\Controllers\Web\BranchController;
 
 Route::get('/', function () {
     return redirect('/login');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/companies', [CompanyController::class, 'index'])->name('core.companies.index');
+    Route::get('/companies/create', [CompanyController::class, 'create'])->name('core.companies.create');
+    Route::post('/companies', [CompanyController::class, 'store'])->name('core.companies.store');
+    Route::get('/companies/{id}/edit', [CompanyController::class, 'edit'])->name('core.companies.edit');
+    Route::put('/companies/{id}', [CompanyController::class, 'update'])->name('core.companies.update');
+    Route::delete('/companies/{id}', [CompanyController::class, 'destroy'])->name('core.companies.destroy');
+
+    Route::get('/branches', [BranchController::class, 'index'])->name('core.branches.index');
+    Route::get('/branches/create', [BranchController::class, 'create'])->name('core.branches.create');
+    Route::post('/branches', [BranchController::class, 'store'])->name('core.branches.store');
+    Route::get('/branches/{id}/edit', [BranchController::class, 'edit'])->name('core.branches.edit');
+    Route::put('/branches/{id}', [BranchController::class, 'update'])->name('core.branches.update');
+    Route::delete('/branches/{id}', [BranchController::class, 'destroy'])->name('core.branches.destroy');
+
+
 
     // Main Dashboard
     Route::get('/dashboard', function () {
