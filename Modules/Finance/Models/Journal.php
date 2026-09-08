@@ -1,14 +1,21 @@
 <?php
 
+
 namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\Finance\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Journal extends Model
 {
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new CompanyScope);
+    }
     protected $fillable = [
         'company_id',
         'journal_number',
@@ -42,6 +49,7 @@ class Journal extends Model
         'posted_at' => 'datetime',
         'reversed_at' => 'datetime',
     ];
+
 
     public const STATUS_DRAFT = 'DRAFT';
     public const STATUS_SUBMITTED = 'SUBMITTED';

@@ -1,12 +1,19 @@
 <?php
 
+
 namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Finance\Scopes\CompanyScope;
 
 class Tax extends Model
 {
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new CompanyScope);
+    }
     protected $fillable = [
         'company_id',
         'tax_code',

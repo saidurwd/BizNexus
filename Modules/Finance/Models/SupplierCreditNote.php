@@ -4,6 +4,7 @@ namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Finance\Scopes\CompanyScope;
 
 class SupplierCreditNote extends Model
 {
@@ -31,6 +32,11 @@ class SupplierCreditNote extends Model
         'tax_amount' => 'decimal:4',
         'total_amount' => 'decimal:4',
     ];
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new CompanyScope);
+    }
 
     public function supplier(): BelongsTo
     {

@@ -4,6 +4,7 @@ namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Finance\Scopes\CompanyScope;
 
 class BankReconciliation extends Model
 {
@@ -26,6 +27,11 @@ class BankReconciliation extends Model
         'difference' => 'decimal:4',
         'reconciled_at' => 'datetime',
     ];
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new CompanyScope);
+    }
 
     public const STATUS_PENDING = 'PENDING';
     public const STATUS_RECONCILED = 'RECONCILED';

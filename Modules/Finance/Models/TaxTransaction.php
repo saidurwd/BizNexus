@@ -4,6 +4,7 @@ namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Finance\Scopes\CompanyScope;
 
 class TaxTransaction extends Model
 {
@@ -31,6 +32,11 @@ class TaxTransaction extends Model
         'tax_amount' => 'decimal:4',
         'exchange_rate' => 'decimal:6',
     ];
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new CompanyScope);
+    }
 
     public function tax(): BelongsTo
     {

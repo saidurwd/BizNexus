@@ -1,14 +1,21 @@
 <?php
 
+
 namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\Finance\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Account extends Model
 {
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new CompanyScope);
+    }
     protected $fillable = [
         'company_id',
         'parent_id',
@@ -32,6 +39,7 @@ class Account extends Model
         'is_postable' => 'boolean',
         'level' => 'integer',
     ];
+
 
     public function company(): BelongsTo
     {

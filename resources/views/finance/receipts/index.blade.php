@@ -1,4 +1,4 @@
-@extends('adminlte::page')
+@extends('layouts.erp')
 
 @section('title', ($isBankReceipts ?? false) ? 'Bank Receipts' : 'Receipts')
 

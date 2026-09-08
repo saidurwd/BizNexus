@@ -4,6 +4,7 @@ namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Finance\Scopes\CompanyScope;
 
 class AccountBalance extends Model
 {
@@ -20,6 +21,11 @@ class AccountBalance extends Model
         'created_by',
         'updated_by',
     ];
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new CompanyScope);
+    }
 
     protected $casts = [
         'balance_date' => 'date',

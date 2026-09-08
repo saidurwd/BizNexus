@@ -5,6 +5,7 @@ namespace Modules\Finance\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Finance\Scopes\CompanyScope;
 
 class CustomerInvoice extends Model
 {
@@ -27,6 +28,11 @@ class CustomerInvoice extends Model
         'created_by',
         'updated_by',
     ];
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new CompanyScope);
+    }
 
     protected $casts = [
         'invoice_date' => 'date',

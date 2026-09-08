@@ -35,6 +35,12 @@ Route::middleware('guest')->group(function () {
         ->name('password.store');
 });
 
+
+Route::middleware('auth')->group(function () {
+    Route::get('company-selection', [\App\Http\Controllers\Auth\CompanySelectionController::class, 'index'])->name('company.selection');
+    Route::post('company-selection', [\App\Http\Controllers\Auth\CompanySelectionController::class, 'select'])->name('company.selection.submit');
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');

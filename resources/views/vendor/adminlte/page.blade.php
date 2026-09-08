@@ -1,19 +1,24 @@
-{{-- Custom AdminLTE page template with breadcrumbs --}}
 @extends('adminlte::master')
 
 @inject('layoutHelper', 'JeroenNoten\LaravelAdminLte\Helpers\LayoutHelper')
 @inject('preloaderHelper', 'JeroenNoten\LaravelAdminLte\Helpers\PreloaderHelper')
 
-@php
-    $fixedFooter = $layoutHelper->isFixedFooterEnabled();
-    $breadcrumbs = $breadcrumbs ?? collect();
-@endphp
-
 @section('classes_body', $layoutHelper->makeBodyClasses())
+
 @section('body_data', $layoutHelper->makeBodyData())
 
+@php
+    // The footer is rendered when a 'footer' section is available, or when the
+    // fixed footer layout is enabled (the layout reserves the related space).
+
+    $fixedFooter = $layoutHelper->isFixedFooterEnabled();
+@endphp
+
 @section('body')
-    {{-- Skip Links --}}
+    {{-- Skip Links. The AdminLTE accessibility script injects its own English
+         container when the document has no '.skip-links' element, so emitting
+         a localized one here (as the first child of the body) replaces it.
+         The script still stamps the '#main' and '#navigation' targets. --}}
     <div class="skip-links">
         <a href="#main" class="skip-link">{{ __('adminlte::adminlte.skip_to_content') }}</a>
         <a href="#navigation" class="skip-link">{{ __('adminlte::adminlte.skip_to_navigation') }}</a>
@@ -21,7 +26,7 @@
 
     <div class="{{ $layoutHelper->makeWrapperClasses() }}">
 
-        {{-- Preloader --}}
+        {{-- Preloader Animation (fullscreen mode) --}}
         @if($preloaderHelper->isPreloaderEnabled())
             @include('adminlte::partials.common.preloader')
         @endif
@@ -33,69 +38,34 @@
             @include('adminlte::partials.navbar.navbar')
         @endif
 
-        {{-- Left Sidebar --}}
+        {{-- Left Main Sidebar --}}
         @if(!$layoutHelper->isLayoutTopnavEnabled())
             @include('adminlte::partials.sidebar.left-sidebar')
         @endif
 
         {{-- Content Wrapper --}}
-        <main class="{{ $layoutHelper->makeContentWrapperClasses() }}">
-
-            {{-- Content Header (AdminLTE v4 layout) --}}
-            @if(View::hasSection('content_header') || $breadcrumbs->isNotEmpty())
-                <div class="app-content-header">
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-sm-6">
-                                @hasSection('content_header')
-                                    @yield('content_header')
-                                @endif
-                            </div>
-
-                            @if($breadcrumbs->isNotEmpty())
-                                <div class="col-sm-6">
-                                    <nav aria-label="{{ __('adminlte::adminlte.breadcrumb') }}">
-                                        <ol class="breadcrumb float-sm-end">
-                                            @foreach($breadcrumbs as $crumb)
-                                                <li class="breadcrumb-item{{ $crumb['active'] ? ' active' : '' }}"
-                                                    @if($crumb['active']) aria-current="page" @endif>
-                                                    @if($crumb['url'])
-                                                        <a href="{{ $crumb['url'] }}">{{ $crumb['label'] }}</a>
-                                                    @else
-                                                        {{ $crumb['label'] }}
-                                                    @endif
-                                                </li>
-                                            @endforeach
-                                        </ol>
-                                    </nav>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            {{-- Main Content --}}
-            <div class="app-content @unless(View::hasSection('content_header')) pt-3 @endunless">
-                <div class="container-fluid">
-                    @stack('content')
-                    @yield('content')
-                </div>
-            </div>
-        </main>
+        @empty($iFrameEnabled)
+            @include('adminlte::partials.cwrapper.cwrapper-default')
+        @else
+            @include('adminlte::partials.cwrapper.cwrapper-iframe')
+        @endempty
 
         {{-- Footer --}}
         @if($fixedFooter || View::hasSection('footer'))
             @include('adminlte::partials.footer.footer')
         @endif
 
-        {{-- Right Sidebar --}}
+        {{-- Right Sidebar (Bootstrap offcanvas) --}}
         @if($layoutHelper->isRightSidebarEnabled())
             @include('adminlte::partials.sidebar.right-sidebar')
         @endif
 
     </div>
 @stop
+
+{{-- Note the stacks are yielded after the body section, otherwise the
+     content pushed from the body (for example by the iframe mode) would be
+     snapshotted before it exists. --}}
 
 @section('adminlte_css')
     @stack('css')

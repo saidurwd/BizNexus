@@ -16,8 +16,20 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+
+
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->web([
+            \Modules\Core\Http\Middleware\SetCompanyContext::class,
+        ]);
+        
+        $middleware->alias([
+            'company.context' => \Modules\Core\Http\Middleware\SetCompanyContext::class,
+            'company.access' => \Modules\Core\Http\Middleware\CompanyAccess::class,
+            'branch.access' => \Modules\Core\Http\Middleware\BranchAccess::class,
+            'department.access' => \Modules\Core\Http\Middleware\DepartmentAccess::class,
+            'permission' => \Modules\Core\Http\Middleware\Permission::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

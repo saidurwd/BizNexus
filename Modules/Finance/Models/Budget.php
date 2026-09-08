@@ -1,13 +1,20 @@
 <?php
 
+
 namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Finance\Scopes\CompanyScope;
 
 class Budget extends Model
 {
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new CompanyScope);
+    }
     protected $fillable = [
         'company_id',
         'fiscal_year_id',

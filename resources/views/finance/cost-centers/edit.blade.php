@@ -1,4 +1,4 @@
-@extends('adminlte::page')
+@extends('layouts.erp')
 
 @section('title', 'Edit Cost Center')
 

@@ -5,6 +5,7 @@ namespace Modules\Finance\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Modules\Finance\Scopes\CompanyScope;
 
 class SupplierDebitNote extends Model
 {
@@ -22,6 +23,11 @@ class SupplierDebitNote extends Model
         'created_by',
         'updated_by',
     ];
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new CompanyScope);
+    }
 
     protected $casts = [
         'note_date' => 'date',

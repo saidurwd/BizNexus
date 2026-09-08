@@ -1,12 +1,19 @@
 <?php
 
+
 namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\Finance\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CashAccount extends Model
 {
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new CompanyScope);
+    }
     protected $fillable = [
         'company_id',
         'gl_account_id',
@@ -21,6 +28,7 @@ class CashAccount extends Model
         'created_by',
         'updated_by',
     ];
+
 
     protected $casts = [
         'opening_balance' => 'decimal:4',

@@ -2,88 +2,94 @@
 
 namespace Modules\Core\Services;
 
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use Modules\Core\Models\Company;
-use Modules\Core\Exceptions\UnauthorizedCompanyAccessException;
+use Modules\Core\Models\UserCompany;
+use Modules\Core\Models\CompanyUserRole;
 
 class CompanyContextService
 {
-    protected ?int $companyId = null;
-    protected ?Company $company = null;
+    protected ?Company $activeCompany = null;
 
-    public function setCompany(int $companyId): void
+    public function getActiveCompany(): ?Company
     {
-        if (!$this->hasAccessToCompany($companyId)) {
-            throw new UnauthorizedCompanyAccessException($companyId, Auth::id());
+        if ($this->activeCompany) {
+            return $this->activeCompany;
         }
 
-        $this->companyId = $companyId;
-        $this->company = Company::find($companyId);
-    }
+        $companyId = session('active_company_id');
 
-    public function getCompanyId(): ?int
-    {
-        return $this->companyId;
-    }
-
-    public function getCompany(): ?Company
-    {
-        if ($this->companyId && !$this->company) {
-            $this->company = Company::find($this->companyId);
+        if (!$companyId) {
+            return null;
         }
 
-        return $this->company;
+        return $this->activeCompany = Company::find($companyId);
     }
 
-    public function hasAccessToCompany(int $companyId): bool
+    public function getActiveCompanyId(): ?int
     {
-        $user = Auth::user();
+        return session('active_company_id');
+    }
 
-        if (!$user) {
+    public function setActiveCompany(int $companyId, ?int $userId = null): bool
+    {
+        $userId = $userId ?? auth()->id();
+
+        $userCompany = UserCompany::where('user_id', $userId)
+            ->where('company_id', $companyId)
+            ->where('status', 'active')
+            ->first();
+
+        if (!$userCompany) {
             return false;
         }
 
-        if ($user->isSuperAdmin()) {
-            return true;
-        }
+        session(['active_company_id' => $companyId]);
+        $this->activeCompany = Company::find($companyId);
 
-        return $user->companies()->where('companies.id', $companyId)->exists();
+        return true;
     }
 
-    public function validateCompanyAccess(int $companyId): void
+    public function hasCompanyAccess(int $companyId, ?int $userId = null): bool
     {
-        if (!$this->hasAccessToCompany($companyId)) {
-            throw new UnauthorizedCompanyAccessException($companyId, Auth::id());
-        }
+        $userId = $userId ?? auth()->id();
+
+        return UserCompany::where('user_id', $userId)
+            ->where('company_id', $companyId)
+            ->where('status', 'active')
+            ->exists();
     }
 
-    public function clear(): void
+    public function getUserCompanies(?int $userId = null)
     {
-        $this->companyId = null;
-        $this->company = null;
+        $userId = $userId ?? auth()->id();
+
+        return Company::whereHas('userCompanies', function ($query) use ($userId) {
+            $query->where('user_id', $userId)->where('status', 'active');
+        })->get();
     }
 
-    public function getBaseCurrency()
+    public function getUserCompanyRoles(int $companyId, ?int $userId = null)
     {
-        $company = $this->getCompany();
+        $userId = $userId ?? auth()->id();
 
-        return $company?->baseCurrency;
+        return CompanyUserRole::where('user_id', $userId)
+            ->where('company_id', $companyId)
+            ->where('status', 'active')
+            ->with('role')
+            ->get()
+            ->pluck('role');
     }
 
-    public function getTimezone(): string
+    public function getDefaultCompany(?int $userId = null): ?Company
     {
-        return $this->getCompany()?->timezone ?? 'UTC';
-    }
+        $userId = $userId ?? auth()->id();
 
-    public function getCurrentFiscalYear()
-    {
-        return $this->getCompany()?->currentFiscalYear();
-    }
+        $userCompany = UserCompany::where('user_id', $userId)
+            ->where('is_default', true)
+            ->where('status', 'active')
+            ->first();
 
-    public function getCurrentFiscalPeriod()
-    {
-        $fiscalYear = $this->getCurrentFiscalYear();
-
-        return $fiscalYear?->getCurrentPeriod();
+        return $userCompany?->company;
     }
 }
