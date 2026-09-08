@@ -805,10 +805,6 @@ return [
                 ['text' => 'Companies', 'url' => 'companies', 'icon' => 'bi bi-building', 'permission' => 'core.companies.view'],
                 ['text' => 'Branches', 'url' => 'branches', 'icon' => 'bi bi-shop', 'permission' => 'core.branches.view'],
                 ['text' => 'Departments', 'url' => 'departments', 'icon' => 'bi bi-diagram-3', 'permission' => 'core.departments.view'],
-                ['header' => 'Access Management'],
-                ['text' => 'User Companies', 'url' => '#', 'icon' => 'bi bi-building', 'permission' => 'core.companies.view'],
-                ['text' => 'User Branches', 'url' => '#', 'icon' => 'bi bi-shop', 'permission' => 'core.branches.view'],
-                ['text' => 'User Departments', 'url' => 'departments', 'icon' => 'bi bi-diagram-3', 'permission' => 'core.departments.view'],
             ],
         ],
         // ============================================================

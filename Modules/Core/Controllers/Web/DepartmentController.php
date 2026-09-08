@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Modules\Core\Models\Department;
 use Modules\Core\Models\Company;
 use Modules\Core\Models\Branch;
+use App\Models\User;
 
 class DepartmentController extends Controller
 {
@@ -25,8 +26,9 @@ class DepartmentController extends Controller
         $companies = Company::orderBy('name')->get();
         $branches = Branch::orderBy('name')->get();
         $parentDepartments = Department::orderBy('name')->get();
+        $users = User::orderBy('name')->get(['id', 'name', 'email']);
 
-        return view('core.departments.create', compact('companies', 'branches', 'parentDepartments'));
+        return view('core.departments.create', compact('companies', 'branches', 'parentDepartments', 'users'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -53,8 +55,9 @@ class DepartmentController extends Controller
         $companies = Company::orderBy('name')->get();
         $branches = Branch::orderBy('name')->get();
         $parentDepartments = Department::where('id', '!=', $id)->orderBy('name')->get();
+        $users = User::orderBy('name')->get(['id', 'name', 'email']);
 
-        return view('core.departments.edit', compact('department', 'companies', 'branches', 'parentDepartments'));
+        return view('core.departments.edit', compact('department', 'companies', 'branches', 'parentDepartments', 'users'));
     }
 
     public function update(Request $request, int $id): RedirectResponse

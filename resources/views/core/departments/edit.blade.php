@@ -74,6 +74,11 @@
                             <label for="manager_id">Manager</label>
                             <select name="manager_id" class="form-control">
                                 <option value="">Select Manager</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}" @selected(old('manager_id', $department->manager_id) == $user->id)>
+                                        {{ $user->name }} ({{ $user->email }})
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
