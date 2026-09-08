@@ -253,14 +253,13 @@ class ReportController extends Controller
 
         $transactions = \Modules\Finance\Models\BankTransaction::with(['bankAccount'])
             ->whereHas('bankAccount', function ($q) use ($companyId) {
-                $q->where('company_id', $companyId)->where('account_type', 'CASH');
+                $q->where('company_id', $companyId);
             })
             ->whereBetween('transaction_date', [$startDate, $endDate])
             ->orderBy('transaction_date', 'asc')
             ->get();
 
         $openingBalance = \Modules\Finance\Models\BankAccount::where('company_id', $companyId)
-            ->where('account_type', 'CASH')
             ->sum('opening_balance');
 
         $closingBalance = $openingBalance + $transactions->where('transaction_type', 'DEPOSIT')->sum('amount') - $transactions->where('transaction_type', 'WITHDRAWAL')->sum('amount') - $transactions->where('transaction_type', 'CHARGE')->sum('amount');
