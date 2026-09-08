@@ -1068,6 +1068,26 @@ return [
                             'icon' => 'bi bi-cart-plus',
                         ],
                         [
+                            'text' => 'Payment Register',
+                            'url' => 'finance/reports/payment-register',
+                            'icon' => 'bi bi-cash-stack',
+                        ],
+                        [
+                            'text' => 'Receipt Register',
+                            'url' => 'finance/reports/receipt-register',
+                            'icon' => 'bi bi-wallet2',
+                        ],
+                        [
+                            'text' => 'Cash Book',
+                            'url' => 'finance/reports/cash-book',
+                            'icon' => 'bi bi-book',
+                        ],
+                        [
+                            'text' => 'Bank Book',
+                            'url' => 'finance/reports/bank-book',
+                            'icon' => 'bi bi-bank',
+                        ],
+                        [
                             'text' => 'Management Reports',
                             'url' => 'finance/reports/management',
                             'icon' => 'bi bi-clipboard-data',

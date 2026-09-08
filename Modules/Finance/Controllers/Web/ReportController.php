@@ -167,4 +167,115 @@ class ReportController extends Controller
     {
         return view('finance.reports.budget-vs-actual');
     }
+
+    public function paymentRegister(Request $request)
+    {
+        $companyId = $request->get('company_id', 1);
+        $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : Carbon::now()->subMonth();
+        $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : Carbon::now();
+
+        $payments = \Modules\Finance\Models\SupplierPayment::with(['supplier', 'bankAccount'])
+            ->where('company_id', $companyId)
+            ->whereBetween('payment_date', [$startDate, $endDate])
+            ->orderBy('payment_date', 'desc')
+            ->get();
+
+        return view('finance.reports.payment-register', [
+            'payments' => $payments,
+            'startDate' => $startDate->format('Y-m-d'),
+            'endDate' => $endDate->format('Y-m-d'),
+            'totalAmount' => $payments->sum('amount'),
+        ]);
+    }
+
+    public function receiptRegister(Request $request)
+    {
+        $companyId = $request->get('company_id', 1);
+        $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : Carbon::now()->subMonth();
+        $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : Carbon::now();
+
+        $receipts = \Modules\Finance\Models\CustomerReceipt::with(['customer', 'bankAccount'])
+            ->where('company_id', $companyId)
+            ->whereBetween('receipt_date', [$startDate, $endDate])
+            ->orderBy('receipt_date', 'desc')
+            ->get();
+
+        return view('finance.reports.receipt-register', [
+            'receipts' => $receipts,
+            'startDate' => $startDate->format('Y-m-d'),
+            'endDate' => $endDate->format('Y-m-d'),
+            'totalAmount' => $receipts->sum('amount'),
+        ]);
+    }
+
+    public function cashBook(Request $request)
+    {
+        $companyId = $request->get('company_id', 1);
+        $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : Carbon::now()->subMonth();
+        $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : Carbon::now();
+
+        $transactions = \Modules\Finance\Models\BankTransaction::with(['bankAccount'])
+            ->whereHas('bankAccount', function ($q) use ($companyId) {
+                $q->where('company_id', $companyId)->where('account_type', 'CASH');
+            })
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->orderBy('transaction_date', 'asc')
+            ->get();
+
+        $openingBalance = \Modules\Finance\Models\BankAccount::where('company_id', $companyId)
+            ->where('account_type', 'CASH')
+            ->sum('opening_balance');
+
+        $closingBalance = $openingBalance + $transactions->where('transaction_type', 'DEPOSIT')->sum('amount') - $transactions->where('transaction_type', 'WITHDRAWAL')->sum('amount') - $transactions->where('transaction_type', 'CHARGE')->sum('amount');
+
+        return view('finance.reports.cash-book', [
+            'transactions' => $transactions,
+            'openingBalance' => $openingBalance,
+            'closingBalance' => $closingBalance,
+            'startDate' => $startDate->format('Y-m-d'),
+            'endDate' => $endDate->format('Y-m-d'),
+        ]);
+    }
+
+    public function bankBook(Request $request)
+    {
+        $companyId = $request->get('company_id', 1);
+        $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : Carbon::now()->subMonth();
+        $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : Carbon::now();
+
+        $transactions = \Modules\Finance\Models\BankTransaction::with(['bankAccount'])
+            ->whereHas('bankAccount', function ($q) use ($companyId) {
+                $q->where('company_id', $companyId)->whereIn('account_type', ['BANK', 'PETTY_CASH']);
+            })
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->orderBy('transaction_date', 'asc')
+            ->get();
+
+        $openingBalance = \Modules\Finance\Models\BankAccount::where('company_id', $companyId)
+            ->whereIn('account_type', ['BANK', 'PETTY_CASH'])
+            ->sum('opening_balance');
+
+        $closingBalance = $openingBalance + $transactions->where('transaction_type', 'DEPOSIT')->sum('amount') - $transactions->where('transaction_type', 'WITHDRAWAL')->sum('amount') - $transactions->where('transaction_type', 'CHARGE')->sum('amount') - $transactions->where('transaction_type', 'TRANSFER')->sum('amount');
+
+        return view('finance.reports.bank-book', [
+            'transactions' => $transactions,
+            'openingBalance' => $openingBalance,
+            'closingBalance' => $closingBalance,
+            'startDate' => $startDate->format('Y-m-d'),
+            'endDate' => $endDate->format('Y-m-d'),
+        ]);
+    }
+
+    public function management(Request $request)
+    {
+        $companyId = $request->get('company_id', 1);
+        $fiscalYearId = $request->get('fiscal_year_id');
+
+        $budgetData = $this->budgetService->getBudgetVsActual($companyId, $fiscalYearId);
+
+        return view('finance.reports.management', [
+            'budgetData' => $budgetData,
+            'fiscalYearId' => $fiscalYearId,
+        ]);
+    }
 }
