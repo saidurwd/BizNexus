@@ -75,7 +75,25 @@
             </div>
         </main>
 
-        @include('adminlte::partials.footer.footer')
+        <footer class="app-footer" style="display: block !important; visibility: visible !important; opacity: 1 !important; background: #f8f9fa; padding: 0.75rem 0; font-size: 0.875rem; color: #6c757d;">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-sm-6">
+                        <strong>
+                             Copyright &copy; {{ now()->format('Y') }}
+                            <a href="{{ config('app.url') }}" target="_blank" rel="noopener noreferrer" style="color: #6c757d; text-decoration: none;">
+                                {{ config('app.name', 'BizNexus') }}.
+                            </a>All rights reserved.
+                        </strong>
+                    </div>
+                    <div class="col-sm-6 text-sm-end">
+                        <span>
+                            version: {{ config('app.version', '1.0.0') }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </footer>
 
         @if($layoutHelper->isRightSidebarEnabled())
             @include('adminlte::partials.sidebar.right-sidebar')
@@ -120,43 +138,9 @@
     @endauth
 @show
 
-@section('footer')
-    <div class="container-fluid">
-        <div class="row align-items-center">
-            <div class="col-sm-6">
-                <strong>
-                    <a href="{{ config('app.url') }}" target="_blank" rel="noopener noreferrer">
-                        {{ config('app.name', 'BizNexus') }}
-                    </a>
-                </strong>
-            </div>
-            <div class="col-sm-6 text-sm-end">
-                <span class="text-body-secondary">
-                    &copy; {{ now()->format('Y') }} All rights reserved.
-                </span>
-            </div>
-        </div>
-    </div>
-@stop
-
 @section('adminlte_css')
     @stack('css')
     @yield('css')
-    <style>
-        .app-footer {
-            background: #f8f9fa;
-            padding: 0.75rem 0;
-            font-size: 0.875rem;
-            color: #6c757d;
-        }
-        .app-footer a {
-            color: #6c757d;
-            text-decoration: none;
-        }
-        .app-footer a:hover {
-            text-decoration: underline;
-        }
-    </style>
 @stop
 
 @section('adminlte_js')
