@@ -30,6 +30,7 @@ use Modules\Core\Controllers\Web\UserController;
 use Modules\Core\Controllers\Web\RoleController;
 use Modules\Core\Controllers\Web\ExchangeRateController;
 use Modules\Core\Controllers\Web\PeriodClosingController;
+use Modules\Core\Controllers\Web\FiscalYearController;
 use Modules\Core\Controllers\Web\PermissionController;
 
 Route::get('/', function () {
@@ -74,6 +75,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/exchange-rates/{id}', [ExchangeRateController::class, 'update'])->name('core.exchange-rates.update');
     Route::delete('/exchange-rates/{id}', [ExchangeRateController::class, 'destroy'])->name('core.exchange-rates.destroy');
     Route::get('/periods', [PeriodClosingController::class, 'index'])->name('core.periods.index');
+    Route::get('/fiscal-years/create', [FiscalYearController::class, 'create'])->name('core.fiscal-years.create');
+    Route::post('/fiscal-years', [FiscalYearController::class, 'store'])->name('core.fiscal-years.store');
+
     Route::post('/periods/{id}/close', [PeriodClosingController::class, 'closePeriod'])->name('core.periods.close');
     Route::post('/periods/{id}/reopen', [PeriodClosingController::class, 'reopenPeriod'])->name('core.periods.reopen');
     Route::post('/periods/{id}/lock', [PeriodClosingController::class, 'lockPeriod'])->name('core.periods.lock');
