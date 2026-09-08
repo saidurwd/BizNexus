@@ -75,9 +75,7 @@
             </div>
         </main>
 
-        @if($fixedFooter || View::hasSection('footer'))
-            @include('adminlte::partials.footer.footer')
-        @endif
+        @include('adminlte::partials.footer.footer')
 
         @if($layoutHelper->isRightSidebarEnabled())
             @include('adminlte::partials.sidebar.right-sidebar')
@@ -144,6 +142,21 @@
 @section('adminlte_css')
     @stack('css')
     @yield('css')
+    <style>
+        .app-footer {
+            background: #f8f9fa;
+            padding: 0.75rem 0;
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        .app-footer a {
+            color: #6c757d;
+            text-decoration: none;
+        }
+        .app-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
 @stop
 
 @section('adminlte_js')

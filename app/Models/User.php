@@ -28,6 +28,15 @@ class User extends Authenticatable
         return $this->hasMany(\Modules\Core\Models\CompanyUserRole::class);
     }
 
+    public function adminlte_image()
+    {
+        if ($this->profile_picture) {
+            return asset('storage/' . $this->profile_picture);
+        }
+
+        return null;
+    }
+
     /**
      * Get the attributes that should be cast.
      *
