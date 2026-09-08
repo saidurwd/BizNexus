@@ -108,7 +108,7 @@
             $companies = app(\Modules\Core\Services\CompanyContextService::class)->getUserCompanies();
             $activeCompanyId = session('active_company_id');
         @endphp
-
+{{-- 
         @if($companies->count() > 1)
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -134,7 +134,7 @@
                     @endforeach
                 </ul>
             </li>
-        @endif
+        @endif --}}
     @endauth
 @show
 

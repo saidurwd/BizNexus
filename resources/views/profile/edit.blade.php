@@ -28,6 +28,34 @@
                     </p>
                 </div>
             </div>
+
+            @php
+                $companies = app(\Modules\Core\Services\CompanyContextService::class)->getUserCompanies();
+                $activeCompanyId = session('active_company_id');
+            @endphp
+
+            @if($companies->count() > 1)
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h3 class="card-title">Change Company</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ route('company.switch') }}">
+                            @csrf
+                            <div class="form-group">
+                                <label for="company_id">Select Company</label>
+                                <select class="form-control" name="company_id" onchange="this.form.submit()">
+                                    @foreach($companies as $company)
+                                        <option value="{{ $company->id }}" {{ $company->id == $activeCompanyId ? 'selected' : '' }}>
+                                            {{ $company->code }} — {{ $company->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            @endif
         </div>
 
         <div class="col-md-8">
