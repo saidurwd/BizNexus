@@ -9,6 +9,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withProviders([
         \Modules\Core\CoreServiceProvider::class,
         \Modules\Finance\FinanceServiceProvider::class,
+        \JeroenNoten\LaravelAdminLte\AdminLteServiceProvider::class,
     ])
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -18,9 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
 
 
+
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web([
             \Modules\Core\Http\Middleware\SetCompanyContext::class,
+            \Modules\Core\Http\Middleware\ShareAdminLte::class,
         ]);
         
         $middleware->alias([

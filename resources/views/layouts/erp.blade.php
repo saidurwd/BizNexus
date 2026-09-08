@@ -1,12 +1,22 @@
-@extends('adminlte::master')
+@extends('adminlte::page')
 
 @inject('layoutHelper', 'JeroenNoten\LaravelAdminLte\Helpers\LayoutHelper')
 @inject('preloaderHelper', 'JeroenNoten\LaravelAdminLte\Helpers\PreloaderHelper')
+
+@php
+    $adminlte = app(\JeroenNoten\LaravelAdminLte\AdminLte::class);
+    $fixedFooter = $layoutHelper->isFixedFooterEnabled();
+@endphp
 
 @section('classes_body', $layoutHelper->makeBodyClasses())
 @section('body_data', $layoutHelper->makeBodyData())
 
 @section('body')
+    <div class="skip-links">
+        <a href="#main" class="skip-link">{{ __('adminlte::adminlte.skip_to_content') }}</a>
+        <a href="#navigation" class="skip-link">{{ __('adminlte::adminlte.skip_to_navigation') }}</a>
+    </div>
+
     <div class="{{ $layoutHelper->makeWrapperClasses() }}">
 
         @if($preloaderHelper->isPreloaderEnabled())
@@ -25,10 +35,35 @@
 
         <main class="{{ $layoutHelper->makeContentWrapperClasses() }}">
 
-            @hasSection('content_header')
+            @if(View::hasSection('content_header') || ($breadcrumbs ?? collect())->isNotEmpty())
                 <div class="app-content-header">
                     <div class="container-fluid">
-                        @yield('content_header')
+                        <div class="row">
+                            <div class="col-sm-6">
+                                @hasSection('content_header')
+                                    @yield('content_header')
+                                @endif
+                            </div>
+
+                            @if(($breadcrumbs ?? collect())->isNotEmpty())
+                                <div class="col-sm-6">
+                                    <nav aria-label="{{ __('adminlte::adminlte.breadcrumb') }}">
+                                        <ol class="breadcrumb float-sm-end">
+                                            @foreach($breadcrumbs as $crumb)
+                                                <li class="breadcrumb-item{{ $crumb['active'] ? ' active' : '' }}"
+                                                    @if($crumb['active']) aria-current="page" @endif>
+                                                    @if($crumb['url'])
+                                                        <a href="{{ $crumb['url'] }}">{{ $crumb['label'] }}</a>
+                                                    @else
+                                                        {{ $crumb['label'] }}
+                                                    @endif
+                                                </li>
+                                            @endforeach
+                                        </ol>
+                                    </nav>
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
             @endif
@@ -40,7 +75,7 @@
             </div>
         </main>
 
-        @if($layoutHelper->isFixedFooterEnabled() || View::hasSection('footer'))
+        @if($fixedFooter || View::hasSection('footer'))
             @include('adminlte::partials.footer.footer')
         @endif
 
@@ -54,7 +89,7 @@
 @section('content_top_nav_right')
     @auth
         @php
-            $companies = \Modules\Core\Services\CompanyContextService::make()->getUserCompanies();
+            $companies = app(\Modules\Core\Services\CompanyContextService::class)->getUserCompanies();
             $activeCompanyId = session('active_company_id');
         @endphp
 
