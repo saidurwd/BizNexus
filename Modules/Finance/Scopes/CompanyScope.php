@@ -13,7 +13,11 @@ class CompanyScope implements Scope
     {
         $companyId = session('active_company_id');
 
-        if ($companyId && Schema::hasColumn($model->getTable(), 'company_id')) {
+        if (!$companyId) {
+            return;
+        }
+
+        if (Schema::hasColumn($model->getTable(), 'company_id')) {
             $builder->where($model->getTable() . '.company_id', $companyId);
         }
     }

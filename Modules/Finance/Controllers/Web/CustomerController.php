@@ -41,9 +41,7 @@ class CustomerController extends Controller
     {
         $this->checkPermission('finance.customers.create');
 
-        $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
-            'customer_code' => 'required|string|max:50',
+        $validated = $request->validate([            'customer_code' => 'required|string|max:50',
             'name' => 'required|string|max:255',
             'contact_person' => 'nullable|string|max:255',
             'address' => 'nullable|string',
@@ -52,6 +50,8 @@ class CustomerController extends Controller
             'tax_number' => 'nullable|string|max:100',
             'status' => 'nullable|in:active,inactive',
         ]);
+
+        $validated['company_id'] = $this->getActiveCompanyId();
 
         Customer::create($validated);
 

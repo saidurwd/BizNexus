@@ -34,7 +34,10 @@ class BankAccountController extends Controller
     {
         $this->checkPermission('finance.accounts.create');
 
+        $companyId = $this->getActiveCompanyId();
+
         $glOptions = \Modules\Finance\Models\Account::where('is_postable', true)
+            ->where('company_id', $companyId)
             ->where('account_code', 'like', '1120%')
             ->orderBy('account_code')
             ->get(['id', 'account_code', 'account_name']);
@@ -75,7 +78,9 @@ class BankAccountController extends Controller
 
         $bankAccount = BankAccount::findOrFail($id);
 
+        $companyId = $this->getActiveCompanyId();
         $glOptions = \Modules\Finance\Models\Account::where('is_postable', true)
+            ->where('company_id', $companyId)
             ->where('account_code', 'like', '1120%')
             ->orderBy('account_code')
             ->get(['id', 'account_code', 'account_name']);

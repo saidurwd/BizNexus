@@ -13,7 +13,7 @@ class JournalFactory extends Factory
     public function definition(): array
     {
         return [
-            'company_id' => 1,
+            'company_id' => \Modules\Core\Models\Company::first()?->id ?? 1,
             'journal_number' => 'JV-' . date('Y') . '-' . str_pad($this->faker->unique()->numberBetween(1, 9999), 6, '0', STR_PAD_LEFT),
             'journal_date' => $this->faker->dateTimeBetween('-1 year', 'now'),
             'posting_date' => null,

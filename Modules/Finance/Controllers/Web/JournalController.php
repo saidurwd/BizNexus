@@ -43,6 +43,7 @@ class JournalController extends Controller
 
         $companyId = $this->getActiveCompanyId();
         $accounts = \Modules\Finance\Models\Account::postable()
+            ->where('company_id', $companyId)
             ->orderByRaw("CAST(account_code AS UNSIGNED)")
             ->get(['id', 'account_code', 'account_name']);
 
@@ -53,9 +54,7 @@ class JournalController extends Controller
     {
         $this->checkPermission('finance.journals.create');
 
-        $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
-            'journal_date' => 'required|date',
+        $validated = $request->validate([            'journal_date' => 'required|date',
             'description' => 'nullable|string',
             'lines' => 'required|array|min:2',
             'lines.*.account_id' => 'required|exists:accounts,id',
@@ -63,6 +62,8 @@ class JournalController extends Controller
             'lines.*.debit' => 'nullable|numeric|min:0',
             'lines.*.credit' => 'nullable|numeric|min:0',
         ]);
+
+        $validated['company_id'] = $this->getActiveCompanyId();
 
         try {
             $journal = $this->journalService->create($validated);

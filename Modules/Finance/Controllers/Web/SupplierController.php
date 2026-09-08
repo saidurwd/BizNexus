@@ -41,9 +41,7 @@ class SupplierController extends Controller
     {
         $this->checkPermission('finance.suppliers.create');
 
-        $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
-            'supplier_code' => 'required|string|max:50',
+        $validated = $request->validate([            'supplier_code' => 'required|string|max:50',
             'name' => 'required|string|max:255',
             'contact_person' => 'nullable|string|max:255',
             'address' => 'nullable|string',
@@ -52,6 +50,8 @@ class SupplierController extends Controller
             'tax_number' => 'nullable|string|max:100',
             'status' => 'nullable|in:active,inactive',
         ]);
+
+        $validated['company_id'] = $this->getActiveCompanyId();
 
         Supplier::create($validated);
 
@@ -87,9 +87,7 @@ class SupplierController extends Controller
 
         $supplier = Supplier::findOrFail($id);
 
-        $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
-            'supplier_code' => 'required|string|max:50|unique:suppliers,supplier_code,' . $supplier->id,
+        $validated = $request->validate([            'supplier_code' => 'required|string|max:50|unique:suppliers,supplier_code,' . $supplier->id,
             'name' => 'required|string|max:255',
             'contact_person' => 'nullable|string|max:255',
             'address' => 'nullable|string',
@@ -98,6 +96,8 @@ class SupplierController extends Controller
             'tax_number' => 'nullable|string|max:100',
             'status' => 'nullable|in:active,inactive',
         ]);
+
+        $validated['company_id'] = $this->getActiveCompanyId();
 
         $supplier->update($validated);
 

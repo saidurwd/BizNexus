@@ -33,7 +33,9 @@ class CashAccountController extends Controller
     {
         $this->checkPermission('finance.accounts.create');
 
+        $companyId = $this->getActiveCompanyId();
         $glOptions = \Modules\Finance\Models\Account::where('is_postable', true)
+            ->where('company_id', $companyId)
             ->whereIn('account_code', ['1110', '1120'])
             ->orderBy('account_code')
             ->get(['id', 'account_code', 'account_name']);
@@ -71,7 +73,9 @@ class CashAccountController extends Controller
         $this->checkPermission('finance.accounts.update');
 
         $cashAccount = CashAccount::findOrFail($id);
+        $companyId = $this->getActiveCompanyId();
         $glOptions = \Modules\Finance\Models\Account::where('is_postable', true)
+            ->where('company_id', $companyId)
             ->whereIn('account_code', ['1110', '1120'])
             ->orderBy('account_code')
             ->get(['id', 'account_code', 'account_name']);

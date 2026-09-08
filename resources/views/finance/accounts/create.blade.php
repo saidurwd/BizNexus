@@ -11,7 +11,6 @@
         <div class="card-body">
             <form action="{{ route('finance.accounts.store') }}" method="POST">
                 @csrf
-                <input type="hidden" name="company_id" value="1">
 
                 <div class="form-group">
                     <label for="account_code">Account Code</label>

@@ -12,7 +12,7 @@ class SupplierFactory extends Factory
     public function definition(): array
     {
         return [
-            'company_id' => 1,
+            'company_id' => \Modules\Core\Models\Company::first()?->id ?? 1,
             'supplier_code' => 'SUP-' . $this->faker->unique()->numerify('####'),
             'name' => $this->faker->company(),
             'contact_person' => $this->faker->name(),

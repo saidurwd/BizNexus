@@ -64,9 +64,9 @@ class ReceiptController extends Controller
             'payer_type' => 'required|in:CUSTOMER,SUPPLIER,OTHER',
             'payer_name' => 'required|string|max:255',
             'reference' => 'nullable|string|max:100',
-            'description' => 'nullable|string',
-            'company_id' => 'required|exists:companies,id',
-        ]);
+            'description' => 'nullable|string',        ]);
+
+        $validated['company_id'] = $this->getActiveCompanyId();
 
         $receipt = $this->receiptService->createReceipt($validated);
 

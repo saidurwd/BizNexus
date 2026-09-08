@@ -48,9 +48,9 @@ class PaymentController extends Controller
             'bank_account_id' => 'nullable|exists:bank_accounts,id',
             'amount' => 'required|numeric|min:0.01',
             'reference' => 'nullable|string|max:100',
-            'description' => 'nullable|string',
-            'company_id' => 'required|exists:companies,id',
-        ]);
+            'description' => 'nullable|string',        ]);
+
+        $validated['company_id'] = $this->getActiveCompanyId();
 
         $payment = $this->paymentService->createPayment($validated);
 

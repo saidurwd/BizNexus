@@ -11,7 +11,6 @@
         <div class="card-body">
             <form action="{{ route('finance.receipts.store') }}" method="POST">
                 @csrf
-                <input type="hidden" name="company_id" value="1">
 
                 <div class="row">
                     <div class="col-md-6">

@@ -17,7 +17,9 @@ class AccountController extends Controller
     {
         $this->checkPermission('finance.accounts.view');
 
-        $accounts = Account::when($request->get('type'), fn($q, $type) => $q->where('account_type', $type))
+        $companyId = $this->getActiveCompanyId();
+        $accounts = Account::where('company_id', $companyId)
+            ->when($request->get('type'), fn($q, $type) => $q->where('account_type', $type))
             ->when($request->get('status'), fn($q, $status) => $q->where('status', $status))
             ->orderBy('account_code')
             ->get();

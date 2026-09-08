@@ -14,7 +14,7 @@ class AccountFactory extends Factory
         $accountTypes = ['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE'];
 
         return [
-            'company_id' => 1,
+            'company_id' => \Modules\Core\Models\Company::first()?->id ?? 1,
             'parent_id' => null,
             'account_code' => $this->faker->unique()->numerify('####'),
             'account_name' => $this->faker->words(3, true),

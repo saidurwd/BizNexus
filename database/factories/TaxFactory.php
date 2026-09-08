@@ -14,7 +14,7 @@ class TaxFactory extends Factory
         $types = ['VAT', 'WITHHOLDING_TAX', 'INCOME_TAX', 'OTHER'];
 
         return [
-            'company_id' => 1,
+            'company_id' => \Modules\Core\Models\Company::first()?->id ?? 1,
             'tax_code' => 'TAX-' . $this->faker->unique()->numerify('###'),
             'tax_name' => $this->faker->words(2, true) . ' Tax',
             'tax_type' => $this->faker->randomElement($types),
