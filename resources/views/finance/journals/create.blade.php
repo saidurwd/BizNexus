@@ -11,7 +11,7 @@
         <div class="card-body">
             <form action="{{ route('finance.journals.store') }}" method="POST" id="journalForm">
                 @csrf
-                <input type="hidden" name="company_id" value="1">
+                <input type="hidden" name="company_id" value="{{ $companyId }}">
 
                 <div class="row">
                     <div class="col-md-6">

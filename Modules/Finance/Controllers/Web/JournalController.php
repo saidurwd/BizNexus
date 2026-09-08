@@ -41,11 +41,12 @@ class JournalController extends Controller
     {
         $this->checkPermission('finance.journals.create');
 
+        $companyId = $this->getActiveCompanyId();
         $accounts = \Modules\Finance\Models\Account::postable()
             ->orderByRaw("CAST(account_code AS UNSIGNED)")
             ->get(['id', 'account_code', 'account_name']);
 
-        return view('finance.journals.create', compact('accounts'));
+        return view('finance.journals.create', compact('accounts', 'companyId'));
     }
 
     public function store(Request $request)
