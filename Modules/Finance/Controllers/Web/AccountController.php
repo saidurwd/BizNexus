@@ -87,8 +87,11 @@ class AccountController extends Controller
         $this->checkPermission('finance.accounts.update');
 
         $account = Account::findOrFail($id);
+        $companyId = $this->getActiveCompanyId();
+        $tree = $this->chartOfAccounts->getAccountTree($companyId);
+        $parentAccounts = $this->flattenTree($tree);
 
-        return view('finance.accounts.edit', compact('account'));
+        return view('finance.accounts.edit', compact('account', 'parentAccounts'));
     }
 
     public function update(Request $request, int $id)

@@ -57,10 +57,33 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
+                            <label for="account_category">Account Category</label>
+                            <input type="text" class="form-control" id="account_category" name="account_category" value="{{ old('account_category', $account->account_category) }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="level">Level</label>
+                            <input type="number" class="form-control" id="level" name="level" value="{{ old('level', $account->level ?? 1) }}" min="1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
                             <label for="normal_balance">Normal Balance</label>
                             <select class="form-control" id="normal_balance" name="normal_balance">
                                 <option value="DEBIT" {{ old('normal_balance', $account->normal_balance) === 'DEBIT' ? 'selected' : '' }}>Debit</option>
                                 <option value="CREDIT" {{ old('normal_balance', $account->normal_balance) === 'CREDIT' ? 'selected' : '' }}>Credit</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="currency_id">Currency</label>
+                            <select class="form-control" id="currency_id" name="currency_id">
+                                <option value="">Default Currency</option>
                             </select>
                         </div>
                     </div>
@@ -76,6 +99,19 @@
                 </div>
 
                 <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="parent_id">Parent Account</label>
+                            <select class="form-control" id="parent_id" name="parent_id">
+                                <option value="">None (Top Level)</option>
+                                @foreach($parentAccounts as $parent)
+                                    <option value="{{ $parent['id'] }}" {{ $account->parent_id == $parent['id'] ? 'selected' : '' }}>
+                                        {!! $parent['indent'] !!}{{ $parent['account_code'] }} — {{ $parent['account_name'] }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="is_group">Is Group</label>
