@@ -189,8 +189,8 @@ return [
     |
     */
 
-    'use_route_url' => false,
-    'dashboard_url' => 'finance/dashboard',
+    'use_route_url' => true,
+    'dashboard_url' => 'dashboard',
     'logout_url' => 'logout',
 
     // The HTTP method spoofed on the logout form. Set it to 'GET' when your

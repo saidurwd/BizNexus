@@ -30,9 +30,9 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    // Main Dashboard (redirects to Finance Dashboard)
+    // Main Dashboard
     Route::get('/dashboard', function () {
-        return redirect()->route('finance.dashboard');
+        return view('dashboard');
     })->name('dashboard');
 
     // Finance Module
