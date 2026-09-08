@@ -39,11 +39,33 @@ class ReceiptService
                 'created_by' => Auth::id(),
             ]);
 
+            $totalAllocated = 0;
             foreach ($data['allocations'] ?? [] as $allocation) {
+                $invoice = CustomerInvoice::where('id', $allocation['invoice_id'])
+                    ->where('customer_id', $data['customer_id'])
+                    ->firstOrFail();
+
+                $outstanding = $invoice->outstanding_amount - $invoice->allocations()
+                    ->where('customer_receipt_id', '!=', $receipt->id)
+                    ->sum('amount');
+
+                if ($allocation['amount'] > $outstanding) {
+                    throw new InvalidAccountingTransactionException(
+                        "Allocation amount ({$allocation['amount']}) exceeds outstanding amount ({$outstanding}) for invoice {$invoice->invoice_number}"
+                    );
+                }
+
+                $totalAllocated = bcadd($totalAllocated, $allocation['amount'], 4);
                 $receipt->allocations()->create([
                     'customer_invoice_id' => $allocation['invoice_id'],
                     'amount' => $allocation['amount'],
                 ]);
+            }
+
+            if (bccomp($totalAllocated, $data['amount'], 4) > 0) {
+                throw new InvalidAccountingTransactionException(
+                    "Total allocated amount ({$totalAllocated}) exceeds receipt amount ({$data['amount']})"
+                );
             }
 
             $this->audit->logCreate('Finance', 'CustomerReceipt', $receipt->id, $receipt->toArray());
@@ -121,32 +143,32 @@ class ReceiptService
         });
     }
 
-    protected function getDefaultReceivableAccount(int $companyId): int
+    public function allocateReceipt(int $receiptId, int $invoiceId, float $amount): ReceiptAllocation
     {
-        $account = \Modules\Finance\Models\Account::where('company_id', $companyId)
-            ->where('account_code', 'like', '1100%')
-            ->where('is_postable', true)
-            ->first();
+        $receipt = CustomerReceipt::findOrFail($receiptId);
+        $invoice = CustomerInvoice::where('id', $invoiceId)
+            ->where('customer_id', $receipt->customer_id)
+            ->firstOrFail();
 
-        return $account?->id ?? throw new \Exception('No receivable account found');
-    }
+        if (!$receipt->isDraft()) {
+            throw new InvalidAccountingTransactionException('Can only allocate from draft receipts');
+        }
 
-    protected function getDefaultCashAccount(int $companyId): int
-    {
-        $account = \Modules\Finance\Models\Account::where('company_id', $companyId)
-            ->where('account_code', 'like', '1110%')
-            ->where('is_postable', true)
-            ->first();
+        $outstanding = $invoice->outstanding_amount - $invoice->allocations()
+            ->where('customer_receipt_id', '!=', $receiptId)
+            ->sum('amount');
 
-        return $account?->id ?? throw new \Exception('No cash account found');
-    }
+        if ($amount > $outstanding) {
+            throw new InvalidAccountingTransactionException(
+                "Allocation amount ({$amount}) exceeds outstanding amount ({$outstanding}) for invoice {$invoice->invoice_number}"
+            );
+        }
 
-    public function allocateReceipt(CustomerReceipt $receipt, int $invoiceId, float $amount): ReceiptAllocation
-    {
-        $invoice = CustomerInvoice::findOrFail($invoiceId);
-
-        if ($invoice->outstanding_amount < $amount) {
-            throw new InvalidAccountingTransactionException('Receipt amount exceeds invoice outstanding balance');
+        $totalAllocated = $receipt->allocations()->sum('amount') + $amount;
+        if ($totalAllocated > $receipt->amount) {
+            throw new InvalidAccountingTransactionException(
+                "Total allocated amount ({$totalAllocated}) exceeds receipt amount ({$receipt->amount})"
+            );
         }
 
         $allocation = $receipt->allocations()->create([
@@ -182,62 +204,54 @@ class ReceiptService
 
         foreach ($invoices as $invoice) {
             $days = $invoice->getDaysOutstanding();
-            $amount = (float) $invoice->outstanding_amount;
+            $outstanding = $invoice->outstanding_amount;
+            $aging['total'] = bcadd($aging['total'], $outstanding, 4);
 
-            $invoiceAging = [
-                'invoice_id' => $invoice->id,
+            if ($days <= 0) {
+                $aging['current'] = bcadd($aging['current'], $outstanding, 4);
+            } elseif ($days <= 30) {
+                $aging['days_1_30'] = bcadd($aging['days_1_30'], $outstanding, 4);
+            } elseif ($days <= 60) {
+                $aging['days_31_60'] = bcadd($aging['days_31_60'], $outstanding, 4);
+            } elseif ($days <= 90) {
+                $aging['days_61_90'] = bcadd($aging['days_61_90'], $outstanding, 4);
+            } elseif ($days <= 180) {
+                $aging['days_91_180'] = bcadd($aging['days_91_180'], $outstanding, 4);
+            } else {
+                $aging['days_180_plus'] = bcadd($aging['days_180_plus'], $outstanding, 4);
+            }
+
+            $aging['invoices'][] = [
                 'invoice_number' => $invoice->invoice_number,
                 'customer_name' => $invoice->customer->name,
                 'invoice_date' => $invoice->invoice_date->format('Y-m-d'),
                 'due_date' => $invoice->due_date->format('Y-m-d'),
+                'total_amount' => $invoice->total_amount,
+                'outstanding_amount' => $outstanding,
                 'days_outstanding' => $days,
-                'amount' => $amount,
-                'bucket' => $this->getAgingBucket($days),
             ];
-
-            $aging['invoices'][] = $invoiceAging;
-
-            switch ($this->getAgingBucket($days)) {
-                case 'current':
-                    $aging['current'] = bcadd($aging['current'], $amount, 4);
-                    break;
-                case 'days_1_30':
-                    $aging['days_1_30'] = bcadd($aging['days_1_30'], $amount, 4);
-                    break;
-                case 'days_31_60':
-                    $aging['days_31_60'] = bcadd($aging['days_31_60'], $amount, 4);
-                    break;
-                case 'days_61_90':
-                    $aging['days_61_90'] = bcadd($aging['days_61_90'], $amount, 4);
-                    break;
-                case 'days_91_180':
-                    $aging['days_91_180'] = bcadd($aging['days_91_180'], $amount, 4);
-                    break;
-                case 'days_180_plus':
-                    $aging['days_180_plus'] = bcadd($aging['days_180_plus'], $amount, 4);
-                    break;
-            }
-
-            $aging['total'] = bcadd($aging['total'], $amount, 4);
         }
 
         return $aging;
     }
 
-    protected function getAgingBucket(int $days): string
+    protected function getDefaultReceivableAccount(int $companyId): int
     {
-        if ($days <= 0) {
-            return 'current';
-        } elseif ($days <= 30) {
-            return 'days_1_30';
-        } elseif ($days <= 60) {
-            return 'days_31_60';
-        } elseif ($days <= 90) {
-            return 'days_61_90';
-        } elseif ($days <= 180) {
-            return 'days_91_180';
-        }
+        $account = \Modules\Finance\Models\Account::where('company_id', $companyId)
+            ->where('account_code', 'like', '1100%')
+            ->where('is_postable', true)
+            ->first();
 
-        return 'days_180_plus';
+        return $account?->id ?? throw new \Exception('No receivable account found');
+    }
+
+    protected function getDefaultCashAccount(int $companyId): int
+    {
+        $account = \Modules\Finance\Models\Account::where('company_id', $companyId)
+            ->where('account_code', 'like', '1110%')
+            ->where('is_postable', true)
+            ->first();
+
+        return $account?->id ?? throw new \Exception('No cash account found');
     }
 }

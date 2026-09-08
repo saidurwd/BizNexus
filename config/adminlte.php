@@ -805,6 +805,9 @@ return [
                 ['text' => 'Companies', 'url' => 'companies', 'icon' => 'bi bi-building', 'permission' => 'core.companies.view'],
                 ['text' => 'Branches', 'url' => 'branches', 'icon' => 'bi bi-shop', 'permission' => 'core.branches.view'],
                 ['text' => 'Departments', 'url' => 'departments', 'icon' => 'bi bi-diagram-3', 'permission' => 'core.departments.view'],
+                ['header' => 'Financial Setup'],
+                ['text' => 'Exchange Rates', 'url' => 'exchange-rates', 'icon' => 'bi bi-currency-exchange', 'permission' => 'core.exchange-rates.view'],
+                ['text' => 'Accounting Periods', 'url' => 'periods', 'icon' => 'bi bi-calendar-range', 'permission' => 'core.periods.view'],
             ],
         ],
         // ============================================================

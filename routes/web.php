@@ -28,6 +28,8 @@ use Modules\Core\Controllers\Web\BranchController;
 use Modules\Core\Controllers\Web\DepartmentController;
 use Modules\Core\Controllers\Web\UserController;
 use Modules\Core\Controllers\Web\RoleController;
+use Modules\Core\Controllers\Web\ExchangeRateController;
+use Modules\Core\Controllers\Web\PeriodClosingController;
 use Modules\Core\Controllers\Web\PermissionController;
 
 Route::get('/', function () {
@@ -65,6 +67,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/permissions/{id}/edit', [PermissionController::class, 'edit'])->name('core.permissions.edit');
     Route::put('/permissions/{id}', [PermissionController::class, 'update'])->name('core.permissions.update');
     Route::delete('/permissions/{id}', [PermissionController::class, 'destroy'])->name('core.permissions.destroy');
+    Route::get('/exchange-rates', [ExchangeRateController::class, 'index'])->name('core.exchange-rates.index');
+    Route::get('/exchange-rates/create', [ExchangeRateController::class, 'create'])->name('core.exchange-rates.create');
+    Route::post('/exchange-rates', [ExchangeRateController::class, 'store'])->name('core.exchange-rates.store');
+    Route::get('/exchange-rates/{id}/edit', [ExchangeRateController::class, 'edit'])->name('core.exchange-rates.edit');
+    Route::put('/exchange-rates/{id}', [ExchangeRateController::class, 'update'])->name('core.exchange-rates.update');
+    Route::delete('/exchange-rates/{id}', [ExchangeRateController::class, 'destroy'])->name('core.exchange-rates.destroy');
+    Route::get('/periods', [PeriodClosingController::class, 'index'])->name('core.periods.index');
+    Route::post('/periods/{id}/close', [PeriodClosingController::class, 'closePeriod'])->name('core.periods.close');
+    Route::post('/periods/{id}/reopen', [PeriodClosingController::class, 'reopenPeriod'])->name('core.periods.reopen');
+    Route::post('/periods/{id}/lock', [PeriodClosingController::class, 'lockPeriod'])->name('core.periods.lock');
+    Route::post('/periods/{id}/validate', [PeriodClosingController::class, 'validatePeriod'])->name('core.periods.validate');
+
 
 
     Route::get('/branches', [BranchController::class, 'index'])->name('core.branches.index');

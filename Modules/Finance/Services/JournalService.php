@@ -227,6 +227,7 @@ class JournalService
             $period = $this->periodService->validateDateForPosting($journal->company_id, $journalDate);
 
             $this->validate($journal);
+            $this->validateBudget($journal);
 
             $journal->update([
                 'fiscal_period_id' => $period->id,
@@ -338,5 +339,37 @@ class JournalService
         $journal->delete();
 
         $this->audit->logDelete('Finance', 'Journal', $journal->id, $journal->toArray());
+    }
+
+    protected function validateBudget(Journal $journal): void
+    {
+        $budgetService = app(\Modules\Finance\Services\BudgetService::class);
+        
+        foreach ($journal->lines as $line) {
+            if ($line->debit > 0 && $line->account->account_type === 'EXPENSE') {
+                $budgetLines = \Modules\Finance\Models\BudgetLine::where('account_id', $line->account_id)
+                    ->whereHas('budget', function ($q) use ($journal) {
+                        $q->where('company_id', $journal->company_id)
+                          ->where('status', 'active');
+                    })
+                    ->get();
+
+                foreach ($budgetLines as $budgetLine) {
+                    $budgetAmount = $budgetLine->budget_amount;
+                    $actualSpending = $budgetService->getActualSpending(
+                        $line->account_id,
+                        $budgetLine->cost_center_id,
+                        $budgetLine->budget->fiscal_year_id
+                    );
+                    
+                    if ($actualSpending + $line->debit > $budgetAmount) {
+                        throw new InvalidAccountingTransactionException(
+                            "Budget exceeded for account {$line->account->account_name}. " .
+                            "Budget: {$budgetAmount}, Actual: {$actualSpending}, Attempted: {$line->debit}"
+                        );
+                    }
+                }
+            }
+        }
     }
 }
