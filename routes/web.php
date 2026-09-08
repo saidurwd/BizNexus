@@ -21,6 +21,8 @@ use Modules\Finance\Controllers\Web\BankPaymentController;
 use Modules\Finance\Controllers\Web\BankReceiptController;
 use Modules\Finance\Controllers\Web\BankReconciliationController;
 use Modules\Finance\Controllers\Web\RecurringJournalController;
+use Modules\Finance\Controllers\Web\SupplierStatementController;
+use Modules\Finance\Controllers\Web\CustomerStatementController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -92,6 +94,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/cash-flow', [ReportController::class, 'cashFlow'])->name('cash-flow');
             Route::get('/ap', [ReportController::class, 'apReport'])->name('ap');
             Route::get('/ar', [ReportController::class, 'arReport'])->name('ar');
+            Route::get('/payment-register', [ReportController::class, 'paymentRegister'])->name('payment-register');
+            Route::get('/receipt-register', [ReportController::class, 'receiptRegister'])->name('receipt-register');
+            Route::get('/cash-book', [ReportController::class, 'cashBook'])->name('cash-book');
+            Route::get('/bank-book', [ReportController::class, 'bankBook'])->name('bank-book');
+            Route::get('/management', [ReportController::class, 'management'])->name('management');
         });
 
         // Payments
@@ -112,11 +119,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/supplier-invoices', [SupplierInvoiceController::class, 'store'])->name('supplier-invoices.store');
         Route::get('/supplier-invoices/{id}', [SupplierInvoiceController::class, 'show'])->name('supplier-invoices.show');
 
+        // Supplier Statements
+        Route::get('/supplier-statements', [SupplierStatementController::class, 'index'])->name('supplier-statements.index');
+        Route::get('/supplier-statements/{id}', [SupplierStatementController::class, 'show'])->name('supplier-statements.show');
+
         // Customer Invoices
         Route::get('/customer-invoices', [CustomerInvoiceController::class, 'index'])->name('customer-invoices.index');
         Route::get('/customer-invoices/create', [CustomerInvoiceController::class, 'create'])->name('customer-invoices.create');
         Route::post('/customer-invoices', [CustomerInvoiceController::class, 'store'])->name('customer-invoices.store');
         Route::get('/customer-invoices/{id}', [CustomerInvoiceController::class, 'show'])->name('customer-invoices.show');
+
+        // Customer Statements
+        Route::get('/customer-statements', [CustomerStatementController::class, 'index'])->name('customer-statements.index');
+        Route::get('/customer-statements/{id}', [CustomerStatementController::class, 'show'])->name('customer-statements.show');
 
         // Taxes
         Route::get('/taxes', [TaxController::class, 'index'])->name('taxes.index');
