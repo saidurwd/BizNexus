@@ -53,7 +53,6 @@
             </div>
         </div>
         <div class="card-footer">
-            <a href="{{ route('finance.reports.income-statement-pdf') }}?start_date={{ $startDate }}&end_date={{ $endDate }}" class="btn btn-sm btn-primary" target="_blank">
                 <i class="bi bi-file-pdf"></i> Export PDF
             </a>
         </div>

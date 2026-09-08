@@ -44,8 +44,12 @@ class ReportController extends Controller
             $request->get('date') ? Carbon::parse($request->get('date')) : null
         );
 
+        $asOfDate = $request->get('date') ? Carbon::parse($request->get('date')) : Carbon::today();
+
         return view('finance.reports.trial-balance', [
             'trialBalance' => $trialBalance,
+            'accounts' => $trialBalance['accounts'],
+            'asOfDate' => $asOfDate->format('Y-m-d'),
         ]);
     }
 

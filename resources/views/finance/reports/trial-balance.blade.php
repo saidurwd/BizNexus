@@ -24,16 +24,16 @@
                 <tbody>
                     @php $totalDebit = 0; $totalCredit = 0; @endphp
                     @foreach($accounts as $account)
-                        @if($account->debit_balance != 0 || $account->credit_balance != 0)
+                        @if($account['debit'] != 0 || $account['credit'] != 0)
                             <tr>
-                                <td>{{ $account->account_code }}</td>
-                                <td>{{ $account->account_name }}</td>
-                                <td class="text-right">{{ $account->debit_balance > 0 ? number_format($account->debit_balance, 2) : '-' }}</td>
-                                <td class="text-right">{{ $account->credit_balance > 0 ? number_format($account->credit_balance, 2) : '-' }}</td>
+                                <td>{{ $account['account_code'] }}</td>
+                                <td>{{ $account['account_name'] }}</td>
+                                <td class="text-right">{{ $account['debit'] > 0 ? number_format($account['debit'], 2) : '-' }}</td>
+                                <td class="text-right">{{ $account['credit'] > 0 ? number_format($account['credit'], 2) : '-' }}</td>
                             </tr>
                             @php 
-                                $totalDebit += $account->debit_balance;
-                                $totalCredit += $account->credit_balance;
+                                $totalDebit += $account['debit'];
+                                $totalCredit += $account['credit'];
                             @endphp
                         @endif
                     @endforeach
@@ -46,11 +46,6 @@
                     </tr>
                 </tfoot>
             </table>
-        </div>
-        <div class="card-footer">
-            <a href="{{ route('finance.reports.trial-balance-pdf') }}?as_of_date={{ $asOfDate }}" class="btn btn-sm btn-primary" target="_blank">
-                <i class="bi bi-file-pdf"></i> Export PDF
-            </a>
         </div>
     </div>
 @endsection

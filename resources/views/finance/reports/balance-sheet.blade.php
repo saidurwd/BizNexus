@@ -74,7 +74,6 @@
             </div>
         </div>
         <div class="card-footer">
-            <a href="{{ route('finance.reports.balance-sheet-pdf') }}?as_of_date={{ $asOfDate }}" class="btn btn-sm btn-primary" target="_blank">
                 <i class="bi bi-file-pdf"></i> Export PDF
             </a>
         </div>
