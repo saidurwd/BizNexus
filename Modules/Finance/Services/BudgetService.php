@@ -4,6 +4,7 @@ namespace Modules\Finance\Services;
 
 use Modules\Finance\Models\Budget;
 use Modules\Finance\Models\BudgetLine;
+use Modules\Finance\Jobs\SendBudgetAlertJob;
 use Modules\Finance\Models\Account;
 use Carbon\Carbon;
 

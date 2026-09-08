@@ -174,6 +174,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/cash-book', [ReportController::class, 'cashBook'])->name('cash-book');
             Route::get('/bank-book', [ReportController::class, 'bankBook'])->name('bank-book');
             Route::get('/management', [ReportController::class, 'management'])->name('management');
+            Route::post('/generate-async', [ReportController::class, 'generateAsync'])->name('generate-async');
         });
 
         // Payments

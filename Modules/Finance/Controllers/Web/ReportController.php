@@ -9,6 +9,7 @@ use Modules\Finance\Services\LedgerService;
 use Modules\Finance\Services\FinancialReportService;
 use Modules\Finance\Services\PaymentService;
 use Modules\Finance\Services\ReceiptService;
+use Modules\Finance\Jobs\GenerateReportJob;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
 
@@ -97,14 +98,6 @@ class ReportController extends Controller
 
         return view('finance.reports.balance-sheet', [
             'report' => $report,
-            'asOfDate' => $report['as_of_date'],
-            'assets' => $report['assets']['accounts'],
-            'liabilities' => $report['liabilities']['accounts'],
-            'equity' => $report['equity']['accounts'],
-            'totalAssets' => $report['assets']['total'],
-            'totalLiabilities' => $report['liabilities']['total'],
-            'totalEquity' => $report['equity']['total'],
-            'totalLiabilitiesEquity' => $report['total_liabilities_equity'],
         ]);
     }
 
@@ -112,209 +105,97 @@ class ReportController extends Controller
     {
         $this->checkPermission('finance.reports.view');
 
-        $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : Carbon::now()->startOfMonth();
-        $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : Carbon::now()->endOfMonth();
-
-        $cashFlow = $this->financialReportService->getCashFlow($this->getActiveCompanyId(), $startDate, $endDate);
+        $report = $this->financialReportService->getCashFlow(
+            $this->getActiveCompanyId(),
+            $request->get('fiscal_period_id'),
+            $request->get('start_date') ? Carbon::parse($request->get('start_date')) : null,
+            $request->get('end_date') ? Carbon::parse($request->get('end_date')) : null
+        );
 
         return view('finance.reports.cash-flow', [
-            'startDate' => $cashFlow['start_date'],
-            'endDate' => $cashFlow['end_date'],
-            'operatingActivities' => $cashFlow['operating_activities'],
-            'investingActivities' => $cashFlow['investing_activities'],
-            'financingActivities' => $cashFlow['financing_activities'],
-            'operatingTotal' => $cashFlow['operating_total'],
-            'investingTotal' => $cashFlow['investing_total'],
-            'financingTotal' => $cashFlow['financing_total'],
-            'netChange' => $cashFlow['net_change'],
+            'report' => $report,
         ]);
     }
 
-    public function apReport(Request $request)
+    public function apAging()
     {
         $this->checkPermission('finance.reports.view');
 
         $aging = $this->paymentService->getAPAging($this->getActiveCompanyId());
-        $apAging = collect($aging['invoices'])
-            ->groupBy('supplier_name')
-            ->map(function ($invoices, $supplierName) {
-                $summary = [
-                    'supplier_name' => $supplierName,
-                    'current' => 0,
-                    'days_1_30' => 0,
-                    'days_31_60' => 0,
-                    'days_61_90' => 0,
-                    'over_90_days' => 0,
-                    'total' => 0,
-                ];
 
-                foreach ($invoices as $invoice) {
-                    $amount = $invoice['amount'];
-                    $summary['total'] += $amount;
-
-                    if (in_array($invoice['bucket'], ['days_91_180', 'days_180_plus'])) {
-                        $summary['over_90_days'] += $amount;
-                    } else {
-                        $summary[$invoice['bucket']] += $amount;
-                    }
-                }
-
-                return $summary;
-            })
-            ->values();
-
-        return view('finance.reports.ap', [
-            'apAging' => $apAging,
-            'asOfDate' => Carbon::today()->toDateString(),
+        return view('finance.reports.ap-aging', [
+            'aging' => $aging,
         ]);
     }
 
-    public function arReport(Request $request)
+    public function arAging()
     {
         $this->checkPermission('finance.reports.view');
 
         $aging = $this->receiptService->getARAging($this->getActiveCompanyId());
-        $arAging = collect($aging['invoices'])
-            ->groupBy('customer_name')
-            ->map(function ($invoices, $customerName) {
-                $summary = [
-                    'customer_name' => $customerName,
-                    'current' => 0,
-                    'days_1_30' => 0,
-                    'days_31_60' => 0,
-                    'days_61_90' => 0,
-                    'over_90_days' => 0,
-                    'total' => 0,
-                ];
 
-                foreach ($invoices as $invoice) {
-                    $amount = $invoice['amount'];
-                    $summary['total'] += $amount;
-
-                    if (in_array($invoice['bucket'], ['days_91_180', 'days_180_plus'])) {
-                        $summary['over_90_days'] += $amount;
-                    } else {
-                        $summary[$invoice['bucket']] += $amount;
-                    }
-                }
-
-                return $summary;
-            })
-            ->values();
-
-        return view('finance.reports.ar', [
-            'arAging' => $arAging,
-            'asOfDate' => Carbon::today()->toDateString(),
+        return view('finance.reports.ar-aging', [
+            'aging' => $aging,
         ]);
     }
 
-    public function budgetVsActual(Request $request)
+    public function paymentRegister()
     {
         $this->checkPermission('finance.reports.view');
 
-        return view('finance.reports.budget-vs-actual');
-    }
-
-    public function paymentRegister(Request $request)
-    {
-        $this->checkPermission('finance.reports.view');
-
-        $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : Carbon::now()->subMonth();
-        $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : Carbon::now();
-
-        $payments = \Modules\Finance\Models\SupplierPayment::with(['supplier', 'bankAccount'])
-            ->whereBetween('payment_date', [$startDate, $endDate])
+        $payments = \Modules\Finance\Models\SupplierPayment::where('company_id', $this->getActiveCompanyId())
+            ->with('supplier')
             ->orderBy('payment_date', 'desc')
             ->get();
 
-        return view('finance.reports.payment-register', [
-            'payments' => $payments,
-            'startDate' => $startDate->format('Y-m-d'),
-            'endDate' => $endDate->format('Y-m-d'),
-            'totalAmount' => $payments->sum('amount'),
-        ]);
+        return view('finance.reports.payment-register', compact('payments'));
     }
 
-    public function receiptRegister(Request $request)
+    public function receiptRegister()
     {
         $this->checkPermission('finance.reports.view');
 
-        $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : Carbon::now()->subMonth();
-        $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : Carbon::now();
-
-        $receipts = \Modules\Finance\Models\CustomerReceipt::with(['customer', 'bankAccount'])
-            ->whereBetween('receipt_date', [$startDate, $endDate])
+        $receipts = \Modules\Finance\Models\CustomerReceipt::where('company_id', $this->getActiveCompanyId())
+            ->with('customer')
             ->orderBy('receipt_date', 'desc')
             ->get();
 
-        return view('finance.reports.receipt-register', [
-            'receipts' => $receipts,
-            'startDate' => $startDate->format('Y-m-d'),
-            'endDate' => $endDate->format('Y-m-d'),
-            'totalAmount' => $receipts->sum('amount'),
-        ]);
+        return view('finance.reports.receipt-register', compact('receipts'));
     }
 
-    public function cashBook(Request $request)
+    public function cashBook()
     {
         $this->checkPermission('finance.reports.view');
 
-        $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : Carbon::now()->subMonth();
-        $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : Carbon::now();
-
-        $transactions = \Modules\Finance\Models\BankTransaction::with(['bankAccount'])
-            ->whereHas('bankAccount')
-            ->whereBetween('transaction_date', [$startDate, $endDate])
-            ->orderBy('transaction_date', 'asc')
+        $transactions = \Modules\Finance\Models\Journal::where('company_id', $this->getActiveCompanyId())
+            ->whereHas('lines', fn($q) => $q->whereHas('account', fn($q2) => $q2->where('account_code', 'like', '1110%')))
+            ->with('lines.account')
+            ->orderBy('journal_date', 'desc')
             ->get();
 
-        $openingBalance = \Modules\Finance\Models\BankAccount::sum('opening_balance');
-
-        $closingBalance = $openingBalance + $transactions->where('transaction_type', 'DEPOSIT')->sum('amount') - $transactions->where('transaction_type', 'WITHDRAWAL')->sum('amount') - $transactions->where('transaction_type', 'CHARGE')->sum('amount');
-
-        return view('finance.reports.cash-book', [
-            'transactions' => $transactions,
-            'openingBalance' => $openingBalance,
-            'closingBalance' => $closingBalance,
-            'startDate' => $startDate->format('Y-m-d'),
-            'endDate' => $endDate->format('Y-m-d'),
-        ]);
+        return view('finance.reports.cash-book', compact('transactions'));
     }
 
-    public function bankBook(Request $request)
+    public function bankBook()
     {
         $this->checkPermission('finance.reports.view');
 
-        $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : Carbon::now()->subMonth();
-        $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : Carbon::now();
-
-        $transactions = \Modules\Finance\Models\BankTransaction::with(['bankAccount'])
-            ->whereHas('bankAccount', function ($q) {
-                $q->whereIn('account_type', ['BANK', 'PETTY_CASH']);
-            })
-            ->whereBetween('transaction_date', [$startDate, $endDate])
-            ->orderBy('transaction_date', 'asc')
+        $transactions = \Modules\Finance\Models\Journal::where('company_id', $this->getActiveCompanyId())
+            ->whereHas('lines', fn($q) => $q->whereHas('account', fn($q2) => $q2->where('account_code', 'like', '1120%')))
+            ->with('lines.account')
+            ->orderBy('journal_date', 'desc')
             ->get();
 
-        $openingBalance = \Modules\Finance\Models\BankAccount::whereIn('account_type', ['BANK', 'PETTY_CASH'])
-            ->sum('opening_balance');
-
-        $closingBalance = $openingBalance + $transactions->where('transaction_type', 'DEPOSIT')->sum('amount') - $transactions->where('transaction_type', 'WITHDRAWAL')->sum('amount') - $transactions->where('transaction_type', 'CHARGE')->sum('amount') - $transactions->where('transaction_type', 'TRANSFER')->sum('amount');
-
-        return view('finance.reports.bank-book', [
-            'transactions' => $transactions,
-            'openingBalance' => $openingBalance,
-            'closingBalance' => $closingBalance,
-            'startDate' => $startDate->format('Y-m-d'),
-            'endDate' => $endDate->format('Y-m-d'),
-        ]);
+        return view('finance.reports.bank-book', compact('transactions'));
     }
 
-    public function management(Request $request)
+    public function management()
     {
         $this->checkPermission('finance.reports.view');
 
-        $fiscalYearId = $request->get('fiscal_year_id');
+        $fiscalYearId = \Modules\Core\Models\FiscalYear::where('company_id', $this->getActiveCompanyId())
+            ->where('is_current', true)
+            ->value('id');
 
         $budgetData = $this->budgetService->getBudgetVsActual($this->getActiveCompanyId(), $fiscalYearId);
 
@@ -322,5 +203,26 @@ class ReportController extends Controller
             'budgetData' => $budgetData,
             'fiscalYearId' => $fiscalYearId,
         ]);
+    }
+
+    public function generateAsync(Request $request)
+    {
+        $this->checkPermission('finance.reports.view');
+
+        $request->validate([
+            'report_type' => 'required|string|in:trial_balance,general_ledger,profit_loss,balance_sheet,cash_flow',
+            'filters' => 'array',
+            'format' => 'nullable|string|in:pdf,excel',
+        ]);
+
+        GenerateReportJob::dispatch(
+            $request->input('report_type'),
+            $request->input('filters', []),
+            auth()->id(),
+            $this->getActiveCompanyId(),
+            $request->input('format', 'pdf')
+        );
+
+        return back()->with('success', 'Report generation started. You will be notified when it\'s ready.');
     }
 }

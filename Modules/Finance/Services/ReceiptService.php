@@ -139,6 +139,8 @@ class ReceiptService
                 'journal_id' => $journal->id,
             ]);
 
+            event(new \Modules\Finance\Events\ReceiptApproved($receipt));
+
             return $receipt->fresh();
         });
     }

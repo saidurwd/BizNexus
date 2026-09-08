@@ -139,6 +139,8 @@ class PaymentService
                 'journal_id' => $journal->id,
             ]);
 
+            event(new \Modules\Finance\Events\PaymentApproved($payment));
+
             return $payment->fresh();
         });
     }

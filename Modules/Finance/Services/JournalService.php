@@ -18,6 +18,7 @@ use Modules\Core\Exceptions\InactiveAccountException;
 use Modules\Core\Exceptions\NonPostableAccountException;
 use Modules\Core\Exceptions\DuplicatePostingException;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
+use Modules\Finance\Jobs\ProcessIntegrationJob;
 
 class JournalService
 {
@@ -239,6 +240,11 @@ class JournalService
             ]);
 
             $this->audit->logCustom('Finance', 'Journal', $journal->id, 'POST', $journal->toArray());
+
+            ProcessIntegrationJob::dispatch(
+                \Modules\Finance\Events\JournalPosted::class,
+                ['journal' => $journal]
+            );
 
             return $journal->fresh();
         });

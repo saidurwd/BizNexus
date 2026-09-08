@@ -17,7 +17,8 @@ class GenerateReportJob implements ShouldQueue
         public string $reportType,
         public array $filters,
         public int $userId,
-        public ?int $companyId = null
+        public ?int $companyId = null,
+        public ?string $format = 'pdf'
     ) {}
 
     public function handle(FinancialReportService $reportService): void
