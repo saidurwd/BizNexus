@@ -12,22 +12,93 @@
             <form action="{{ route('finance.accounts.update', $account->id) }}" method="POST">
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="company_id" value="{{ $account->company_id }}">
 
-                <div class="form-group">
-                    <label for="account_name">Account Name</label>
-                    <input type="text" class="form-control @error('account_name') is-invalid @enderror" 
-                           id="account_name" name="account_name" value="{{ old('account_name', $account->account_name) }}" required>
-                    @error('account_name')
-                        <span class="invalid-feedback">{{ $message }}</span>
-                    @enderror
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="account_code">Account Code</label>
+                            <input type="text" class="form-control @error('account_code') is-invalid @enderror" 
+                                   id="account_code" name="account_code" value="{{ old('account_code', $account->account_code) }}" required>
+                            @error('account_code')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label for="account_name">Account Name</label>
+                            <input type="text" class="form-control @error('account_name') is-invalid @enderror" 
+                                   id="account_name" name="account_name" value="{{ old('account_name', $account->account_name) }}" required>
+                            @error('account_name')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="account_type">Account Type</label>
+                            <select class="form-control @error('account_type') is-invalid @enderror" 
+                                    id="account_type" name="account_type" required>
+                                <option value="">Select Type</option>
+                                <option value="ASSET" {{ old('account_type', $account->account_type) === 'ASSET' ? 'selected' : '' }}>Asset</option>
+                                <option value="LIABILITY" {{ old('account_type', $account->account_type) === 'LIABILITY' ? 'selected' : '' }}>Liability</option>
+                                <option value="EQUITY" {{ old('account_type', $account->account_type) === 'EQUITY' ? 'selected' : '' }}>Equity</option>
+                                <option value="REVENUE" {{ old('account_type', $account->account_type) === 'REVENUE' ? 'selected' : '' }}>Revenue</option>
+                                <option value="EXPENSE" {{ old('account_type', $account->account_type) === 'EXPENSE' ? 'selected' : '' }}>Expense</option>
+                            </select>
+                            @error('account_type')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="normal_balance">Normal Balance</label>
+                            <select class="form-control" id="normal_balance" name="normal_balance">
+                                <option value="DEBIT" {{ old('normal_balance', $account->normal_balance) === 'DEBIT' ? 'selected' : '' }}>Debit</option>
+                                <option value="CREDIT" {{ old('normal_balance', $account->normal_balance) === 'CREDIT' ? 'selected' : '' }}>Credit</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select class="form-control" id="status" name="status">
+                                <option value="active" {{ old('status', $account->status) === 'active' ? 'selected' : '' }}>Active</option>
+                                <option value="inactive" {{ old('status', $account->status) === 'inactive' ? 'selected' : '' }}>Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="is_group">Is Group</label>
+                            <select class="form-control" id="is_group" name="is_group">
+                                <option value="0" {{ old('is_group', $account->is_group) == 0 ? 'selected' : '' }}>No</option>
+                                <option value="1" {{ old('is_group', $account->is_group) == 1 ? 'selected' : '' }}>Yes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="is_postable">Is Postable</label>
+                            <select class="form-control" id="is_postable" name="is_postable">
+                                <option value="0" {{ old('is_postable', $account->is_postable) == 0 ? 'selected' : '' }}>No</option>
+                                <option value="1" {{ old('is_postable', $account->is_postable) == 1 ? 'selected' : '' }}>Yes</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="status">Status</label>
-                    <select class="form-control" id="status" name="status">
-                        <option value="active" {{ $account->status === 'active' ? 'selected' : '' }}>Active</option>
-                        <option value="inactive" {{ $account->status === 'inactive' ? 'selected' : '' }}>Inactive</option>
-                    </select>
+                    <label for="description">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="3">{{ old('description', $account->description) }}</textarea>
                 </div>
 
                 <div class="form-group">

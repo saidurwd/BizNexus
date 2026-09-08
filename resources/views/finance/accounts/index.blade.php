@@ -31,24 +31,24 @@
                 <tbody>
                     @forelse($accounts as $account)
                         <tr>
-                            <td>{{ $account->account_code }}</td>
-                            <td>{{ $account->account_name }}</td>
+                            <td>{!! $account['indent'] !!}{{ $account['account_code'] }}</td>
+                            <td>{!! $account['indent'] !!}{{ $account['account_name'] }}</td>
                             <td>
-                                <span class="badge bg-{{ $account->account_type === 'ASSET' ? 'primary' : ($account->account_type === 'LIABILITY' ? 'danger' : ($account->account_type === 'REVENUE' ? 'success' : 'warning')) }}">
-                                    {{ $account->account_type }}
+                                <span class="badge bg-{{ $account['account_type'] === 'ASSET' ? 'primary' : ($account['account_type'] === 'LIABILITY' ? 'danger' : ($account['account_type'] === 'REVENUE' ? 'success' : 'warning')) }}">
+                                    {{ $account['account_type'] }}
                                 </span>
                             </td>
-                            <td>{{ $account->normal_balance }}</td>
+                            <td>{{ $account['normal_balance'] }}</td>
                             <td>
-                                <span class="badge bg-{{ $account->status === 'active' ? 'success' : 'secondary' }}">
-                                    {{ $account->status }}
+                                <span class="badge bg-{{ $account['status'] === 'active' ? 'success' : 'secondary' }}">
+                                    {{ $account['status'] }}
                                 </span>
                             </td>
                             <td>
-                                <a href="{{ route('finance.accounts.show', $account->id) }}" class="btn btn-sm btn-info">
+                                <a href="{{ route('finance.accounts.show', $account['id']) }}" class="btn btn-sm btn-info">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <a href="{{ route('finance.accounts.edit', $account->id) }}" class="btn btn-sm btn-warning">
+                                <a href="{{ route('finance.accounts.edit', $account['id']) }}" class="btn btn-sm btn-warning">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                             </td>

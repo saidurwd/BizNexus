@@ -6,23 +6,27 @@ use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Services\ChartOfAccountsService;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\PermissionService;
 
 class AccountController extends Controller
 {
     public function __construct(
-        protected ChartOfAccountsService $chartOfAccounts
-    ) {}
+        protected ChartOfAccountsService $chartOfAccounts,
+        CompanyContextService $companyContext,
+        PermissionService $permissionService
+    ) {
+        parent::__construct($companyContext, $permissionService);
+    }
 
     public function index(Request $request)
     {
         $this->checkPermission('finance.accounts.view');
 
         $companyId = $this->getActiveCompanyId();
-        $accounts = Account::where('company_id', $companyId)
-            ->when($request->get('type'), fn($q, $type) => $q->where('account_type', $type))
-            ->when($request->get('status'), fn($q, $status) => $q->where('status', $status))
-            ->orderBy('account_code')
-            ->get();
+        $tree = $this->chartOfAccounts->getAccountTree($companyId);
+
+        $accounts = $this->flattenTree($tree);
 
         return view('finance.accounts.index', [
             'accounts' => $accounts,
@@ -33,7 +37,11 @@ class AccountController extends Controller
     {
         $this->checkPermission('finance.accounts.create');
 
-        return view('finance.accounts.create');
+        $companyId = $this->getActiveCompanyId();
+        $tree = $this->chartOfAccounts->getAccountTree($companyId);
+        $parentAccounts = $this->flattenTree($tree);
+
+        return view('finance.accounts.create', compact('parentAccounts'));
     }
 
     public function store(Request $request)
@@ -121,5 +129,22 @@ class AccountController extends Controller
 
         return redirect()->route('finance.accounts.index')
             ->with('success', 'Account deleted successfully.');
+    }
+
+    protected function flattenTree(array $tree, int $level = 0, ?int $parentId = null): array
+    {
+        $flat = [];
+
+        foreach ($tree as $node) {
+            $node['level'] = $level;
+            $node['indent'] = str_repeat('&nbsp;&nbsp;&nbsp;', $level);
+            $flat[] = $node;
+
+            if (!empty($node['children'])) {
+                $flat = array_merge($flat, $this->flattenTree($node['children'], $level + 1, $node['id']));
+            }
+        }
+
+        return $flat;
     }
 }

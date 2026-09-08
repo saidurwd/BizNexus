@@ -97,6 +97,7 @@ class ChartOfAccountsService
                 'account_code' => $account->account_code,
                 'account_name' => $account->account_name,
                 'account_type' => $account->account_type,
+                'normal_balance' => $account->normal_balance,
                 'is_group' => $account->is_group,
                 'is_postable' => $account->is_postable,
                 'status' => $account->status,
