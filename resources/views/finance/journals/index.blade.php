@@ -15,6 +15,19 @@
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Journal Register</h3>
+            <div class="card-tools">
+                <form method="GET" action="{{ route('finance.journals.index') }}" class="form-inline">
+                    <select name="status" class="form-control form-control-sm" onchange="this.form.submit()">
+                        <option value="">All Statuses</option>
+                        <option value="DRAFT" {{ request('status') === 'DRAFT' ? 'selected' : '' }}>Draft</option>
+                        <option value="SUBMITTED" {{ request('status') === 'SUBMITTED' ? 'selected' : '' }}>Submitted</option>
+                        <option value="APPROVED" {{ request('status') === 'APPROVED' ? 'selected' : '' }}>Approved</option>
+                        <option value="POSTED" {{ request('status') === 'POSTED' ? 'selected' : '' }}>Posted</option>
+                        <option value="REJECTED" {{ request('status') === 'REJECTED' ? 'selected' : '' }}>Rejected</option>
+                        <option value="CANCELLED" {{ request('status') === 'CANCELLED' ? 'selected' : '' }}>Cancelled</option>
+                    </select>
+                </form>
+            </div>
         </div>
         <div class="card-body table-responsive">
             <table class="table table-bordered table-striped">
@@ -40,7 +53,7 @@
                             <td class="text-right">{{ number_format($journal->total_debit, 2) }}</td>
                             <td class="text-right">{{ number_format($journal->total_credit, 2) }}</td>
                             <td>
-                                <span class="badge bg-{{ $journal->status === 'POSTED' ? 'success' : ($journal->status === 'DRAFT' ? 'secondary' : 'warning') }}">
+                                <span class="badge bg-{{ $journal->status === 'POSTED' ? 'success' : ($journal->status === 'DRAFT' ? 'secondary' : ($journal->status === 'APPROVED' ? 'info' : ($journal->status === 'REJECTED' ? 'danger' : ($journal->status === 'CANCELLED' ? 'dark' : 'warning')))) }}">
                                     {{ $journal->status }}
                                 </span>
                             </td>

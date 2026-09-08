@@ -31,6 +31,11 @@ class CompanyContextService
         return session('active_company_id');
     }
 
+    public function getCompanyId(): ?int
+    {
+        return $this->getActiveCompanyId();
+    }
+
     public function setActiveCompany(int $companyId, ?int $userId = null): bool
     {
         $userId = $userId ?? auth()->id();

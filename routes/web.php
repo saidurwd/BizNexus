@@ -101,6 +101,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/journals', [JournalController::class, 'store'])->name('journals.store');
         Route::get('/journals/{id}', [JournalController::class, 'show'])->name('journals.show');
         Route::delete('/journals/{id}', [JournalController::class, 'destroy'])->name('journals.destroy');
+        Route::post('/journals/{id}/submit', [JournalController::class, 'submit'])->name('journals.submit');
+        Route::post('/journals/{id}/approve', [JournalController::class, 'approve'])->name('journals.approve');
+        Route::post('/journals/{id}/reject', [JournalController::class, 'reject'])->name('journals.reject');
+        Route::post('/journals/{id}/post', [JournalController::class, 'post'])->name('journals.post');
+        Route::post('/journals/{id}/reverse', [JournalController::class, 'reverse'])->name('journals.reverse');
+        Route::post('/journals/{id}/cancel', [JournalController::class, 'cancel'])->name('journals.cancel');
 
         // General Ledger
         Route::get('/general-ledger', [JournalController::class, 'generalLedger'])->name('general-ledger');

@@ -116,4 +116,100 @@ class JournalController extends Controller
         return redirect()->route('finance.journals.index')
             ->with('success', 'Journal deleted successfully.');
     }
+
+    public function submit(int $id)
+    {
+        $this->checkPermission('finance.journals.approve');
+
+        $journal = Journal::findOrFail($id);
+
+        try {
+            $this->journalService->submit($journal);
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('success', 'Journal submitted for approval.');
+        } catch (\Exception $e) {
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function approve(int $id)
+    {
+        $this->checkPermission('finance.journals.approve');
+
+        $journal = Journal::findOrFail($id);
+
+        try {
+            $this->journalService->approve($journal);
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('success', 'Journal approved successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function reject(int $id)
+    {
+        $this->checkPermission('finance.journals.approve');
+
+        $journal = Journal::findOrFail($id);
+
+        try {
+            $this->journalService->reject($journal);
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('success', 'Journal rejected.');
+        } catch (\Exception $e) {
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function post(int $id)
+    {
+        $this->checkPermission('finance.journals.post');
+
+        $journal = Journal::findOrFail($id);
+
+        try {
+            $this->journalService->post($journal);
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('success', 'Journal posted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function reverse(int $id)
+    {
+        $this->checkPermission('finance.journals.post');
+
+        $journal = Journal::findOrFail($id);
+
+        try {
+            $this->journalService->reverse($journal);
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('success', 'Journal reversed successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function cancel(int $id)
+    {
+        $this->checkPermission('finance.journals.delete');
+
+        $journal = Journal::findOrFail($id);
+
+        try {
+            $this->journalService->cancel($journal);
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('success', 'Journal cancelled.');
+        } catch (\Exception $e) {
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('error', $e->getMessage());
+        }
+    }
 }

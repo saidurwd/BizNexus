@@ -12,10 +12,10 @@
             <h3 class="card-title">Journal Information</h3>
             <div class="card-tools">
                 @if($journal->status === 'DRAFT')
-                    <form action="{{ route('finance.journals.destroy', $journal->id) }}" method="POST" class="d-inline">
+                    <form action="{{ route('finance.journals.destroy', $journal->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure?')">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">
+                        <button type="submit" class="btn btn-danger btn-sm">
                             <i class="bi bi-trash"></i> Delete
                         </button>
                     </form>
@@ -47,7 +47,7 @@
                 <tr>
                     <th>Status</th>
                     <td>
-                        <span class="badge bg-{{ $journal->status === 'POSTED' ? 'success' : ($journal->status === 'DRAFT' ? 'secondary' : 'warning') }}">
+                        <span class="badge bg-{{ $journal->status === 'POSTED' ? 'success' : ($journal->status === 'DRAFT' ? 'secondary' : ($journal->status === 'APPROVED' ? 'info' : ($journal->status === 'REJECTED' ? 'danger' : 'warning'))) }}">
                             {{ $journal->status }}
                         </span>
                     </td>
@@ -101,9 +101,65 @@
         </div>
     </div>
 
-    <div class="mt-4">
-        <a href="{{ route('finance.journals.index') }}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Journals
-        </a>
-    </div>
+    @if($journal->status === 'DRAFT')
+        <div class="mt-4">
+            <form action="{{ route('finance.journals.submit', $journal->id) }}" method="POST" class="d-inline">
+                @csrf
+                <button type="submit" class="btn btn-warning">
+                    <i class="bi bi-send"></i> Submit for Approval
+                </button>
+            </form>
+            <a href="{{ route('finance.journals.index') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Journals
+            </a>
+        </div>
+    @elseif($journal->status === 'SUBMITTED')
+        <div class="mt-4">
+            <form action="{{ route('finance.journals.approve', $journal->id) }}" method="POST" class="d-inline">
+                @csrf
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check"></i> Approve
+                </button>
+            </form>
+            <form action="{{ route('finance.journals.reject', $journal->id) }}" method="POST" class="d-inline">
+                @csrf
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-x"></i> Reject
+                </button>
+            </form>
+            <a href="{{ route('finance.journals.index') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Journals
+            </a>
+        </div>
+    @elseif($journal->status === 'APPROVED')
+        <div class="mt-4">
+            <form action="{{ route('finance.journals.post', $journal->id) }}" method="POST" class="d-inline">
+                @csrf
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> Post Journal
+                </button>
+            </form>
+            <a href="{{ route('finance.journals.index') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Journals
+            </a>
+        </div>
+    @elseif($journal->status === 'POSTED')
+        <div class="mt-4">
+            <form action="{{ route('finance.journals.reverse', $journal->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to reverse this journal?')">
+                @csrf
+                <button type="submit" class="btn btn-warning">
+                    <i class="bi bi-arrow-counterclockwise"></i> Reverse
+                </button>
+            </form>
+            <a href="{{ route('finance.journals.index') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Journals
+            </a>
+        </div>
+    @else
+        <div class="mt-4">
+            <a href="{{ route('finance.journals.index') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Journals
+            </a>
+        </div>
+    @endif
 @endsection

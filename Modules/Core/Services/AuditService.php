@@ -55,6 +55,6 @@ class AuditService
 
     protected function getCompanyId(): ?int
     {
-        return app(CompanyContextService::class)->getCompanyId();
+        return app(CompanyContextService::class)->getActiveCompanyId();
     }
 }
