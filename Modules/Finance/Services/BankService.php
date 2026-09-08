@@ -4,6 +4,7 @@ namespace Modules\Finance\Services;
 
 use Modules\Finance\Models\BankAccount;
 use Modules\Finance\Models\BankTransaction;
+use Modules\Core\Services\DocumentNumberService;
 use InvalidArgumentException;
 
 class BankService
@@ -121,13 +122,19 @@ class BankService
     protected function generateTransactionNumber(string $type): string
     {
         $prefix = match ($type) {
-            'DEPOSIT' => 'BR',
-            'WITHDRAWAL' => 'BP',
+            'DEPOSIT' => 'BRV',
+            'WITHDRAWAL' => 'BPV',
             'TRANSFER' => 'BT',
             'CHARGE' => 'BC',
             default => 'BNK',
         };
 
-        return $prefix . '-' . now()->format('Ymd') . '-' . str_pad((string) (BankTransaction::count() + 1), 4, '0', STR_PAD_LEFT);
+        return $this->documentNumber->generateNumber($this->getCompanyId(), $prefix);
+    }
+
+    protected function getCompanyId(): int
+    {
+        $bankAccount = BankAccount::first();
+        return $bankAccount?->company_id ?? 1;
     }
 }

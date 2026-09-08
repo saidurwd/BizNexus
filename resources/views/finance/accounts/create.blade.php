@@ -11,7 +11,7 @@
         <div class="card-body">
             <form action="{{ route('finance.accounts.store') }}" method="POST">
                 @csrf
-                <input type="hidden" name="company_id" value="{{ $companyId ?? auth()->user()->companies->first()->id ?? 1 }}">
+                <input type="hidden" name="company_id" value="{{ session('active_company_id') ?? auth()->user()->companies->first()->id ?? 1 }}">
 
                 <div class="row">
                     <div class="col-md-4">

@@ -218,6 +218,10 @@ class JournalService
             throw new InvalidAccountingTransactionException('Journal cannot be posted');
         }
 
+        if ($journal->isPosted()) {
+            throw new DuplicatePostingException($journal);
+        }
+
         return DB::transaction(function () use ($journal) {
             $journalDate = Carbon::parse($journal->journal_date);
             $period = $this->periodService->validateDateForPosting($journal->company_id, $journalDate);
