@@ -16,7 +16,8 @@ class ReportController extends Controller
         protected LedgerService $ledgerService,
         protected FinancialReportService $financialReportService,
         protected PaymentService $paymentService,
-        protected ReceiptService $receiptService
+        protected ReceiptService $receiptService,
+        protected \Modules\Finance\Services\BudgetService $budgetService
     ) {}
 
     public function generalLedger(Request $request)

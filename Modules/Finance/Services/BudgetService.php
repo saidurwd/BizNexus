@@ -9,8 +9,26 @@ use Carbon\Carbon;
 
 class BudgetService
 {
-    public function getBudgetVsActual(int $companyId, int $fiscalYearId, ?int $accountId = null, ?int $costCenterId = null): array
+    public function getBudgetVsActual(int $companyId, ?int $fiscalYearId = null, ?int $accountId = null, ?int $costCenterId = null): array
     {
+        if (!$fiscalYearId) {
+            $currentFiscalYear = \Modules\Core\Models\FiscalYear::where('company_id', $companyId)
+                ->where('status', 'ACTIVE')
+                ->first();
+
+            if ($currentFiscalYear) {
+                $fiscalYearId = $currentFiscalYear->id;
+            } else {
+                return [
+                    'budget' => 0,
+                    'actual' => 0,
+                    'variance' => 0,
+                    'variance_percent' => 0,
+                    'lines' => [],
+                ];
+            }
+        }
+
         $budget = Budget::where('company_id', $companyId)
             ->where('fiscal_year_id', $fiscalYearId)
             ->where('status', 'active')

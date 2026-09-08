@@ -15,7 +15,7 @@
                 </div>
                 <div class="card-body">
                     <p>Compare budgeted amounts against actual spending.</p>
-                    <a href="{{ route('finance.reports.budget-vs-actual') }}" class="btn btn-primary">View Report</a>
+                    <a href="{{ route('finance.budget-vs-actual') }}" class="btn btn-primary">View Report</a>
                 </div>
             </div>
         </div>
