@@ -17,12 +17,12 @@
                     <h4><strong>Assets</strong></h4>
                     @php $totalAssets = 0; @endphp
                     @foreach($assets as $account)
-                        @if($account->balance != 0)
+                        @if($account['amount'] != 0)
                             <div class="d-flex justify-content-between">
-                                <span>{{ $account->account_name }}</span>
-                                <span>{{ number_format($account->balance, 2) }}</span>
+                                <span>{{ $account['account_name'] }}</span>
+                                <span>{{ number_format($account['amount'], 2) }}</span>
                             </div>
-                            @php $totalAssets += $account->balance; @endphp
+                            @php $totalAssets += $account['amount']; @endphp
                         @endif
                     @endforeach
                     <hr>
@@ -35,12 +35,12 @@
                     <h4><strong>Liabilities</strong></h4>
                     @php $totalLiabilities = 0; @endphp
                     @foreach($liabilities as $account)
-                        @if($account->balance != 0)
+                        @if($account['amount'] != 0)
                             <div class="d-flex justify-content-between">
-                                <span>{{ $account->account_name }}</span>
-                                <span>{{ number_format($account->balance, 2) }}</span>
+                                <span>{{ $account['account_name'] }}</span>
+                                <span>{{ number_format($account['amount'], 2) }}</span>
                             </div>
-                            @php $totalLiabilities += $account->balance; @endphp
+                            @php $totalLiabilities += $account['amount']; @endphp
                         @endif
                     @endforeach
                     <hr>
@@ -52,12 +52,12 @@
                     <h4 class="mt-4"><strong>Equity</strong></h4>
                     @php $totalEquity = 0; @endphp
                     @foreach($equity as $account)
-                        @if($account->balance != 0)
+                        @if($account['amount'] != 0)
                             <div class="d-flex justify-content-between">
-                                <span>{{ $account->account_name }}</span>
-                                <span>{{ number_format($account->balance, 2) }}</span>
+                                <span>{{ $account['account_name'] }}</span>
+                                <span>{{ number_format($account['amount'], 2) }}</span>
                             </div>
-                            @php $totalEquity += $account->balance; @endphp
+                            @php $totalEquity += $account['amount']; @endphp
                         @endif
                     @endforeach
                     <hr>
@@ -72,10 +72,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="card-footer">
-                <i class="bi bi-file-pdf"></i> Export PDF
-            </a>
         </div>
     </div>
 @endsection

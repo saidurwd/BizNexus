@@ -85,7 +85,7 @@
             </div>
         </div>
         <div class="card-footer">
-            <a href="{{ route('finance.reports.index') }}" class="btn btn-secondary">Back to Reports</a>
+            <a href="{{ route('finance.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
         </div>
     </div>
 @endsection

@@ -15,12 +15,12 @@
             <h4><strong>Revenue</strong></h4>
             @php $totalRevenue = 0; @endphp
             @foreach($revenue as $account)
-                @if($account->period_balance != 0)
+                @if($account['amount'] != 0)
                     <div class="d-flex justify-content-between">
-                        <span>{{ $account->account_name }}</span>
-                        <span>{{ number_format($account->period_balance, 2) }}</span>
+                        <span>{{ $account['account_name'] }}</span>
+                        <span>{{ number_format($account['amount'], 2) }}</span>
                     </div>
-                    @php $totalRevenue += $account->period_balance; @endphp
+                    @php $totalRevenue += $account['amount']; @endphp
                 @endif
             @endforeach
             <hr>
@@ -32,12 +32,12 @@
             <h4 class="mt-4"><strong>Expenses</strong></h4>
             @php $totalExpenses = 0; @endphp
             @foreach($expenses as $account)
-                @if($account->period_balance != 0)
+                @if($account['amount'] != 0)
                     <div class="d-flex justify-content-between">
-                        <span>{{ $account->account_name }}</span>
-                        <span>{{ number_format($account->period_balance, 2) }}</span>
+                        <span>{{ $account['account_name'] }}</span>
+                        <span>{{ number_format($account['amount'], 2) }}</span>
                     </div>
-                    @php $totalExpenses += $account->period_balance; @endphp
+                    @php $totalExpenses += $account['amount']; @endphp
                 @endif
             @endforeach
             <hr>
@@ -51,10 +51,6 @@
                 <h4><strong>Net Income</strong></h4>
                 <h4><strong>{{ number_format($totalRevenue - $totalExpenses, 2) }}</strong></h4>
             </div>
-        </div>
-        <div class="card-footer">
-                <i class="bi bi-file-pdf"></i> Export PDF
-            </a>
         </div>
     </div>
 @endsection

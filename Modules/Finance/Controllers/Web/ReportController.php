@@ -64,8 +64,17 @@ class ReportController extends Controller
             $request->get('end_date') ? Carbon::parse($request->get('end_date')) : null
         );
 
-        return view('finance.reports.profit-loss', [
+        $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : Carbon::now()->startOfMonth();
+        $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : Carbon::now()->endOfMonth();
+
+        return view('finance.reports.income-statement', [
             'report' => $report,
+            'revenue' => $report['revenue']['accounts'],
+            'expenses' => $report['expenses']['accounts'],
+            'totalRevenue' => $report['revenue']['total'],
+            'totalExpenses' => $report['expenses']['total'],
+            'startDate' => $startDate->format('Y-m-d'),
+            'endDate' => $endDate->format('Y-m-d'),
         ]);
     }
 
@@ -81,12 +90,36 @@ class ReportController extends Controller
 
         return view('finance.reports.balance-sheet', [
             'report' => $report,
+            'asOfDate' => $report['as_of_date'],
+            'assets' => $report['assets']['accounts'],
+            'liabilities' => $report['liabilities']['accounts'],
+            'equity' => $report['equity']['accounts'],
+            'totalAssets' => $report['assets']['total'],
+            'totalLiabilities' => $report['liabilities']['total'],
+            'totalEquity' => $report['equity']['total'],
+            'totalLiabilitiesEquity' => $report['total_liabilities_equity'],
         ]);
     }
 
     public function cashFlow(Request $request)
     {
-        return view('finance.reports.cash-flow');
+        $companyId = $request->get('company_id', 1);
+        $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : Carbon::now()->startOfMonth();
+        $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : Carbon::now()->endOfMonth();
+
+        $cashFlow = $this->financialReportService->getCashFlow($companyId, $startDate, $endDate);
+
+        return view('finance.reports.cash-flow', [
+            'startDate' => $cashFlow['start_date'],
+            'endDate' => $cashFlow['end_date'],
+            'operatingActivities' => $cashFlow['operating_activities'],
+            'investingActivities' => $cashFlow['investing_activities'],
+            'financingActivities' => $cashFlow['financing_activities'],
+            'operatingTotal' => $cashFlow['operating_total'],
+            'investingTotal' => $cashFlow['investing_total'],
+            'financingTotal' => $cashFlow['financing_total'],
+            'netChange' => $cashFlow['net_change'],
+        ]);
     }
 
     public function apReport(Request $request)

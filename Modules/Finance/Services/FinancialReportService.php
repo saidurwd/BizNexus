@@ -300,4 +300,63 @@ class FinancialReportService
             'accounts_payable' => $payableAccount ? $this->getAccountBalance($payableAccount->id, null, $asOfDate, null) : 0,
         ];
     }
+
+    public function getCashFlow(int $companyId, ?Carbon $startDate = null, ?Carbon $endDate = null): array
+    {
+        $startDate = $startDate ?: Carbon::now()->startOfMonth();
+        $endDate = $endDate ?: Carbon::now()->endOfMonth();
+
+        $operatingActivities = [];
+        $investingActivities = [];
+        $financingActivities = [];
+
+        $operatingTotal = 0;
+        $investingTotal = 0;
+        $financingTotal = 0;
+
+        $journalLines = JournalLine::whereHas('journal', function ($q) use ($companyId, $startDate, $endDate) {
+                $q->where('company_id', $companyId)
+                  ->where('status', 'POSTED')
+                  ->whereBetween('journal_date', [$startDate, $endDate]);
+            })
+            ->with('account')
+            ->get();
+
+        foreach ($journalLines as $line) {
+            $amount = (float) $line->debit - (float) $line->credit;
+            $accountCode = $line->account->account_code ?? '';
+
+            if (str_starts_with($accountCode, '1110') || str_starts_with($accountCode, '1120')) {
+                $operatingActivities[] = [
+                    'description' => $line->description ?? $line->account->account_name ?? 'Operating Activity',
+                    'amount' => $amount,
+                ];
+                $operatingTotal += $amount;
+            } elseif (str_starts_with($accountCode, '1200') || str_starts_with($accountCode, '1300')) {
+                $investingActivities[] = [
+                    'description' => $line->description ?? $line->account->account_name ?? 'Investing Activity',
+                    'amount' => $amount,
+                ];
+                $investingTotal += $amount;
+            } elseif (str_starts_with($accountCode, '2100') || str_starts_with($accountCode, '2200')) {
+                $financingActivities[] = [
+                    'description' => $line->description ?? $line->account->account_name ?? 'Financing Activity',
+                    'amount' => $amount,
+                ];
+                $financingTotal += $amount;
+            }
+        }
+
+        return [
+            'start_date' => $startDate->format('Y-m-d'),
+            'end_date' => $endDate->format('Y-m-d'),
+            'operating_activities' => $operatingActivities,
+            'investing_activities' => $investingActivities,
+            'financing_activities' => $financingActivities,
+            'operating_total' => $operatingTotal,
+            'investing_total' => $investingTotal,
+            'financing_total' => $financingTotal,
+            'net_change' => $operatingTotal + $investingTotal + $financingTotal,
+        ];
+    }
 }
