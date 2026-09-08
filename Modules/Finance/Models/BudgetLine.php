@@ -9,6 +9,7 @@ class BudgetLine extends Model
 {
     protected $fillable = [
         'budget_id',
+        'company_id',
         'account_id',
         'cost_center_id',
         'period',

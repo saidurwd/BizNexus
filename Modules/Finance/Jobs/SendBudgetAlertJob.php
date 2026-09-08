@@ -26,13 +26,15 @@ class SendBudgetAlertJob implements ShouldQueue
     {
         $budget = Budget::with('budgetLines.account')->findOrFail($this->budgetId);
 
+        $variance = $this->budgetAmount - $this->actualSpending;
+
         if ($this->notifyUserId) {
             $user = User::findOrFail($this->notifyUserId);
-            $user->notify(new BudgetExceededNotification($budget, $this->actualSpending, $this->budgetAmount));
+            $user->notify(new BudgetExceededNotification($budget->name, $this->budgetAmount, $this->actualSpending, $variance));
         } else {
             $users = User::whereHas('roles', fn($q) => $q->whereIn('name', ['Finance Manager', 'CFO', 'Accountant']))->get();
             foreach ($users as $user) {
-                $user->notify(new BudgetExceededNotification($budget, $this->actualSpending, $this->budgetAmount));
+                $user->notify(new BudgetExceededNotification($budget->name, $this->budgetAmount, $this->actualSpending, $variance));
             }
         }
     }

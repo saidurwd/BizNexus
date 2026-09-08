@@ -1025,11 +1025,13 @@ return [
                             'text' => 'Budgets',
                             'url' => 'finance/budgets',
                             'icon' => 'bi bi-list-check',
+                            'permission' => 'finance.budgets.view',
                         ],
                         [
                             'text' => 'Budget vs Actual',
                             'url' => 'finance/budget-vs-actual',
                             'icon' => 'bi bi-bar-chart',
+                            'permission' => 'finance.budgets.view',
                         ],
                     ],
                 ],

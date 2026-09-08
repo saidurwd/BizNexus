@@ -9,7 +9,7 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            <form action="{{ route('finance.budgets.store') }}" method="POST">
+            <form action="{{ route('finance.budgets.store') }}" method="POST" id="budget-form">
                 @csrf
 
                 <div class="row">
@@ -34,17 +34,22 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-3">
                     <label for="status">Status</label>
                     <select class="form-control" name="status" required>
-                        <option value="DRAFT">Draft</option>
-                        <option value="APPROVED">Approved</option>
-                        <option value="ACTIVE">Active</option>
-                        <option value="CLOSED">Closed</option>
+                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_DRAFT }}" {{ old('status') == \Modules\Finance\Models\Budget::STATUS_DRAFT ? 'selected' : '' }}>Draft</option>
+                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_SUBMITTED }}" {{ old('status') == \Modules\Finance\Models\Budget::STATUS_SUBMITTED ? 'selected' : '' }}>Submitted</option>
+                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_APPROVED }}" {{ old('status') == \Modules\Finance\Models\Budget::STATUS_APPROVED ? 'selected' : '' }}>Approved</option>
+                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_REJECTED }}" {{ old('status') == \Modules\Finance\Models\Budget::STATUS_REJECTED ? 'selected' : '' }}>Rejected</option>
                     </select>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-3">
+                    <label for="description">Description</label>
+                    <textarea class="form-control" name="description" rows="3">{{ old('description') }}</textarea>
+                </div>
+
+                <div class="form-group mt-4">
                     <button type="submit" class="btn btn-primary">Create Budget</button>
                     <a href="{{ route('finance.budgets.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>

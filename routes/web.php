@@ -14,6 +14,7 @@ use Modules\Finance\Controllers\Web\SupplierInvoiceController;
 use Modules\Finance\Controllers\Web\CustomerInvoiceController;
 use Modules\Finance\Controllers\Web\TaxController;
 use Modules\Finance\Controllers\Web\BudgetController;
+use Modules\Finance\Controllers\Web\BudgetLineController;
 use Modules\Finance\Controllers\Web\CostCenterController;
 use Modules\Finance\Controllers\Web\CashAccountController;
 use Modules\Finance\Controllers\Web\BankAccountController;
@@ -273,6 +274,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/budgets/{id}/edit', [BudgetController::class, 'edit'])->name('budgets.edit');
         Route::put('/budgets/{id}', [BudgetController::class, 'update'])->name('budgets.update');
         Route::delete('/budgets/{id}', [BudgetController::class, 'destroy'])->name('budgets.destroy');
+        Route::post('/budgets/{id}/submit', [BudgetController::class, 'submit'])->name('budgets.submit');
+        Route::post('/budgets/{id}/approve', [BudgetController::class, 'approve'])->name('budgets.approve');
+        Route::post('/budgets/{id}/reject', [BudgetController::class, 'reject'])->name('budgets.reject');
+        Route::post('/budgets/{budgetId}/lines', [BudgetLineController::class, 'store'])->name('budgets.lines.store');
+        Route::put('/budgets/{budgetId}/lines/{lineId}', [BudgetLineController::class, 'update'])->name('budgets.lines.update');
+        Route::delete('/budgets/{budgetId}/lines/{lineId}', [BudgetLineController::class, 'destroy'])->name('budgets.lines.destroy');
+        Route::get('/budgets/lines/accounts', [BudgetLineController::class, 'accounts'])->name('budgets.lines.accounts');
+        Route::get('/budgets/lines/cost-centers', [BudgetLineController::class, 'costCenters'])->name('budgets.lines.cost-centers');
 
         // Budget vs Actual
         Route::get('/budget-vs-actual', [ReportController::class, 'budgetVsActual'])->name('budget-vs-actual');

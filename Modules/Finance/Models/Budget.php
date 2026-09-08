@@ -73,11 +73,11 @@ class Budget extends Model
     public function getTotalActual(?int $period = null): float
     {
         $query = \Modules\Finance\Models\JournalLine::query()
-            ->whereHas('journal', fn($q) => $q->posted())
+            ->whereHas('journal', fn($q) => $q->where('status', 'POSTED'))
             ->whereHas('account', fn($q) => $q->where('account_type', 'EXPENSE'));
 
         if ($period) {
-            $query->whereHas('journal.fiscalPeriod', fn($q) => $q->where('period', $period));
+            $query->whereHas('journal.fiscalPeriod', fn($q) => $q->where('period_number', $period));
         }
 
         $totalDebit = (float) $query->clone()->sum('debit');
@@ -91,7 +91,17 @@ class Budget extends Model
         return $query->where('status', self::STATUS_DRAFT);
     }
 
+    public function scopeSubmitted($query)
+    {
+        return $query->where('status', self::STATUS_SUBMITTED);
+    }
+
     public function scopeApproved($query)
+    {
+        return $query->where('status', self::STATUS_APPROVED);
+    }
+
+    public function scopeActive($query)
     {
         return $query->where('status', self::STATUS_APPROVED);
     }

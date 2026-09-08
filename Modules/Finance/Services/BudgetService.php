@@ -30,9 +30,10 @@ class BudgetService
             }
         }
 
-        $budget = Budget::where('company_id', $companyId)
+        $budget = Budget::with('fiscalYear')
+            ->where('company_id', $companyId)
             ->where('fiscal_year_id', $fiscalYearId)
-            ->where('status', 'active')
+            ->where('status', Budget::STATUS_APPROVED)
             ->first();
 
         if (!$budget) {
@@ -62,8 +63,13 @@ class BudgetService
         $lines = [];
 
         foreach ($budgetLines as $budgetLine) {
-            $actual = $this->getActualSpending($budgetLine->account_id, $budgetLine->cost_center_id, $budget->fiscal_year_id);
-            $budgetAmount = $budgetLine->budget_amount;
+            $actual = $this->getActualSpending(
+                $budgetLine->account_id,
+                $budgetLine->cost_center_id,
+                $budget->fiscalYear->start_date,
+                $budget->fiscalYear->end_date
+            );
+            $budgetAmount = (float) $budgetLine->budget_amount;
             $variance = $budgetAmount - $actual;
             $variancePercent = $budgetAmount > 0 ? ($variance / $budgetAmount) * 100 : 0;
 
@@ -92,26 +98,35 @@ class BudgetService
         ];
     }
 
-    public function getActualSpending(int $accountId, ?int $costCenterId, int $fiscalYearId): float
+    public function getActualSpending(int $accountId, ?int $costCenterId, string $startDate, string $endDate): float
     {
-        $fiscalYear = \Modules\Core\Models\FiscalYear::findOrFail($fiscalYearId);
-
         $query = \Modules\Finance\Models\JournalLine::where('account_id', $accountId)
-            ->whereHas('journal', function ($q) use ($fiscalYear) {
-                $q->where('company_id', $fiscalYear->company_id)
-                  ->where('status', 'POSTED')
-                  ->whereBetween('journal_date', [$fiscalYear->start_date, $fiscalYear->end_date]);
+            ->whereHas('journal', function ($q) use ($startDate, $endDate) {
+                $q->where('status', 'POSTED')
+                  ->whereBetween('journal_date', [$startDate, $endDate]);
             });
 
         if ($costCenterId) {
             $query->where('cost_center_id', $costCenterId);
         }
 
-        return $query->sum('debit') - $query->sum('credit');
+        $totalDebit = (float) $query->clone()->sum('debit');
+        $totalCredit = (float) $query->clone()->sum('credit');
+
+        return $totalDebit - $totalCredit;
     }
 
     public function checkBudgetAvailability(int $accountId, ?int $costCenterId, int $fiscalYearId, float $requestedAmount): bool
     {
+        $fiscalYear = \Modules\Core\Models\FiscalYear::findOrFail($fiscalYearId);
+
+        $actualSpending = $this->getActualSpending(
+            $accountId,
+            $costCenterId,
+            $fiscalYear->start_date,
+            $fiscalYear->end_date
+        );
+
         $budgetData = $this->getBudgetVsActual($accountId, $costCenterId, $fiscalYearId);
         
         return ($budgetData['actual'] + $requestedAmount) <= $budgetData['budget'];
@@ -122,5 +137,10 @@ class BudgetService
         $budgetData = $this->getBudgetVsActual($accountId, $costCenterId, $fiscalYearId);
         
         return max(0, $budgetData['budget'] - $budgetData['actual']);
+    }
+
+    public function getBudgetById(int $id): ?Budget
+    {
+        return Budget::with(['fiscalYear', 'lines.account', 'lines.costCenter'])->find($id);
     }
 }
