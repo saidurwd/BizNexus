@@ -34,6 +34,7 @@ use Modules\Core\Controllers\Web\PeriodClosingController;
 use Modules\Core\Controllers\Web\FiscalYearController;
 use Modules\Core\Controllers\Web\PermissionController;
 use Modules\Core\Controllers\Web\AuditController;
+use Modules\Core\Controllers\Web\NotificationController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -74,6 +75,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Audit
     Route::get('/audit', [AuditController::class, 'index'])->name('core.audit.index');
     Route::get('/audit/{id}', [AuditController::class, 'show'])->name('core.audit.show');
+
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('core.notifications.index');
+    Route::get('/notifications/{id}', [NotificationController::class, 'show'])->name('core.notifications.show');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('core.notifications.mark-read');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('core.notifications.mark-all-read');
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('core.notifications.destroy');
+    Route::delete('/notifications', [NotificationController::class, 'destroyAll'])->name('core.notifications.destroy-all');
 
     Route::get('/exchange-rates', [ExchangeRateController::class, 'index'])->name('core.exchange-rates.index');
     Route::get('/exchange-rates/create', [ExchangeRateController::class, 'create'])->name('core.exchange-rates.create');

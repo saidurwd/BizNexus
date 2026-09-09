@@ -810,6 +810,7 @@ return [
                 ['text' => 'Accounting Periods', 'url' => 'periods', 'icon' => 'bi bi-calendar-range', 'permission' => 'core.periods.view'],
                 ['header' => 'Audit & Compliance'],
                 ['text' => 'Audit Logs', 'url' => 'audit', 'icon' => 'bi bi-journal-text', 'permission' => 'core.audit.view'],
+                ['text' => 'Notifications', 'icon' => 'bi bi-bell', 'url' => 'notifications', 'permission' => 'core.notifications.view'],
             ],
         ],
         // ============================================================

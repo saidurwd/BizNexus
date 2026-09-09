@@ -82,6 +82,7 @@ class CoreSeeder extends Seeder
             ['name' => 'Edit Tax', 'slug' => 'finance.taxes.update', 'group' => 'Finance'],
             ['name' => 'Delete Tax', 'slug' => 'finance.taxes.delete', 'group' => 'Finance'],
             ['name' => 'View Audit Logs', 'slug' => 'core.audit.view', 'group' => 'Administration'],
+            ['name' => 'View Notifications', 'slug' => 'core.notifications.view', 'group' => 'Administration'],
         ];
 
         foreach ($permissions as $permission) {
@@ -117,7 +118,7 @@ class CoreSeeder extends Seeder
             'super-admin' => Permission::all()->pluck('id'),
             'finance-manager' => Permission::whereIn('slug', [
                 'dashboard.view',
-                'core.companies.view', 'core.branches.view', 'core.audit.view',
+                'core.companies.view', 'core.branches.view', 'core.audit.view', 'core.notifications.view',
                 'finance.accounts.view', 'finance.accounts.create', 'finance.accounts.update',
                 'finance.journals.view', 'finance.journals.create', 'finance.journals.update', 'finance.journals.submit', 'finance.journals.approve', 'finance.journals.post',
                 'finance.ledger.view', 'finance.ledger.export',
@@ -130,6 +131,7 @@ class CoreSeeder extends Seeder
             ])->pluck('id'),
             'accountant' => Permission::whereIn('slug', [
                 'dashboard.view',
+                'core.notifications.view',
                 'finance.accounts.view',
                 'finance.journals.view', 'finance.journals.create', 'finance.journals.update', 'finance.journals.submit',
                 'finance.ledger.view', 'finance.ledger.export',
@@ -142,6 +144,7 @@ class CoreSeeder extends Seeder
             ])->pluck('id'),
             'finance-user' => Permission::whereIn('slug', [
                 'dashboard.view',
+                'core.notifications.view',
                 'finance.accounts.view',
                 'finance.journals.view',
                 'finance.ledger.view',
