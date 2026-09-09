@@ -45,7 +45,7 @@ Route::middleware('auth')->group(function () {
     Route::post('branch-selection', [\App\Http\Controllers\Auth\BranchSelectionController::class, 'select'])->name('branch.selection.submit');
     Route::post('branch/switch', [\App\Http\Controllers\Auth\BranchSelectionController::class, 'switch'])->name('branch.switch');
 
-    Route::get('branches-data', [\App\Http\Controllers\Auth\BranchController::class, 'index'])->name('branches.index');
+    Route::get('branches-data', [\App\Http\Controllers\Auth\BranchController::class, 'index'])->name('auth.branches.index');
 });
 
 

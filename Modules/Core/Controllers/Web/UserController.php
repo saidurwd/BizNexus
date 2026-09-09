@@ -28,8 +28,9 @@ class UserController extends Controller
     {
         $companies = Company::all();
         $roles = Role::all();
+        $branches = Branch::with('company')->orderBy('company_id')->orderBy('name')->get()->groupBy('company_id');
 
-        return view('core.users.create', compact('companies', 'roles'));
+        return view('core.users.create', compact('companies', 'roles', 'branches'));
     }
 
     public function store(Request $request)
@@ -114,12 +115,13 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $companies = Company::all();
         $roles = Role::all();
+        $branches = Branch::with('company')->orderBy('company_id')->orderBy('name')->get()->groupBy('company_id');
         $userCompanies = UserCompany::where('user_id', $id)->pluck('company_id')->toArray();
         $userRoles = CompanyUserRole::where('user_id', $id)->pluck('role_id')->toArray();
         $userBranches = UserBranch::where('user_id', $id)->pluck('branch_id')->toArray();
         $userDepartments = UserDepartment::where('user_id', $id)->pluck('department_id')->toArray();
 
-        return view('core.users.edit', compact('user', 'companies', 'roles', 'userCompanies', 'userRoles', 'userBranches', 'userDepartments'));
+        return view('core.users.edit', compact('user', 'companies', 'roles', 'branches', 'userCompanies', 'userRoles', 'userBranches', 'userDepartments'));
     }
 
     public function update(Request $request, int $id)

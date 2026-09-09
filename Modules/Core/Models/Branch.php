@@ -28,6 +28,11 @@ class Branch extends Model
         return $this->hasMany(Department::class);
     }
 
+    public function userBranches(): HasMany
+    {
+        return $this->hasMany(UserBranch::class, 'branch_id');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active');

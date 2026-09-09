@@ -54,7 +54,7 @@
             return;
         }
 
-        fetch(`{{ route('branches.index') }}?company_id=${companyId}`)
+        fetch(`{{ route('auth.branches.index') }}?company_id=${companyId}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to load branches');

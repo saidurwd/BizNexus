@@ -65,7 +65,23 @@
                     @endforeach
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-3">
+                    <label>Branches</label>
+                    @foreach($branches as $companyId => $companyBranches)
+                        @php $company = $companyBranches->first()->company @endphp
+                        <strong>{{ $company->code }} — {{ $company->name }}</strong>
+                        @foreach($companyBranches as $branch)
+                            <div class="form-check ms-3">
+                                <input type="checkbox" class="form-check-input" name="branches[]" value="{{ $branch->id }}" id="branch_{{ $branch->id }}" {{ in_array($branch->id, $userBranches) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="branch_{{ $branch->id }}">
+                                    {{ $branch->code }} — {{ $branch->name }}
+                                </label>
+                            </div>
+                        @endforeach
+                    @endforeach
+                </div>
+
+                <div class="form-group mt-3">
                     <label>Roles</label>
                     @foreach($roles as $role)
                         <div class="form-check">

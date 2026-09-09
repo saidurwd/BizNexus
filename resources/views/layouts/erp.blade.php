@@ -113,7 +113,7 @@
             $branches = $activeCompany ? $branchContext->getAccessibleBranches($activeCompany->id) : collect();
         @endphp
 
-        @if($companies->count() > 1)
+        {{-- @if($companies->count() > 1)
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-building"></i>
@@ -165,7 +165,7 @@
                     @endforeach
                 </ul>
             </li>
-        @endif
+        @endif --}}
     @endauth
 @show
 

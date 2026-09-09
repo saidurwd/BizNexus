@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CoreSeeder::class,
             FinanceSeeder::class,
+            UserBranchSeeder::class,
         ]);
     }
 }

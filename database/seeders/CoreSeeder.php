@@ -7,6 +7,7 @@ use Modules\Core\Models\Role;
 use Modules\Core\Models\Permission;
 use Modules\Core\Models\UserCompany;
 use Modules\Core\Models\CompanyUserRole;
+use Modules\Core\Models\UserBranch;
 
 class CoreSeeder extends Seeder
 {
@@ -248,6 +249,17 @@ class CoreSeeder extends Seeder
             if ($role) {
                 CompanyUserRole::firstOrCreate(
                     ['user_id' => $user->id, 'company_id' => $company->id, 'role_id' => $role->id],
+                    ['status' => 'active']
+                );
+            }
+
+            $branches = \Modules\Core\Models\Branch::where('company_id', $company->id)
+                ->where('status', 'active')
+                ->get();
+
+            foreach ($branches as $branch) {
+                UserBranch::firstOrCreate(
+                    ['user_id' => $user->id, 'company_id' => $company->id, 'branch_id' => $branch->id],
                     ['status' => 'active']
                 );
             }
