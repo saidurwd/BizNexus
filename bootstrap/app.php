@@ -32,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'branch.access' => \Modules\Core\Http\Middleware\BranchAccess::class,
             'department.access' => \Modules\Core\Http\Middleware\DepartmentAccess::class,
             'permission' => \Modules\Core\Http\Middleware\Permission::class,
+            'company.and.branch' => \Modules\Core\Http\Middleware\EnsureCompanyAndBranchSelected::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

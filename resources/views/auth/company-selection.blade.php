@@ -21,7 +21,7 @@
 
         <div class="mt-4">
             <x-input-label for="branch_id" value="Branch" />
-            <select id="branch_id" name="branch_id" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required disabled>
+            <select id="branch_id" name="branch_id" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" disabled>
                 <option value="">Select a company first</option>
             </select>
             <x-input-error :messages="$errors->get('branch_id')" class="mt-2" />

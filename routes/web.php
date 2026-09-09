@@ -44,7 +44,7 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function () {
     Route::get('/companies', [CompanyController::class, 'index'])->name('core.companies.index');
     Route::get('/companies/create', [CompanyController::class, 'create'])->name('core.companies.create');
     Route::post('/companies', [CompanyController::class, 'store'])->name('core.companies.store');

@@ -49,11 +49,9 @@ class AuthenticatedSessionController extends Controller
 
             if ($branches->count() === 1) {
                 app(\Modules\Core\Services\BranchContextService::class)->setActiveBranch($companyId, $branches->first()->id);
-
-                return redirect()->intended(route('dashboard', absolute: false));
             }
 
-            return redirect()->route('branch.selection', ['company_id' => $companyId]);
+            return redirect()->intended(route('dashboard', absolute: false));
         }
 
         return redirect()->route('company.selection');
