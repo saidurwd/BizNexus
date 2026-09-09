@@ -89,8 +89,12 @@ class CustomerInvoiceService
 
     public function postInvoice(CustomerInvoice $invoice): CustomerInvoice
     {
-        if (!$invoice->isDraft() && !$invoice->isSubmitted()) {
+        if (!$invoice->isDraft() && !$invoice->isSubmitted() && !$invoice->isApproved()) {
             throw new InvalidAccountingTransactionException('Invoice cannot be posted');
+        }
+
+        if ($invoice->lines->isEmpty()) {
+            throw new InvalidAccountingTransactionException('Invoice must have at least one line item to post.');
         }
 
         return DB::transaction(function () use ($invoice) {
