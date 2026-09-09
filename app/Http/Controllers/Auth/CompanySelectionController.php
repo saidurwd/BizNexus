@@ -76,17 +76,28 @@ class CompanySelectionController extends Controller
     {
         $request->validate([
             'company_id' => 'required|exists:companies,id',
+            'branch_id' => 'nullable|exists:branches,id',
         ]);
 
         $companyId = (int) $request->input('company_id');
+        $branchId = $request->filled('branch_id') ? (int) $request->input('branch_id') : null;
 
         if (!$this->companyContext->hasCompanyAccess($companyId)) {
             return back()->with('error', 'You do not have access to the selected company.');
         }
 
         $this->companyContext->setActiveCompany($companyId);
-        $this->branchContext->clearActiveBranch();
 
-        return redirect()->route('branch.selection', ['company_id' => $companyId]);
+        if ($branchId) {
+            if (!$this->branchContext->hasBranchAccess($branchId, $companyId)) {
+                return back()->with('error', 'You do not have access to the selected branch.');
+            }
+
+            $this->branchContext->setActiveBranch($companyId, $branchId);
+        } else {
+            $this->branchContext->clearActiveBranch();
+        }
+
+        return redirect()->back();
     }
 }
