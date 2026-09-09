@@ -13,6 +13,13 @@ class CreateSalesInvoiceAccountingEntry
     {
         $invoice = $event->invoice;
 
+        $lines = $invoice->lines()->get();
+
+        $revenueAccountId = null;
+        if ($lines->isNotEmpty()) {
+            $revenueAccountId = $lines->first()->account_id;
+        }
+
         $journalData = [
             'company_id' => $invoice->company_id,
             'journal_date' => $invoice->invoice_date,
@@ -33,7 +40,7 @@ class CreateSalesInvoiceAccountingEntry
                     'description' => "Output VAT - {$invoice->tax?->tax_name}",
                 ],
                 [
-                    'account_id' => $invoice->revenue_account_id ?? null,
+                    'account_id' => $revenueAccountId,
                     'debit' => 0,
                     'credit' => $invoice->subtotal ?? 0,
                     'description' => "Sales Revenue",

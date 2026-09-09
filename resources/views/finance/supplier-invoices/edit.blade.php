@@ -1,38 +1,29 @@
 @extends('layouts.erp')
 
-@section('title', 'Create Customer Invoice')
+@section('title', 'Edit Supplier Invoice')
 
 @section('content_header')
-    <h1>Create Customer Invoice</h1>
+    <h1>Edit Supplier Invoice</h1>
 @endsection
 
 @section('content')
-    @if($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0">
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
     <div class="card">
         <div class="card-body">
-            <form action="{{ route('finance.customer-invoices.store') }}" method="POST">
+            <form action="{{ route('finance.supplier-invoices.update', $invoice->id) }}" method="POST">
                 @csrf
+                @method('PUT')
 
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="invoice_number">Invoice Number</label>
-                            <input type="text" class="form-control" name="invoice_number" value="{{ old('invoice_number') }}" required>
+                            <input type="text" class="form-control" name="invoice_number" value="{{ old('invoice_number', $invoice->invoice_number) }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="invoice_date">Invoice Date</label>
-                            <input type="date" class="form-control" name="invoice_date" value="{{ old('invoice_date', now()->format('Y-m-d')) }}" required>
+                            <input type="date" class="form-control" name="invoice_date" value="{{ old('invoice_date', $invoice->invoice_date->format('Y-m-d')) }}" required>
                         </div>
                     </div>
                 </div>
@@ -40,12 +31,12 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="customer_id">Customer</label>
-                            <select class="form-control" name="customer_id" required>
-                                <option value="">Select Customer</option>
-                                @foreach($customers as $customer)
-                                    <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>
-                                        {{ $customer->customer_code ?? $customer->id }} — {{ $customer->name }}
+                            <label for="supplier_id">Supplier</label>
+                            <select class="form-control" name="supplier_id" required>
+                                <option value="">Select Supplier</option>
+                                @foreach($suppliers as $supplier)
+                                    <option value="{{ $supplier->id }}" @selected(old('supplier_id', $invoice->supplier_id) == $supplier->id)>
+                                        {{ $supplier->supplier_code }} — {{ $supplier->name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -54,7 +45,7 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="due_date">Due Date</label>
-                            <input type="date" class="form-control" name="due_date" value="{{ old('due_date') }}" required>
+                            <input type="date" class="form-control" name="due_date" value="{{ old('due_date', $invoice->due_date?->format('Y-m-d')) }}" required>
                         </div>
                     </div>
                 </div>
@@ -66,7 +57,7 @@
                             <select class="form-control" name="tax_id">
                                 <option value="">No Tax</option>
                                 @foreach($taxes as $tax)
-                                    <option value="{{ $tax->id }}" @selected(old('tax_id') == $tax->id)>
+                                    <option value="{{ $tax->id }}" @selected(old('tax_id', $invoice->tax_id) == $tax->id)>
                                         {{ $tax->tax_code }} — {{ $tax->tax_name }} ({{ $tax->rate }}%)
                                     </option>
                                 @endforeach
@@ -76,7 +67,7 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="subtotal">Subtotal</label>
-                            <input type="number" class="form-control" name="subtotal" step="0.01" min="0" value="{{ old('subtotal') }}" required>
+                            <input type="number" class="form-control" name="subtotal" step="0.01" min="0" value="{{ old('subtotal', $invoice->subtotal) }}" required>
                         </div>
                     </div>
                 </div>
@@ -85,19 +76,19 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="total_amount">Total Amount</label>
-                            <input type="number" class="form-control" name="total_amount" step="0.01" min="0" value="{{ old('total_amount') }}" required>
+                            <input type="number" class="form-control" name="total_amount" step="0.01" min="0" value="{{ old('total_amount', $invoice->total_amount) }}" required>
                         </div>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="description">Description</label>
-                    <textarea class="form-control" name="description" rows="3">{{ old('description') }}</textarea>
+                    <textarea class="form-control" name="description" rows="3">{{ old('description', $invoice->description) }}</textarea>
                 </div>
 
-                <div class="form-group">
-                    <button type="submit" class="btn btn-primary">Create Invoice</button>
-                    <a href="{{ route('finance.customer-invoices.index') }}" class="btn btn-secondary">Cancel</a>
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary">Update Invoice</button>
+                    <a href="{{ route('finance.supplier-invoices.show', $invoice->id) }}" class="btn btn-secondary">Cancel</a>
                 </div>
             </form>
         </div>

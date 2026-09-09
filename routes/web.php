@@ -226,9 +226,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/supplier-invoices/create', [SupplierInvoiceController::class, 'create'])->name('supplier-invoices.create');
         Route::post('/supplier-invoices', [SupplierInvoiceController::class, 'store'])->name('supplier-invoices.store');
         Route::get('/supplier-invoices/{id}', [SupplierInvoiceController::class, 'show'])->name('supplier-invoices.show');
+        Route::get('/supplier-invoices/{id}/edit', [SupplierInvoiceController::class, 'edit'])->name('supplier-invoices.edit');
+        Route::put('/supplier-invoices/{id}', [SupplierInvoiceController::class, 'update'])->name('supplier-invoices.update');
+        Route::delete('/supplier-invoices/{id}', [SupplierInvoiceController::class, 'destroy'])->name('supplier-invoices.destroy');
         Route::post('/supplier-invoices/{id}/submit', [SupplierInvoiceController::class, 'submit'])->name('supplier-invoices.submit');
         Route::post('/supplier-invoices/{id}/approve', [SupplierInvoiceController::class, 'approve'])->name('supplier-invoices.approve');
         Route::post('/supplier-invoices/{id}/reject', [SupplierInvoiceController::class, 'reject'])->name('supplier-invoices.reject');
+        Route::post('/supplier-invoices/{id}/post', [SupplierInvoiceController::class, 'post'])->name('supplier-invoices.post');
+        Route::post('/supplier-invoices/{id}/cancel', [SupplierInvoiceController::class, 'cancel'])->name('supplier-invoices.cancel');
 
         // Supplier Statements
         Route::get('/supplier-statements', [SupplierStatementController::class, 'index'])->name('supplier-statements.index');
@@ -239,9 +244,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/customer-invoices/create', [CustomerInvoiceController::class, 'create'])->name('customer-invoices.create');
         Route::post('/customer-invoices', [CustomerInvoiceController::class, 'store'])->name('customer-invoices.store');
         Route::get('/customer-invoices/{id}', [CustomerInvoiceController::class, 'show'])->name('customer-invoices.show');
+        Route::get('/customer-invoices/{id}/edit', [CustomerInvoiceController::class, 'edit'])->name('customer-invoices.edit');
+        Route::put('/customer-invoices/{id}', [CustomerInvoiceController::class, 'update'])->name('customer-invoices.update');
+        Route::delete('/customer-invoices/{id}', [CustomerInvoiceController::class, 'destroy'])->name('customer-invoices.destroy');
         Route::post('/customer-invoices/{id}/submit', [CustomerInvoiceController::class, 'submit'])->name('customer-invoices.submit');
         Route::post('/customer-invoices/{id}/approve', [CustomerInvoiceController::class, 'approve'])->name('customer-invoices.approve');
         Route::post('/customer-invoices/{id}/reject', [CustomerInvoiceController::class, 'reject'])->name('customer-invoices.reject');
+        Route::post('/customer-invoices/{id}/post', [CustomerInvoiceController::class, 'post'])->name('customer-invoices.post');
+        Route::post('/customer-invoices/{id}/cancel', [CustomerInvoiceController::class, 'cancel'])->name('customer-invoices.cancel');
 
         // Customer Statements
         Route::get('/customer-statements', [CustomerStatementController::class, 'index'])->name('customer-statements.index');

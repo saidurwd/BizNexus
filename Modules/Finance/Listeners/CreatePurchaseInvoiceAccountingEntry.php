@@ -13,6 +13,13 @@ class CreatePurchaseInvoiceAccountingEntry
     {
         $invoice = $event->invoice;
 
+        $lines = $invoice->lines()->get();
+
+        $expenseAccountId = null;
+        if ($lines->isNotEmpty()) {
+            $expenseAccountId = $lines->first()->account_id;
+        }
+
         $journalData = [
             'company_id' => $invoice->company_id,
             'journal_date' => $invoice->invoice_date,
@@ -22,8 +29,8 @@ class CreatePurchaseInvoiceAccountingEntry
             'lines' => [
                 [
                     'account_id' => $invoice->supplier?->payable_account_id,
-                    'debit' => $invoice->total_amount,
-                    'credit' => 0,
+                    'debit' => 0,
+                    'credit' => $invoice->total_amount,
                     'description' => "Accounts Payable - {$invoice->supplier?->name}",
                 ],
                 [
@@ -33,7 +40,7 @@ class CreatePurchaseInvoiceAccountingEntry
                     'description' => "Input VAT - {$invoice->tax?->tax_name}",
                 ],
                 [
-                    'account_id' => $invoice->expense_account_id ?? null,
+                    'account_id' => $expenseAccountId,
                     'debit' => $invoice->subtotal ?? 0,
                     'credit' => 0,
                     'description' => "Purchase Expense",
