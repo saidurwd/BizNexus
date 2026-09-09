@@ -59,6 +59,8 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
         Route::get('/customers/{id}/outstanding', [CustomerController::class, 'outstandingInvoices']);
         Route::get('/customers/{id}/aging', [CustomerController::class, 'aging']);
 
+        Route::get('/branches', [\App\Http\Controllers\Api\BranchController::class, 'index'])->name('api.branches.index');
+
         Route::get('/customer-invoices', [CustomerInvoiceController::class, 'index']);
         Route::post('/customer-invoices', [CustomerInvoiceController::class, 'store']);
         Route::get('/customer-invoices/{id}', [CustomerInvoiceController::class, 'show']);

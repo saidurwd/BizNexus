@@ -42,9 +42,18 @@ class AuthenticatedSessionController extends Controller
         }
 
         if ($companies->count() === 1) {
-            $this->companyContext->setActiveCompany($companies->first()->id);
+            $companyId = $companies->first()->id;
+            $this->companyContext->setActiveCompany($companyId);
 
-            return redirect()->intended(route('dashboard', absolute: false));
+            $branches = app(\Modules\Core\Services\BranchContextService::class)->getAccessibleBranches($companyId);
+
+            if ($branches->count() === 1) {
+                app(\Modules\Core\Services\BranchContextService::class)->setActiveBranch($companyId, $branches->first()->id);
+
+                return redirect()->intended(route('dashboard', absolute: false));
+            }
+
+            return redirect()->route('branch.selection', ['company_id' => $companyId]);
         }
 
         return redirect()->route('company.selection');

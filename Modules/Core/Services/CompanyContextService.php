@@ -99,6 +99,11 @@ class CompanyContextService
         return $userCompany?->company;
     }
 
+    public function clearActiveBranch(): void
+    {
+        app(\Modules\Core\Services\BranchContextService::class)->clearActiveBranch();
+    }
+
     public function getBaseCurrency(): ?Currency
     {
         $company = $this->getActiveCompany();

@@ -59,7 +59,7 @@ class SupplierInvoiceController extends Controller
         ]);
 
         $validated['company_id'] = $this->getActiveCompanyId();
-        $validated['branch_id'] = session('active_branch_id');
+        $validated['branch_id'] = $this->getActiveBranchId();
         $validated['status'] = SupplierInvoice::STATUS_DRAFT;
         $validated['created_by'] = auth()->id();
         $validated['updated_by'] = auth()->id();

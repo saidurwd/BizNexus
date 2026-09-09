@@ -6,11 +6,14 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\BranchContextService;
 
 class CompanySelectionController extends Controller
 {
-    public function __construct(protected CompanyContextService $companyContext)
-    {
+    public function __construct(
+        protected CompanyContextService $companyContext,
+        protected BranchContextService $branchContext
+    ) {
     }
 
     public function index()
@@ -22,9 +25,18 @@ class CompanySelectionController extends Controller
         }
 
         if ($companies->count() === 1) {
-            $this->companyContext->setActiveCompany($companies->first()->id);
+            $companyId = $companies->first()->id;
+            $this->companyContext->setActiveCompany($companyId);
 
-            return redirect()->intended(route('dashboard', absolute: false));
+            $branches = $this->branchContext->getAccessibleBranches($companyId);
+
+            if ($branches->count() === 1) {
+                $this->branchContext->setActiveBranch($companyId, $branches->first()->id);
+
+                return redirect()->intended(route('dashboard', absolute: false));
+            }
+
+            return redirect()->route('branch.selection', ['company_id' => $companyId]);
         }
 
         return view('auth.company-selection', compact('companies'));
@@ -34,19 +46,27 @@ class CompanySelectionController extends Controller
     {
         $request->validate([
             'company_id' => 'required|exists:companies,id',
+            'branch_id' => 'required|exists:branches,id',
         ]);
 
         $companyId = (int) $request->input('company_id');
+        $branchId = (int) $request->input('branch_id');
 
         if (!$this->companyContext->hasCompanyAccess($companyId)) {
             return redirect()->route('login')->with('error', 'You do not have access to the selected company.');
         }
 
+        if (!$this->branchContext->hasBranchAccess($branchId, $companyId)) {
+            return redirect()->route('company.selection')
+                ->with('error', 'You do not have access to the selected branch.');
+        }
+
         $this->companyContext->setActiveCompany($companyId);
+        $this->branchContext->setActiveBranch($companyId, $branchId);
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
-    
+
     public function switch(Request $request): RedirectResponse
     {
         $request->validate([
@@ -60,7 +80,8 @@ class CompanySelectionController extends Controller
         }
 
         $this->companyContext->setActiveCompany($companyId);
+        $this->branchContext->clearActiveBranch();
 
-        return redirect()->back();
+        return redirect()->route('branch.selection', ['company_id' => $companyId]);
     }
 }

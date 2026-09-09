@@ -58,7 +58,7 @@ class CustomerInvoiceController extends Controller
         ]);
 
         $validated['company_id'] = $this->getActiveCompanyId();
-        $validated['branch_id'] = session('active_branch_id');
+        $validated['branch_id'] = $this->getActiveBranchId();
 
         $invoice = $this->invoiceService->createInvoice($validated);
 

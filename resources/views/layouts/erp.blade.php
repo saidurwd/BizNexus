@@ -105,16 +105,20 @@
 @section('content_top_nav_right')
     @auth
         @php
-            $companies = app(\Modules\Core\Services\CompanyContextService::class)->getUserCompanies();
-            $activeCompanyId = session('active_company_id');
+            $companyContext = app(\Modules\Core\Services\CompanyContextService::class);
+            $branchContext = app(\Modules\Core\Services\BranchContextService::class);
+            $activeCompany = $companyContext->getActiveCompany();
+            $activeBranch = $branchContext->getActiveBranch();
+            $companies = $companyContext->getUserCompanies();
+            $branches = $activeCompany ? $branchContext->getAccessibleBranches($activeCompany->id) : collect();
         @endphp
-{{-- 
+
         @if($companies->count() > 1)
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-building"></i>
                     <span class="d-none d-md-inline ms-1">
-                        {{ $companies->firstWhere('id', $activeCompanyId)?->code ?? 'Select Company' }}
+                        {{ $activeCompany?->code ?? 'Select Company' }}
                     </span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0">
@@ -123,9 +127,9 @@
                             <form method="POST" action="{{ route('company.switch') }}" class="m-0 p-0">
                                 @csrf
                                 <input type="hidden" name="company_id" value="{{ $company->id }}">
-                                <button type="submit" class="dropdown-item {{ $company->id == $activeCompanyId ? 'active' : '' }}">
+                                <button type="submit" class="dropdown-item {{ $company->id == $activeCompany?->id ? 'active' : '' }}">
                                     {{ $company->code }} — {{ $company->name }}
-                                    @if($company->id == $activeCompanyId)
+                                    @if($company->id == $activeCompany?->id)
                                         <i class="bi bi-check2 ms-auto"></i>
                                     @endif
                                 </button>
@@ -134,7 +138,34 @@
                     @endforeach
                 </ul>
             </li>
-        @endif --}}
+        @endif
+
+        @if($branches->count() > 1)
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-shop"></i>
+                    <span class="d-none d-md-inline ms-1">
+                        {{ $activeBranch?->code ?? 'Select Branch' }}
+                    </span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                    @foreach($branches as $branch)
+                        <li>
+                            <form method="POST" action="{{ route('branch.switch') }}" class="m-0 p-0">
+                                @csrf
+                                <input type="hidden" name="branch_id" value="{{ $branch->id }}">
+                                <button type="submit" class="dropdown-item {{ $branch->id == $activeBranch?->id ? 'active' : '' }}">
+                                    {{ $branch->code }} — {{ $branch->name }}
+                                    @if($branch->id == $activeBranch?->id)
+                                        <i class="bi bi-check2 ms-auto"></i>
+                                    @endif
+                                </button>
+                            </form>
+                        </li>
+                    @endforeach
+                </ul>
+            </li>
+        @endif
     @endauth
 @show
 

@@ -39,9 +39,15 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('company-selection', [\App\Http\Controllers\Auth\CompanySelectionController::class, 'index'])->name('company.selection');
     Route::post('company-selection', [\App\Http\Controllers\Auth\CompanySelectionController::class, 'select'])->name('company.selection.submit');
-Route::post('company/switch', [\App\Http\Controllers\Auth\CompanySelectionController::class, 'switch'])->name('company.switch');
+    Route::post('company/switch', [\App\Http\Controllers\Auth\CompanySelectionController::class, 'switch'])->name('company.switch');
 
+    Route::get('branch-selection', [\App\Http\Controllers\Auth\BranchSelectionController::class, 'index'])->name('branch.selection');
+    Route::post('branch-selection', [\App\Http\Controllers\Auth\BranchSelectionController::class, 'select'])->name('branch.selection.submit');
+    Route::post('branch/switch', [\App\Http\Controllers\Auth\BranchSelectionController::class, 'switch'])->name('branch.switch');
+
+    Route::get('branches-data', [\App\Http\Controllers\Auth\BranchController::class, 'index'])->name('branches.index');
 });
+
 
 Route::middleware('auth')->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)
