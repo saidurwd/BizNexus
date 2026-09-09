@@ -81,4 +81,56 @@ class ReceiptController extends Controller
 
         return view('finance.receipts.show', compact('receipt'));
     }
+
+    public function submit(string $id)
+    {
+        $receipt = CustomerReceipt::findOrFail($id);
+
+        if (!$receipt->isDraft()) {
+            return back()->with('error', 'Only draft receipts can be submitted.');
+        }
+
+        $receipt = $this->receiptService->submitReceipt($receipt);
+
+        return back()->with('success', 'Receipt submitted successfully.');
+    }
+
+    public function approve(string $id)
+    {
+        $receipt = CustomerReceipt::findOrFail($id);
+
+        if (!$receipt->isSubmitted()) {
+            return back()->with('error', 'Only submitted receipts can be approved.');
+        }
+
+        $receipt = $this->receiptService->approveReceipt($receipt);
+
+        return back()->with('success', 'Receipt approved successfully.');
+    }
+
+    public function reject(Request $request, string $id)
+    {
+        $receipt = CustomerReceipt::findOrFail($id);
+
+        if (!$receipt->isSubmitted()) {
+            return back()->with('error', 'Only submitted receipts can be rejected.');
+        }
+
+        $receipt = $this->receiptService->rejectReceipt($receipt, $request->get('reason'));
+
+        return back()->with('success', 'Receipt rejected.');
+    }
+
+    public function cancel(string $id)
+    {
+        $receipt = CustomerReceipt::findOrFail($id);
+
+        if ($receipt->isPosted()) {
+            return back()->with('error', 'Posted receipts cannot be cancelled directly.');
+        }
+
+        $receipt = $this->receiptService->cancelReceipt($receipt);
+
+        return back()->with('success', 'Receipt cancelled.');
+    }
 }

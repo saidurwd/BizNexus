@@ -71,4 +71,49 @@ class SupplierInvoiceController extends Controller
 
         return view('finance.supplier-invoices.show', compact('invoice'));
     }
+
+    public function submit(int $id)
+    {
+        $this->checkPermission('finance.suppliers.approve');
+
+        $invoice = \Modules\Finance\Models\SupplierInvoice::findOrFail($id);
+
+        if (!$invoice->isDraft()) {
+            return back()->with('error', 'Only draft invoices can be submitted.');
+        }
+
+        $invoice = app(\Modules\Finance\Services\SupplierInvoiceService::class)->submitInvoice($invoice);
+
+        return back()->with('success', 'Invoice submitted successfully.');
+    }
+
+    public function approve(int $id)
+    {
+        $this->checkPermission('finance.suppliers.approve');
+
+        $invoice = \Modules\Finance\Models\SupplierInvoice::findOrFail($id);
+
+        if (!$invoice->isSubmitted()) {
+            return back()->with('error', 'Only submitted invoices can be approved.');
+        }
+
+        $invoice = app(\Modules\Finance\Services\SupplierInvoiceService::class)->approveInvoice($invoice);
+
+        return back()->with('success', 'Invoice approved successfully.');
+    }
+
+    public function reject(Request $request, int $id)
+    {
+        $this->checkPermission('finance.suppliers.approve');
+
+        $invoice = \Modules\Finance\Models\SupplierInvoice::findOrFail($id);
+
+        if (!$invoice->isSubmitted()) {
+            return back()->with('error', 'Only submitted invoices can be rejected.');
+        }
+
+        $invoice = app(\Modules\Finance\Services\SupplierInvoiceService::class)->rejectInvoice($invoice, $request->get('reason'));
+
+        return back()->with('success', 'Invoice rejected.');
+    }
 }

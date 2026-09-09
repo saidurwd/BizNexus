@@ -91,6 +91,16 @@ class CustomerReceipt extends Model
         return $this->status === self::STATUS_DRAFT;
     }
 
+    public function isSubmitted(): bool
+    {
+        return $this->status === self::STATUS_SUBMITTED;
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->status === self::STATUS_APPROVED;
+    }
+
     public function isPosted(): bool
     {
         return $this->status === self::STATUS_POSTED;

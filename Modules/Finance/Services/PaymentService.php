@@ -70,6 +70,17 @@ class PaymentService
 
             $this->audit->logCreate('Finance', 'SupplierPayment', $payment->id, $payment->toArray());
 
+            try {
+                app(\Modules\Workflow\Services\WorkflowService::class)->createInstance(
+                    'supplier_payment',
+                    $payment->id,
+                    SupplierPayment::STATUS_DRAFT,
+                    $payment->company_id
+                );
+            } catch (\Throwable $e) {
+                // Workflow definitions may not be seeded yet
+            }
+
             return $payment;
         });
     }
@@ -139,10 +150,122 @@ class PaymentService
                 'journal_id' => $journal->id,
             ]);
 
+            try {
+                app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+                    'supplier_payment',
+                    $payment->id,
+                    SupplierPayment::STATUS_POSTED
+                );
+            } catch (\Throwable $e) {
+                // Workflow definitions may not be seeded yet
+            }
+
             event(new \Modules\Finance\Events\PaymentApproved($payment));
 
             return $payment->fresh();
         });
+    }
+
+    public function submitPayment(SupplierPayment $payment): SupplierPayment
+    {
+        if (!$payment->isDraft()) {
+            throw new InvalidAccountingTransactionException('Only draft payments can be submitted');
+        }
+
+        $payment->update(['status' => SupplierPayment::STATUS_SUBMITTED]);
+
+        $this->audit->logCustom('Finance', 'SupplierPayment', $payment->id, 'SUBMIT', [
+            'previous_status' => SupplierPayment::STATUS_DRAFT,
+        ]);
+
+        try {
+            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+                'supplier_payment',
+                $payment->id,
+                SupplierPayment::STATUS_SUBMITTED
+            );
+        } catch (\Throwable $e) {
+            // Workflow definitions may not be seeded yet
+        }
+
+        return $payment->fresh();
+    }
+
+    public function approvePayment(SupplierPayment $payment): SupplierPayment
+    {
+        if (!$payment->isSubmitted()) {
+            throw new InvalidAccountingTransactionException('Only submitted payments can be approved');
+        }
+
+        $payment->update(['status' => SupplierPayment::STATUS_APPROVED]);
+
+        $this->audit->logCustom('Finance', 'SupplierPayment', $payment->id, 'APPROVE', [
+            'previous_status' => SupplierPayment::STATUS_SUBMITTED,
+        ]);
+
+        try {
+            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+                'supplier_payment',
+                $payment->id,
+                SupplierPayment::STATUS_APPROVED
+            );
+        } catch (\Throwable $e) {
+            // Workflow definitions may not be seeded yet
+        }
+
+        return $payment->fresh();
+    }
+
+    public function rejectPayment(SupplierPayment $payment, ?string $reason = null): SupplierPayment
+    {
+        if (!$payment->isSubmitted()) {
+            throw new InvalidAccountingTransactionException('Only submitted payments can be rejected');
+        }
+
+        $payment->update(['status' => SupplierPayment::STATUS_REJECTED]);
+
+        $this->audit->logCustom('Finance', 'SupplierPayment', $payment->id, 'REJECT', [
+            'previous_status' => SupplierPayment::STATUS_SUBMITTED,
+            'reason' => $reason,
+        ]);
+
+        try {
+            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+                'supplier_payment',
+                $payment->id,
+                SupplierPayment::STATUS_REJECTED,
+                $reason
+            );
+        } catch (\Throwable $e) {
+            // Workflow definitions may not be seeded yet
+        }
+
+        return $payment->fresh();
+    }
+
+    public function cancelPayment(SupplierPayment $payment): SupplierPayment
+    {
+        if ($payment->isPosted()) {
+            throw new InvalidAccountingTransactionException('Posted payments cannot be cancelled directly');
+        }
+
+        $payment->update(['status' => SupplierPayment::STATUS_CANCELLED]);
+
+        $this->audit->logCustom('Finance', 'SupplierPayment', $payment->id, 'CANCEL', [
+            'previous_status' => $payment->status,
+        ]);
+
+        try {
+            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+                'supplier_payment',
+                $payment->id,
+                SupplierPayment::STATUS_CANCELLED
+            );
+        } catch (\Throwable $e) {
+            // Workflow definitions may not be seeded yet
+        }
+
+        return $payment->fresh();
     }
 
     public function allocatePayment(int $paymentId, int $invoiceId, float $amount): PaymentAllocation

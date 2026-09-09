@@ -70,6 +70,17 @@ class ReceiptService
 
             $this->audit->logCreate('Finance', 'CustomerReceipt', $receipt->id, $receipt->toArray());
 
+            try {
+                app(\Modules\Workflow\Services\WorkflowService::class)->createInstance(
+                    'customer_receipt',
+                    $receipt->id,
+                    CustomerReceipt::STATUS_DRAFT,
+                    $receipt->company_id
+                );
+            } catch (\Throwable $e) {
+                // Workflow definitions may not be seeded yet
+            }
+
             return $receipt;
         });
     }
@@ -139,10 +150,122 @@ class ReceiptService
                 'journal_id' => $journal->id,
             ]);
 
+            try {
+                app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+                    'customer_receipt',
+                    $receipt->id,
+                    CustomerReceipt::STATUS_POSTED
+                );
+            } catch (\Throwable $e) {
+                // Workflow definitions may not be seeded yet
+            }
+
             event(new \Modules\Finance\Events\ReceiptApproved($receipt));
 
             return $receipt->fresh();
         });
+    }
+
+    public function submitReceipt(CustomerReceipt $receipt): CustomerReceipt
+    {
+        if (!$receipt->isDraft()) {
+            throw new InvalidAccountingTransactionException('Only draft receipts can be submitted');
+        }
+
+        $receipt->update(['status' => CustomerReceipt::STATUS_SUBMITTED]);
+
+        $this->audit->logCustom('Finance', 'CustomerReceipt', $receipt->id, 'SUBMIT', [
+            'previous_status' => CustomerReceipt::STATUS_DRAFT,
+        ]);
+
+        try {
+            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+                'customer_receipt',
+                $receipt->id,
+                CustomerReceipt::STATUS_SUBMITTED
+            );
+        } catch (\Throwable $e) {
+            // Workflow definitions may not be seeded yet
+        }
+
+        return $receipt->fresh();
+    }
+
+    public function approveReceipt(CustomerReceipt $receipt): CustomerReceipt
+    {
+        if (!$receipt->isDraft() && !$receipt->isSubmitted()) {
+            throw new InvalidAccountingTransactionException('Only draft or submitted receipts can be approved');
+        }
+
+        $receipt->update(['status' => CustomerReceipt::STATUS_APPROVED]);
+
+        $this->audit->logCustom('Finance', 'CustomerReceipt', $receipt->id, 'APPROVE', [
+            'previous_status' => CustomerReceipt::STATUS_SUBMITTED,
+        ]);
+
+        try {
+            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+                'customer_receipt',
+                $receipt->id,
+                CustomerReceipt::STATUS_APPROVED
+            );
+        } catch (\Throwable $e) {
+            // Workflow definitions may not be seeded yet
+        }
+
+        return $receipt->fresh();
+    }
+
+    public function rejectReceipt(CustomerReceipt $receipt, ?string $reason = null): CustomerReceipt
+    {
+        if (!$receipt->isSubmitted()) {
+            throw new InvalidAccountingTransactionException('Only submitted receipts can be rejected');
+        }
+
+        $receipt->update(['status' => CustomerReceipt::STATUS_REJECTED]);
+
+        $this->audit->logCustom('Finance', 'CustomerReceipt', $receipt->id, 'REJECT', [
+            'previous_status' => CustomerReceipt::STATUS_SUBMITTED,
+            'reason' => $reason,
+        ]);
+
+        try {
+            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+                'customer_receipt',
+                $receipt->id,
+                CustomerReceipt::STATUS_REJECTED,
+                $reason
+            );
+        } catch (\Throwable $e) {
+            // Workflow definitions may not be seeded yet
+        }
+
+        return $receipt->fresh();
+    }
+
+    public function cancelReceipt(CustomerReceipt $receipt): CustomerReceipt
+    {
+        if ($receipt->isPosted()) {
+            throw new InvalidAccountingTransactionException('Posted receipts cannot be cancelled directly');
+        }
+
+        $receipt->update(['status' => CustomerReceipt::STATUS_CANCELLED]);
+
+        $this->audit->logCustom('Finance', 'CustomerReceipt', $receipt->id, 'CANCEL', [
+            'previous_status' => $receipt->status,
+        ]);
+
+        try {
+            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+                'customer_receipt',
+                $receipt->id,
+                CustomerReceipt::STATUS_CANCELLED
+            );
+        } catch (\Throwable $e) {
+            // Workflow definitions may not be seeded yet
+        }
+
+        return $receipt->fresh();
     }
 
     public function allocateReceipt(int $receiptId, int $invoiceId, float $amount): ReceiptAllocation

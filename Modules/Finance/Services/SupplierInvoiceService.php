@@ -72,6 +72,17 @@ class SupplierInvoiceService
 
             $this->audit->logCreate('Finance', 'SupplierInvoice', $invoice->id, $invoice->toArray());
 
+            try {
+                app(\Modules\Workflow\Services\WorkflowService::class)->createInstance(
+                    'supplier_invoice',
+                    $invoice->id,
+                    SupplierInvoice::STATUS_DRAFT,
+                    $invoice->company_id
+                );
+            } catch (\Throwable $e) {
+                // Workflow definitions may not be seeded yet
+            }
+
             return $invoice;
         });
     }
@@ -140,8 +151,95 @@ class SupplierInvoiceService
                 'journal_id' => $journal->id,
             ]);
 
+            try {
+                app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+                    'supplier_invoice',
+                    $invoice->id,
+                    SupplierInvoice::STATUS_POSTED
+                );
+            } catch (\Throwable $e) {
+                // Workflow definitions may not be seeded yet
+            }
+
             return $invoice->fresh();
         });
+    }
+
+    public function submitInvoice(SupplierInvoice $invoice): SupplierInvoice
+    {
+        if (!$invoice->isDraft()) {
+            throw new InvalidAccountingTransactionException('Only draft invoices can be submitted');
+        }
+
+        $invoice->update(['status' => SupplierInvoice::STATUS_SUBMITTED]);
+
+        $this->audit->logCustom('Finance', 'SupplierInvoice', $invoice->id, 'SUBMIT', [
+            'previous_status' => SupplierInvoice::STATUS_DRAFT,
+        ]);
+
+        try {
+            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+                'supplier_invoice',
+                $invoice->id,
+                SupplierInvoice::STATUS_SUBMITTED
+            );
+        } catch (\Throwable $e) {
+            // Workflow definitions may not be seeded yet
+        }
+
+        return $invoice->fresh();
+    }
+
+    public function approveInvoice(SupplierInvoice $invoice): SupplierInvoice
+    {
+        if (!$invoice->isSubmitted()) {
+            throw new InvalidAccountingTransactionException('Only submitted invoices can be approved');
+        }
+
+        $invoice->update(['status' => SupplierInvoice::STATUS_APPROVED]);
+
+        $this->audit->logCustom('Finance', 'SupplierInvoice', $invoice->id, 'APPROVE', [
+            'previous_status' => SupplierInvoice::STATUS_SUBMITTED,
+        ]);
+
+        try {
+            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+                'supplier_invoice',
+                $invoice->id,
+                SupplierInvoice::STATUS_APPROVED
+            );
+        } catch (\Throwable $e) {
+            // Workflow definitions may not be seeded yet
+        }
+
+        return $invoice->fresh();
+    }
+
+    public function rejectInvoice(SupplierInvoice $invoice, ?string $reason = null): SupplierInvoice
+    {
+        if (!$invoice->isSubmitted()) {
+            throw new InvalidAccountingTransactionException('Only submitted invoices can be rejected');
+        }
+
+        $invoice->update(['status' => SupplierInvoice::STATUS_REJECTED]);
+
+        $this->audit->logCustom('Finance', 'SupplierInvoice', $invoice->id, 'REJECT', [
+            'previous_status' => SupplierInvoice::STATUS_SUBMITTED,
+            'reason' => $reason,
+        ]);
+
+        try {
+            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+                'supplier_invoice',
+                $invoice->id,
+                SupplierInvoice::STATUS_REJECTED,
+                $reason
+            );
+        } catch (\Throwable $e) {
+            // Workflow definitions may not be seeded yet
+        }
+
+        return $invoice->fresh();
     }
 
     protected function getDefaultPayableAccount(int $companyId): int

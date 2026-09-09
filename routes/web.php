@@ -206,18 +206,29 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/payments/create', [PaymentController::class, 'create'])->name('payments.create');
         Route::post('/payments', [PaymentController::class, 'store'])->name('payments.store');
         Route::get('/payments/{id}', [PaymentController::class, 'show'])->name('payments.show');
+        Route::post('/payments/{id}/submit', [PaymentController::class, 'submit'])->name('payments.submit');
+        Route::post('/payments/{id}/approve', [PaymentController::class, 'approve'])->name('payments.approve');
+        Route::post('/payments/{id}/reject', [PaymentController::class, 'reject'])->name('payments.reject');
+        Route::post('/payments/{id}/cancel', [PaymentController::class, 'cancel'])->name('payments.cancel');
 
         // Receipts
         Route::get('/receipts', [ReceiptController::class, 'index'])->name('receipts.index');
         Route::get('/receipts/create', [ReceiptController::class, 'create'])->name('receipts.create');
         Route::post('/receipts', [ReceiptController::class, 'store'])->name('receipts.store');
         Route::get('/receipts/{id}', [ReceiptController::class, 'show'])->name('receipts.show');
+        Route::post('/receipts/{id}/submit', [ReceiptController::class, 'submit'])->name('receipts.submit');
+        Route::post('/receipts/{id}/approve', [ReceiptController::class, 'approve'])->name('receipts.approve');
+        Route::post('/receipts/{id}/reject', [ReceiptController::class, 'reject'])->name('receipts.reject');
+        Route::post('/receipts/{id}/cancel', [ReceiptController::class, 'cancel'])->name('receipts.cancel');
 
         // Supplier Invoices
         Route::get('/supplier-invoices', [SupplierInvoiceController::class, 'index'])->name('supplier-invoices.index');
         Route::get('/supplier-invoices/create', [SupplierInvoiceController::class, 'create'])->name('supplier-invoices.create');
         Route::post('/supplier-invoices', [SupplierInvoiceController::class, 'store'])->name('supplier-invoices.store');
         Route::get('/supplier-invoices/{id}', [SupplierInvoiceController::class, 'show'])->name('supplier-invoices.show');
+        Route::post('/supplier-invoices/{id}/submit', [SupplierInvoiceController::class, 'submit'])->name('supplier-invoices.submit');
+        Route::post('/supplier-invoices/{id}/approve', [SupplierInvoiceController::class, 'approve'])->name('supplier-invoices.approve');
+        Route::post('/supplier-invoices/{id}/reject', [SupplierInvoiceController::class, 'reject'])->name('supplier-invoices.reject');
 
         // Supplier Statements
         Route::get('/supplier-statements', [SupplierStatementController::class, 'index'])->name('supplier-statements.index');
@@ -228,6 +239,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/customer-invoices/create', [CustomerInvoiceController::class, 'create'])->name('customer-invoices.create');
         Route::post('/customer-invoices', [CustomerInvoiceController::class, 'store'])->name('customer-invoices.store');
         Route::get('/customer-invoices/{id}', [CustomerInvoiceController::class, 'show'])->name('customer-invoices.show');
+        Route::post('/customer-invoices/{id}/submit', [CustomerInvoiceController::class, 'submit'])->name('customer-invoices.submit');
+        Route::post('/customer-invoices/{id}/approve', [CustomerInvoiceController::class, 'approve'])->name('customer-invoices.approve');
+        Route::post('/customer-invoices/{id}/reject', [CustomerInvoiceController::class, 'reject'])->name('customer-invoices.reject');
 
         // Customer Statements
         Route::get('/customer-statements', [CustomerStatementController::class, 'index'])->name('customer-statements.index');

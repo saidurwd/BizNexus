@@ -65,4 +65,56 @@ class PaymentController extends Controller
 
         return view('finance.payments.show', compact('payment'));
     }
+
+    public function submit(string $id)
+    {
+        $payment = SupplierPayment::findOrFail($id);
+
+        if (!$payment->isDraft()) {
+            return back()->with('error', 'Only draft payments can be submitted.');
+        }
+
+        $payment = $this->paymentService->submitPayment($payment);
+
+        return back()->with('success', 'Payment submitted successfully.');
+    }
+
+    public function approve(string $id)
+    {
+        $payment = SupplierPayment::findOrFail($id);
+
+        if (!$payment->isSubmitted()) {
+            return back()->with('error', 'Only submitted payments can be approved.');
+        }
+
+        $payment = $this->paymentService->approvePayment($payment);
+
+        return back()->with('success', 'Payment approved successfully.');
+    }
+
+    public function reject(Request $request, string $id)
+    {
+        $payment = SupplierPayment::findOrFail($id);
+
+        if (!$payment->isSubmitted()) {
+            return back()->with('error', 'Only submitted payments can be rejected.');
+        }
+
+        $payment = $this->paymentService->rejectPayment($payment, $request->get('reason'));
+
+        return back()->with('success', 'Payment rejected.');
+    }
+
+    public function cancel(string $id)
+    {
+        $payment = SupplierPayment::findOrFail($id);
+
+        if ($payment->isPosted()) {
+            return back()->with('error', 'Posted payments cannot be cancelled directly.');
+        }
+
+        $payment = $this->paymentService->cancelPayment($payment);
+
+        return back()->with('success', 'Payment cancelled.');
+    }
 }

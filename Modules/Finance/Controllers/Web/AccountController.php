@@ -87,6 +87,12 @@ class AccountController extends Controller
         $this->checkPermission('finance.accounts.update');
 
         $account = Account::findOrFail($id);
+
+        if ($this->accountHasPostedJournals($account)) {
+            return redirect()->route('finance.accounts.show', $account->id)
+                ->with('error', 'Cannot edit account with posted journal entries.');
+        }
+
         $companyId = $this->getActiveCompanyId();
         $tree = $this->chartOfAccounts->getAccountTree($companyId);
         $parentAccounts = $this->flattenTree($tree);
@@ -99,6 +105,11 @@ class AccountController extends Controller
         $this->checkPermission('finance.accounts.update');
 
         $account = Account::findOrFail($id);
+
+        if ($this->accountHasPostedJournals($account)) {
+            return redirect()->route('finance.accounts.index')
+                ->with('error', 'Cannot update account with posted journal entries.');
+        }
 
         $validated = $request->validate([
             'parent_id' => 'nullable|exists:accounts,id',
@@ -128,6 +139,12 @@ class AccountController extends Controller
         $this->checkPermission('finance.accounts.delete');
 
         $account = Account::findOrFail($id);
+
+        if ($this->accountHasPostedJournals($account)) {
+            return redirect()->route('finance.accounts.index')
+                ->with('error', 'Cannot delete account with posted journal entries.');
+        }
+
         $account->delete();
 
         return redirect()->route('finance.accounts.index')
@@ -149,5 +166,12 @@ class AccountController extends Controller
         }
 
         return $flat;
+    }
+
+    protected function accountHasPostedJournals(Account $account): bool
+    {
+        return $account->journalLines()
+            ->whereHas('journal', fn($q) => $q->where('status', 'POSTED'))
+            ->exists();
     }
 }

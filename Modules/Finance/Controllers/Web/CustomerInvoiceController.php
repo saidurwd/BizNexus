@@ -66,4 +66,49 @@ class CustomerInvoiceController extends Controller
 
         return view('finance.customer-invoices.show', compact('invoice'));
     }
+
+    public function submit(string $id)
+    {
+        $this->checkPermission('finance.customers.approve');
+
+        $invoice = CustomerInvoice::findOrFail($id);
+
+        if (!$invoice->isDraft()) {
+            return back()->with('error', 'Only draft invoices can be submitted.');
+        }
+
+        $invoice = $this->invoiceService->submitInvoice($invoice);
+
+        return back()->with('success', 'Invoice submitted successfully.');
+    }
+
+    public function approve(string $id)
+    {
+        $this->checkPermission('finance.customers.approve');
+
+        $invoice = CustomerInvoice::findOrFail($id);
+
+        if (!$invoice->isSubmitted()) {
+            return back()->with('error', 'Only submitted invoices can be approved.');
+        }
+
+        $invoice = $this->invoiceService->approveInvoice($invoice);
+
+        return back()->with('success', 'Invoice approved successfully.');
+    }
+
+    public function reject(Request $request, string $id)
+    {
+        $this->checkPermission('finance.customers.approve');
+
+        $invoice = CustomerInvoice::findOrFail($id);
+
+        if (!$invoice->isSubmitted()) {
+            return back()->with('error', 'Only submitted invoices can be rejected.');
+        }
+
+        $invoice = $this->invoiceService->rejectInvoice($invoice, $request->get('reason'));
+
+        return back()->with('success', 'Invoice rejected.');
+    }
 }

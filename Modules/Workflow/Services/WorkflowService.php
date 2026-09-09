@@ -47,4 +47,45 @@ class WorkflowService
             'actions' => $instance->actions,
         ];
     }
+
+    public function createInstance(string $entityType, int $entityId, string $currentState, ?int $companyId = null): WorkflowInstance
+    {
+        $definition = WorkflowDefinition::forEntity($entityType)->active()->first();
+
+        if (!$definition) {
+            throw new \RuntimeException("No active workflow definition found for entity type: {$entityType}");
+        }
+
+        return WorkflowInstance::create([
+            'workflow_definition_id' => $definition->id,
+            'entity_type' => $entityType,
+            'entity_id' => $entityId,
+            'current_state' => $currentState,
+            'started_at' => now(),
+        ]);
+    }
+
+    public function transitionInstance(string $entityType, int $entityId, string $newState, ?string $comments = null): void
+    {
+        $instance = WorkflowInstance::where('entity_type', $entityType)
+            ->where('entity_id', $entityId)
+            ->first();
+
+        if (!$instance) {
+            return;
+        }
+
+        $oldState = $instance->current_state;
+        $instance->current_state = $newState;
+        $instance->save();
+
+        WorkflowAction::create([
+            'workflow_instance_id' => $instance->id,
+            'action' => strtolower($newState),
+            'from_state' => $oldState,
+            'to_state' => $newState,
+            'user_id' => auth()->id(),
+            'comments' => $comments,
+        ]);
+    }
 }

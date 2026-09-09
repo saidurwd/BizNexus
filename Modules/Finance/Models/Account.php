@@ -122,6 +122,13 @@ class Account extends Model
         return $query->where('account_type', $type);
     }
 
+    public function isLocked(): bool
+    {
+        return $this->journalLines()
+            ->whereHas('journal', fn($q) => $q->where('status', 'POSTED'))
+            ->exists();
+    }
+
     public function getBalanceAttribute(): float
     {
         $totalDebit = $this->journalLines()
