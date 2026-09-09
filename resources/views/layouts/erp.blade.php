@@ -172,6 +172,20 @@
 @section('adminlte_css')
     @stack('css')
     @yield('css')
+    <style>
+        .sidebar .sidebar-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .sidebar .sidebar-wrapper nav {
+            flex: 1 1 auto;
+            overflow-y: auto;
+        }
+        .sidebar .sidebar-footer {
+            flex-shrink: 0;
+        }
+    </style>
 @stop
 
 @section('adminlte_js')
