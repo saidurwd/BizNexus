@@ -794,14 +794,24 @@ return [
             'text' => 'search',
         ],
         [
-            'text' => 'Authentication',
+            'text' => 'User Management',
+            'icon' => 'bi bi-people',
+            'submenu' => [
+                ['text' => 'Users', 'url' => 'users', 'icon' => 'bi bi-person', 'permission' => 'core.users.view'],
+            ],
+        ],
+        [
+            'text' => 'Authorization',
             'icon' => 'bi bi-shield-lock',
             'submenu' => [
-                ['header' => 'User Management'],
-                ['text' => 'Users', 'url' => 'users', 'icon' => 'bi bi-people', 'permission' => 'core.users.view'],
-                ['text' => 'Roles', 'url' => 'roles', 'icon' => 'bi bi-shield-lock', 'permission' => 'core.roles.view'],
+                ['text' => 'Roles', 'url' => 'roles', 'icon' => 'bi bi-shield-check', 'permission' => 'core.roles.view'],
                 ['text' => 'Permissions', 'url' => 'permissions', 'icon' => 'bi bi-key', 'permission' => 'core.permissions.view'],
-                ['header' => 'Company Management'],
+            ],
+        ],
+        [
+            'text' => 'Company Context',
+            'icon' => 'bi bi-building',
+            'submenu' => [
                 ['text' => 'Companies', 'url' => 'companies', 'icon' => 'bi bi-building', 'permission' => 'core.companies.view'],
                 ['text' => 'Branches', 'url' => 'branches', 'icon' => 'bi bi-shop', 'permission' => 'core.branches.view'],
                 ['text' => 'Departments', 'url' => 'departments', 'icon' => 'bi bi-diagram-3', 'permission' => 'core.departments.view'],
