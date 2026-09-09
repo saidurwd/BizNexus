@@ -42,11 +42,11 @@ class CustomerInvoiceController extends Controller
         $this->checkPermission('finance.customers.create');
 
         $validated = $request->validate([
-            'invoice_number' => 'required|string|max:50|unique:finance_customer_invoices,invoice_number',
+            'invoice_number' => 'required|string|max:50|unique:customer_invoices,invoice_number',
             'invoice_date' => 'required|date',
             'due_date' => 'nullable|date',
-            'customer_id' => 'nullable|exists:finance_customers,id',
-            'tax_id' => 'nullable|exists:finance_taxes,id',
+            'customer_id' => 'nullable|exists:customers,id',
+            'tax_id' => 'nullable|exists:taxes,id',
             'subtotal' => 'required|numeric|min:0',
             'description' => 'nullable|string',
         ]);

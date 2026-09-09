@@ -59,7 +59,7 @@ class ReceiptController extends Controller
         $validated = $request->validate([
             'receipt_date' => 'required|date',
             'receipt_type' => 'required|in:CASH,BANK_TRANSFER,CHECK',
-            'receipt_account_id' => 'required|exists:finance_accounts,id',
+            'receipt_account_id' => 'required|exists:accounts,id',
             'amount' => 'required|numeric|min:0.01',
             'payer_type' => 'required|in:CUSTOMER,SUPPLIER,OTHER',
             'payer_name' => 'required|string|max:255',

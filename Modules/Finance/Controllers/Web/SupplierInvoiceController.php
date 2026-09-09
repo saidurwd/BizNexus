@@ -46,15 +46,19 @@ class SupplierInvoiceController extends Controller
 
         $validated = $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
-            'invoice_number' => 'required|string|max:50|unique:finance_supplier_invoices,invoice_number',
+            'invoice_number' => 'required|string|max:50|unique:supplier_invoices,invoice_number',
             'invoice_date' => 'required|date',
             'due_date' => 'nullable|date',
             'tax_id' => 'nullable|exists:taxes,id',
             'subtotal' => 'required|numeric|min:0',
             'total_amount' => 'required|numeric|min:0',
             'description' => 'nullable|string',
-            'status' => 'required|in:draft,submitted,approved,paid,cancelled',
         ]);
+
+        $validated['company_id'] = $this->getActiveCompanyId();
+        $validated['status'] = \Modules\Finance\Models\SupplierInvoice::STATUS_DRAFT;
+        $validated['created_by'] = auth()->id();
+        $validated['updated_by'] = auth()->id();
 
         \Modules\Finance\Models\SupplierInvoice::create($validated);
 
