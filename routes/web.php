@@ -35,6 +35,7 @@ use Modules\Core\Controllers\Web\FiscalYearController;
 use Modules\Core\Controllers\Web\PermissionController;
 use Modules\Core\Controllers\Web\AuditController;
 use Modules\Core\Controllers\Web\NotificationController;
+use Modules\Workflow\Controllers\Web\WorkflowController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -83,6 +84,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('core.notifications.mark-all-read');
     Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('core.notifications.destroy');
     Route::delete('/notifications', [NotificationController::class, 'destroyAll'])->name('core.notifications.destroy-all');
+
+    // Workflow
+    Route::get('/workflows', [WorkflowController::class, 'index'])->name('workflow.index');
+    Route::get('/workflows/{id}', [WorkflowController::class, 'show'])->name('workflow.show');
+    Route::get('/workflows/definitions', [WorkflowController::class, 'definitions'])->name('workflow.definitions');
+    Route::post('/workflows/definitions', [WorkflowController::class, 'storeDefinition'])->name('workflow.definitions.store');
+    Route::put('/workflows/definitions/{id}', [WorkflowController::class, 'updateDefinition'])->name('workflow.definitions.update');
 
     Route::get('/exchange-rates', [ExchangeRateController::class, 'index'])->name('core.exchange-rates.index');
     Route::get('/exchange-rates/create', [ExchangeRateController::class, 'create'])->name('core.exchange-rates.create');

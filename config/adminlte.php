@@ -808,6 +808,7 @@ return [
                 ['header' => 'Financial Setup'],
                 ['text' => 'Exchange Rates', 'url' => 'exchange-rates', 'icon' => 'bi bi-currency-exchange', 'permission' => 'core.exchange-rates.view'],
                 ['text' => 'Accounting Periods', 'url' => 'periods', 'icon' => 'bi bi-calendar-range', 'permission' => 'core.periods.view'],
+                ['text' => 'Workflow', 'url' => 'workflows', 'icon' => 'bi bi-diagram-3', 'permission' => 'core.workflow.view'],
                 ['header' => 'Audit & Compliance'],
                 ['text' => 'Audit Logs', 'url' => 'audit', 'icon' => 'bi bi-journal-text', 'permission' => 'core.audit.view'],
                 ['text' => 'Notifications', 'icon' => 'bi bi-bell', 'url' => 'notifications', 'permission' => 'core.notifications.view'],
