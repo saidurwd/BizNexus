@@ -75,6 +75,11 @@ class CustomerInvoice extends Model
         return $this->belongsTo(Journal::class);
     }
 
+    public function tax(): BelongsTo
+    {
+        return $this->belongsTo(Tax::class);
+    }
+
     public function lines(): HasMany
     {
         return $this->hasMany(CustomerInvoiceLine::class);

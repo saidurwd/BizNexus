@@ -59,6 +59,7 @@ class SupplierInvoiceController extends Controller
         $validated['status'] = \Modules\Finance\Models\SupplierInvoice::STATUS_DRAFT;
         $validated['created_by'] = auth()->id();
         $validated['updated_by'] = auth()->id();
+        $validated['outstanding_amount'] = $validated['total_amount'];
 
         \Modules\Finance\Models\SupplierInvoice::create($validated);
 

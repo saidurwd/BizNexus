@@ -7,6 +7,16 @@
 @endsection
 
 @section('content')
+    @if($errors->any())
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <div class="card">
         <div class="card-body">
             <form action="{{ route('finance.supplier-invoices.store') }}" method="POST">
@@ -67,6 +77,15 @@
                         <div class="form-group">
                             <label for="subtotal">Subtotal</label>
                             <input type="number" class="form-control" name="subtotal" step="0.01" min="0" value="{{ old('subtotal') }}" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="total_amount">Total Amount</label>
+                            <input type="number" class="form-control" name="total_amount" step="0.01" min="0" value="{{ old('total_amount') }}" required>
                         </div>
                     </div>
                 </div>
