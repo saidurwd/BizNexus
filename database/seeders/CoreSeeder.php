@@ -81,6 +81,7 @@ class CoreSeeder extends Seeder
             ['name' => 'Create Tax', 'slug' => 'finance.taxes.create', 'group' => 'Finance'],
             ['name' => 'Edit Tax', 'slug' => 'finance.taxes.update', 'group' => 'Finance'],
             ['name' => 'Delete Tax', 'slug' => 'finance.taxes.delete', 'group' => 'Finance'],
+            ['name' => 'View Audit Logs', 'slug' => 'core.audit.view', 'group' => 'Administration'],
         ];
 
         foreach ($permissions as $permission) {
@@ -116,7 +117,7 @@ class CoreSeeder extends Seeder
             'super-admin' => Permission::all()->pluck('id'),
             'finance-manager' => Permission::whereIn('slug', [
                 'dashboard.view',
-                'core.companies.view', 'core.branches.view',
+                'core.companies.view', 'core.branches.view', 'core.audit.view',
                 'finance.accounts.view', 'finance.accounts.create', 'finance.accounts.update',
                 'finance.journals.view', 'finance.journals.create', 'finance.journals.update', 'finance.journals.submit', 'finance.journals.approve', 'finance.journals.post',
                 'finance.ledger.view', 'finance.ledger.export',

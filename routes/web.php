@@ -33,6 +33,7 @@ use Modules\Core\Controllers\Web\ExchangeRateController;
 use Modules\Core\Controllers\Web\PeriodClosingController;
 use Modules\Core\Controllers\Web\FiscalYearController;
 use Modules\Core\Controllers\Web\PermissionController;
+use Modules\Core\Controllers\Web\AuditController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -69,6 +70,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/permissions/{id}/edit', [PermissionController::class, 'edit'])->name('core.permissions.edit');
     Route::put('/permissions/{id}', [PermissionController::class, 'update'])->name('core.permissions.update');
     Route::delete('/permissions/{id}', [PermissionController::class, 'destroy'])->name('core.permissions.destroy');
+
+    // Audit
+    Route::get('/audit', [AuditController::class, 'index'])->name('core.audit.index');
+    Route::get('/audit/{id}', [AuditController::class, 'show'])->name('core.audit.show');
+
     Route::get('/exchange-rates', [ExchangeRateController::class, 'index'])->name('core.exchange-rates.index');
     Route::get('/exchange-rates/create', [ExchangeRateController::class, 'create'])->name('core.exchange-rates.create');
     Route::post('/exchange-rates', [ExchangeRateController::class, 'store'])->name('core.exchange-rates.store');
