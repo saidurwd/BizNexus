@@ -4,6 +4,7 @@ namespace Modules\Core\Services;
 
 use Illuminate\Http\Request;
 use Modules\Core\Models\Company;
+use Modules\Core\Models\Currency;
 use Modules\Core\Models\UserCompany;
 use Modules\Core\Models\CompanyUserRole;
 
@@ -96,5 +97,12 @@ class CompanyContextService
             ->first();
 
         return $userCompany?->company;
+    }
+
+    public function getBaseCurrency(): ?Currency
+    {
+        $company = $this->getActiveCompany();
+
+        return $company?->baseCurrency;
     }
 }
