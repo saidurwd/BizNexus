@@ -11,6 +11,9 @@ use Modules\Finance\Controllers\Web\ReportController;
 use Modules\Finance\Controllers\Web\PaymentController;
 use Modules\Finance\Controllers\Web\ReceiptController;
 use Modules\Finance\Controllers\Web\SupplierInvoiceController;
+use Modules\Finance\Controllers\Web\SupplierInvoiceLineController;
+use Modules\Finance\Controllers\Web\SupplierCreditNoteController;
+use Modules\Finance\Controllers\Web\SupplierDebitNoteController;
 use Modules\Finance\Controllers\Web\CustomerInvoiceController;
 use Modules\Finance\Controllers\Web\TaxController;
 use Modules\Finance\Controllers\Web\BudgetController;
@@ -234,6 +237,33 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/supplier-invoices/{id}/reject', [SupplierInvoiceController::class, 'reject'])->name('supplier-invoices.reject');
         Route::post('/supplier-invoices/{id}/post', [SupplierInvoiceController::class, 'post'])->name('supplier-invoices.post');
         Route::post('/supplier-invoices/{id}/cancel', [SupplierInvoiceController::class, 'cancel'])->name('supplier-invoices.cancel');
+        Route::post('/supplier-invoices/{invoiceId}/lines', [SupplierInvoiceLineController::class, 'store'])->name('supplier-invoices.lines.store');
+        Route::put('/supplier-invoices/{invoiceId}/lines/{lineId}', [SupplierInvoiceLineController::class, 'update'])->name('supplier-invoices.lines.update');
+        Route::delete('/supplier-invoices/{invoiceId}/lines/{lineId}', [SupplierInvoiceLineController::class, 'destroy'])->name('supplier-invoices.lines.destroy');
+
+        // Supplier Credit Notes
+        Route::get('/supplier-credit-notes', [SupplierCreditNoteController::class, 'index'])->name('supplier-credit-notes.index');
+        Route::get('/supplier-credit-notes/create', [SupplierCreditNoteController::class, 'create'])->name('supplier-credit-notes.create');
+        Route::post('/supplier-credit-notes', [SupplierCreditNoteController::class, 'store'])->name('supplier-credit-notes.store');
+        Route::get('/supplier-credit-notes/{id}', [SupplierCreditNoteController::class, 'show'])->name('supplier-credit-notes.show');
+        Route::get('/supplier-credit-notes/{id}/edit', [SupplierCreditNoteController::class, 'edit'])->name('supplier-credit-notes.edit');
+        Route::put('/supplier-credit-notes/{id}', [SupplierCreditNoteController::class, 'update'])->name('supplier-credit-notes.update');
+        Route::delete('/supplier-credit-notes/{id}', [SupplierCreditNoteController::class, 'destroy'])->name('supplier-credit-notes.destroy');
+        Route::post('/supplier-credit-notes/{id}/submit', [SupplierCreditNoteController::class, 'submit'])->name('supplier-credit-notes.submit');
+        Route::post('/supplier-credit-notes/{id}/approve', [SupplierCreditNoteController::class, 'approve'])->name('supplier-credit-notes.approve');
+        Route::post('/supplier-credit-notes/{id}/post', [SupplierCreditNoteController::class, 'post'])->name('supplier-credit-notes.post');
+        Route::post('/supplier-credit-notes/{id}/cancel', [SupplierCreditNoteController::class, 'cancel'])->name('supplier-credit-notes.cancel');
+
+        // Supplier Debit Notes
+        Route::get('/supplier-debit-notes', [SupplierDebitNoteController::class, 'index'])->name('supplier-debit-notes.index');
+        Route::get('/supplier-debit-notes/create', [SupplierDebitNoteController::class, 'create'])->name('supplier-debit-notes.create');
+        Route::post('/supplier-debit-notes', [SupplierDebitNoteController::class, 'store'])->name('supplier-debit-notes.store');
+        Route::get('/supplier-debit-notes/{id}', [SupplierDebitNoteController::class, 'show'])->name('supplier-debit-notes.show');
+        Route::get('/supplier-debit-notes/{id}/edit', [SupplierDebitNoteController::class, 'edit'])->name('supplier-debit-notes.edit');
+        Route::put('/supplier-debit-notes/{id}', [SupplierDebitNoteController::class, 'update'])->name('supplier-debit-notes.update');
+        Route::delete('/supplier-debit-notes/{id}', [SupplierDebitNoteController::class, 'destroy'])->name('supplier-debit-notes.destroy');
+        Route::post('/supplier-debit-notes/{id}/post', [SupplierDebitNoteController::class, 'post'])->name('supplier-debit-notes.post');
+        Route::post('/supplier-debit-notes/{id}/cancel', [SupplierDebitNoteController::class, 'cancel'])->name('supplier-debit-notes.cancel');
 
         // Supplier Statements
         Route::get('/supplier-statements', [SupplierStatementController::class, 'index'])->name('supplier-statements.index');

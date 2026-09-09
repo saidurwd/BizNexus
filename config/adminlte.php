@@ -947,6 +947,18 @@ return [
                             'icon' => 'bi bi-file-text',
                         ],
                         [
+                            'text' => 'Supplier Credit Notes',
+                            'url' => 'finance/supplier-credit-notes',
+                            'icon' => 'bi bi-file-earmark-minus',
+                            'permission' => 'finance.suppliers.view',
+                        ],
+                        [
+                            'text' => 'Supplier Debit Notes',
+                            'url' => 'finance/supplier-debit-notes',
+                            'icon' => 'bi bi-file-earmark-plus',
+                            'permission' => 'finance.suppliers.view',
+                        ],
+                        [
                             'text' => 'Payments',
                             'url' => 'finance/payments',
                             'icon' => 'bi bi-cash-stack',
