@@ -7,6 +7,13 @@
 @endsection
 
 @section('content')
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
+
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Journal Information</h3>
@@ -107,12 +114,19 @@
 
     @if($journal->status === 'DRAFT')
         <div class="mt-4">
-            <form action="{{ route('finance.journals.submit', $journal->id) }}" method="POST" class="d-inline">
-                @csrf
-                <button type="submit" class="btn btn-warning">
+            @if($journal->canSubmit())
+                <form action="{{ route('finance.journals.submit', $journal->id) }}" method="POST" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-send"></i> Submit for Approval
+                    </button>
+                </form>
+            @else
+                <button type="button" class="btn btn-secondary" disabled title="Journal must have at least 2 balanced lines to be submitted">
                     <i class="bi bi-send"></i> Submit for Approval
                 </button>
-            </form>
+                <small class="text-muted d-block mt-1">Journal must have at least 2 balanced lines to be submitted.</small>
+            @endif
             <a href="{{ route('finance.journals.index') }}" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Back to Journals
             </a>

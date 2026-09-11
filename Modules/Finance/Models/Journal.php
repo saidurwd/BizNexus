@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Finance\Scopes\CompanyScope;
 use Modules\Finance\Scopes\BranchScope;
+use Modules\Finance\Scopes\DepartmentScope;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -91,7 +92,10 @@ class Journal extends Model
 
     public function lines(): HasMany
     {
-        return $this->hasMany(JournalLine::class);
+        return $this->hasMany(JournalLine::class)
+            ->withoutGlobalScope(CompanyScope::class)
+            ->withoutGlobalScope(BranchScope::class)
+            ->withoutGlobalScope(DepartmentScope::class);
     }
 
     public function postedBy()
@@ -156,7 +160,30 @@ class Journal extends Model
 
     public function canSubmit(): bool
     {
-        return $this->isDraft() && $this->isBalanced();
+        if (!$this->isDraft() || !$this->isBalanced()) {
+            return false;
+        }
+
+        if ($this->lines()->count() < 2) {
+            return false;
+        }
+
+        foreach ($this->lines as $line) {
+            if ($line->debit > 0 && $line->credit > 0) {
+                return false;
+            }
+
+            if ($line->debit == 0 && $line->credit == 0) {
+                return false;
+            }
+
+            $account = $line->account;
+            if (!$account || !$account->canReceivePosting()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function canApprove(): bool
