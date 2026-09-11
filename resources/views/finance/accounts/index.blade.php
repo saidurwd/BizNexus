@@ -23,6 +23,7 @@
                         <th>Code</th>
                         <th>Name</th>
                         <th>Type</th>
+                        <th>Category</th>
                         <th>Normal Balance</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -38,6 +39,7 @@
                                     {{ $account['account_type'] }}
                                 </span>
                             </td>
+                            <td>{{ $account['account_category'] ?? '-' }}</td>
                             <td>{{ $account['normal_balance'] }}</td>
                             <td>
                                 <span class="badge bg-{{ $account['status'] === 'active' ? 'success' : 'secondary' }}">
@@ -55,7 +57,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center">No accounts found</td>
+                            <td colspan="7" class="text-center">No accounts found</td>
                         </tr>
                     @endforelse
                 </tbody>

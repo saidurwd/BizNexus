@@ -57,8 +57,15 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label for="account_category">Account Category</label>
-                            <input type="text" class="form-control" id="account_category" name="account_category" value="{{ old('account_category', $account->account_category) }}">
+                            <label for="account_category_id">Account Category</label>
+                            <select class="form-control" id="account_category_id" name="account_category_id">
+                                <option value="">Select Category</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" {{ old('account_category_id', $account->account_category_id) == $category->id ? 'selected' : '' }}>
+                                        {{ $category->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
                     <div class="col-md-4">

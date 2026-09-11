@@ -22,7 +22,7 @@ class Account extends Model
         'account_code',
         'account_name',
         'account_type',
-        'account_category',
+        'account_category_id',
         'normal_balance',
         'level',
         'is_group',
@@ -59,6 +59,11 @@ class Account extends Model
     public function currency(): BelongsTo
     {
         return $this->belongsTo(\Modules\Core\Models\Currency::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(AccountCategory::class, 'account_category_id');
     }
 
     public function journalLines(): HasMany

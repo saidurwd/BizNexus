@@ -53,7 +53,7 @@ class AccountController extends Controller
             'account_code' => 'required|string|max:50|unique:accounts,account_code,NULL,id,company_id,' . $request->company_id,
             'account_name' => 'required|string|max:255',
             'account_type' => 'required|in:ASSET,LIABILITY,EQUITY,REVENUE,EXPENSE',
-            'account_category' => 'nullable|string|max:100',
+            'account_category_id' => 'nullable|exists:account_categories,id',
             'normal_balance' => 'nullable|in:DEBIT,CREDIT',
             'currency_id' => 'nullable|exists:currencies,id',
             'status' => 'nullable|in:active,inactive',
@@ -71,7 +71,7 @@ class AccountController extends Controller
 
         $validated = $request->validate([
             'account_name' => 'sometimes|string|max:255',
-            'account_category' => 'nullable|string|max:100',
+            'account_category_id' => 'nullable|exists:account_categories,id',
             'currency_id' => 'nullable|exists:currencies,id',
             'status' => 'nullable|in:active,inactive',
             'description' => 'nullable|string',

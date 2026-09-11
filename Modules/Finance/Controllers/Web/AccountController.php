@@ -5,6 +5,7 @@ namespace Modules\Finance\Controllers\Web;
 use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Finance\Models\Account;
+use Modules\Finance\Models\AccountCategory;
 use Modules\Finance\Services\ChartOfAccountsService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
@@ -40,8 +41,13 @@ class AccountController extends Controller
         $companyId = $this->getActiveCompanyId();
         $tree = $this->chartOfAccounts->getAccountTree($companyId);
         $parentAccounts = $this->flattenTree($tree);
+        $categories = AccountCategory::where('company_id', $companyId)
+            ->where('status', 'active')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
 
-        return view('finance.accounts.create', compact('parentAccounts'));
+        return view('finance.accounts.create', compact('parentAccounts', 'categories'));
     }
 
     public function store(Request $request)
@@ -53,7 +59,7 @@ class AccountController extends Controller
             'account_code' => 'required|string|max:50|unique:accounts,account_code',
             'account_name' => 'required|string|max:255',
             'account_type' => 'required|string',
-            'account_category' => 'nullable|string',
+            'account_category_id' => 'nullable|exists:account_categories,id',
             'normal_balance' => 'required|in:DEBIT,CREDIT',
             'level' => 'required|integer|min:1',
             'is_group' => 'boolean',
@@ -96,8 +102,13 @@ class AccountController extends Controller
         $companyId = $this->getActiveCompanyId();
         $tree = $this->chartOfAccounts->getAccountTree($companyId);
         $parentAccounts = $this->flattenTree($tree);
+        $categories = AccountCategory::where('company_id', $companyId)
+            ->where('status', 'active')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
 
-        return view('finance.accounts.edit', compact('account', 'parentAccounts'));
+        return view('finance.accounts.edit', compact('account', 'parentAccounts', 'categories'));
     }
 
     public function update(Request $request, int $id)
@@ -116,7 +127,7 @@ class AccountController extends Controller
             'account_code' => 'required|string|max:50|unique:accounts,account_code,' . $id,
             'account_name' => 'required|string|max:255',
             'account_type' => 'required|string',
-            'account_category' => 'nullable|string',
+            'account_category_id' => 'nullable|exists:account_categories,id',
             'normal_balance' => 'required|in:DEBIT,CREDIT',
             'level' => 'required|integer|min:1',
             'is_group' => 'boolean',

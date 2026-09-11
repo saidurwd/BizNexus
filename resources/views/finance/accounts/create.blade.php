@@ -56,6 +56,19 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
+                            <label for="account_category_id">Account Category</label>
+                            <select class="form-control" id="account_category_id" name="account_category_id">
+                                <option value="">Select Category</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" {{ old('account_category_id') == $category->id ? 'selected' : '' }}>
+                                        {{ $category->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
                             <label for="normal_balance">Normal Balance</label>
                             <select class="form-control" id="normal_balance" name="normal_balance">
                                 <option value="DEBIT" {{ old('normal_balance') === 'DEBIT' ? 'selected' : '' }}>Debit</option>
@@ -63,6 +76,9 @@
                             </select>
                         </div>
                     </div>
+                </div>
+
+                <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="parent_id">Parent Account</label>
@@ -76,9 +92,6 @@
                             </select>
                         </div>
                     </div>
-                </div>
-
-                <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="status">Status</label>

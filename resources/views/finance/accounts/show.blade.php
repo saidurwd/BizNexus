@@ -31,6 +31,10 @@
                     <td>{{ $account->account_type }}</td>
                 </tr>
                 <tr>
+                    <th>Account Category</th>
+                    <td>{{ $account->category?->name ?? '-' }}</td>
+                </tr>
+                <tr>
                     <th>Normal Balance</th>
                     <td>{{ $account->normal_balance }}</td>
                 </tr>

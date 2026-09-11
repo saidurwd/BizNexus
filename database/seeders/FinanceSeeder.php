@@ -104,8 +104,38 @@ class FinanceSeeder extends Seeder
         }
     }
 
+    protected function createAccountCategories(Company $company): void
+    {
+        $categories = [
+            ['code' => 'OPE', 'name' => 'Operating', 'description' => 'Core business operating accounts', 'sort_order' => 1],
+            ['code' => 'NON', 'name' => 'Non-Operating', 'description' => 'Non-operating income and expenses', 'sort_order' => 2],
+            ['code' => 'DIR', 'name' => 'Direct', 'description' => 'Direct costs related to revenue', 'sort_order' => 3],
+            ['code' => 'IND', 'name' => 'Indirect', 'description' => 'Indirect operating expenses', 'sort_order' => 4],
+            ['code' => 'ADM', 'name' => 'Administrative', 'description' => 'Administrative expenses', 'sort_order' => 5],
+            ['code' => 'FIN', 'name' => 'Financial', 'description' => 'Financial costs and income', 'sort_order' => 6],
+            ['code' => 'TAX', 'name' => 'Tax', 'description' => 'Tax related accounts', 'sort_order' => 7],
+        ];
+
+        foreach ($categories as $category) {
+            \Modules\Finance\Models\AccountCategory::firstOrCreate(
+                [
+                    'company_id' => $company->id,
+                    'code' => $category['code'],
+                ],
+                [
+                    'name' => $category['name'],
+                    'description' => $category['description'],
+                    'sort_order' => $category['sort_order'],
+                    'status' => 'active',
+                ]
+            );
+        }
+    }
+
     protected function createChartOfAccounts(Company $company): void
     {
+        $this->createAccountCategories($company);
+
         $accounts = [
             '1' => ['code' => '1000', 'name' => 'Assets', 'type' => 'ASSET', 'is_group' => true],
             '1.1' => ['code' => '1100', 'name' => 'Current Assets', 'type' => 'ASSET', 'is_group' => true],

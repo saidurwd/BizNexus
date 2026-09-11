@@ -19,7 +19,7 @@ class AccountFactory extends Factory
             'account_code' => $this->faker->unique()->numerify('####'),
             'account_name' => $this->faker->words(3, true),
             'account_type' => $this->faker->randomElement($accountTypes),
-            'account_category' => null,
+            'account_category_id' => null,
             'normal_balance' => 'DEBIT',
             'level' => 1,
             'is_group' => false,
