@@ -168,10 +168,10 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::get('/general-ledger', [JournalController::class, 'generalLedger'])->name('general-ledger');
 
         // Accounts Payable
-        Route::get('/ap-aging', [ReportController::class, 'apReport'])->name('ap-aging');
+        Route::get('/ap-aging', [ReportController::class, 'apAging'])->name('ap-aging');
 
         // Accounts Receivable
-        Route::get('/ar-aging', [ReportController::class, 'arReport'])->name('ar-aging');
+        Route::get('/ar-aging', [ReportController::class, 'arAging'])->name('ar-aging');
 
         // Cash & Bank
         Route::get('/bank-accounts', [BankAccountController::class, 'index'])->name('bank-accounts.index');
@@ -199,8 +199,8 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
             Route::get('/profit-loss', [ReportController::class, 'profitLoss'])->name('profit-loss');
             Route::get('/balance-sheet', [ReportController::class, 'balanceSheet'])->name('balance-sheet');
             Route::get('/cash-flow', [ReportController::class, 'cashFlow'])->name('cash-flow');
-            Route::get('/ap', [ReportController::class, 'apReport'])->name('ap');
-            Route::get('/ar', [ReportController::class, 'arReport'])->name('ar');
+            Route::get('/ap', [ReportController::class, 'apAging'])->name('ap');
+            Route::get('/ar', [ReportController::class, 'arAging'])->name('ar');
             Route::get('/payment-register', [ReportController::class, 'paymentRegister'])->name('payment-register');
             Route::get('/receipt-register', [ReportController::class, 'receiptRegister'])->name('receipt-register');
             Route::get('/cash-book', [ReportController::class, 'cashBook'])->name('cash-book');
@@ -217,6 +217,7 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::post('/payments/{id}/submit', [PaymentController::class, 'submit'])->name('payments.submit');
         Route::post('/payments/{id}/approve', [PaymentController::class, 'approve'])->name('payments.approve');
         Route::post('/payments/{id}/reject', [PaymentController::class, 'reject'])->name('payments.reject');
+        Route::post('/payments/{id}/post', [PaymentController::class, 'post'])->name('payments.post');
         Route::post('/payments/{id}/cancel', [PaymentController::class, 'cancel'])->name('payments.cancel');
 
         // Receipts
@@ -268,6 +269,8 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::put('/supplier-debit-notes/{id}', [SupplierDebitNoteController::class, 'update'])->name('supplier-debit-notes.update');
         Route::delete('/supplier-debit-notes/{id}', [SupplierDebitNoteController::class, 'destroy'])->name('supplier-debit-notes.destroy');
         Route::post('/supplier-debit-notes/{id}/post', [SupplierDebitNoteController::class, 'post'])->name('supplier-debit-notes.post');
+        Route::post('/supplier-debit-notes/{id}/submit', [SupplierDebitNoteController::class, 'submit'])->name('supplier-debit-notes.submit');
+        Route::post('/supplier-debit-notes/{id}/approve', [SupplierDebitNoteController::class, 'approve'])->name('supplier-debit-notes.approve');
         Route::post('/supplier-debit-notes/{id}/cancel', [SupplierDebitNoteController::class, 'cancel'])->name('supplier-debit-notes.cancel');
 
         // Supplier Statements
@@ -366,7 +369,7 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::get('/budgets/lines/cost-centers', [BudgetLineController::class, 'costCenters'])->name('budgets.lines.cost-centers');
 
         // Budget vs Actual
-        Route::get('/budget-vs-actual', [ReportController::class, 'budgetVsActual'])->name('budget-vs-actual');
+        Route::get('/budget-vs-actual', [ReportController::class, 'management'])->name('budget-vs-actual');
     });
 
     // Profile

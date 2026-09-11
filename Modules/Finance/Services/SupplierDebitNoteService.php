@@ -10,8 +10,8 @@ class SupplierDebitNoteService
 {
     public function postDebitNote(SupplierDebitNote $debitNote): SupplierDebitNote
     {
-        if (!$debitNote->isDraft()) {
-            throw new InvalidAccountingTransactionException('Only draft debit notes can be posted');
+        if (!$debitNote->isApproved()) {
+            throw new InvalidAccountingTransactionException('Only approved debit notes can be posted');
         }
 
         return DB::transaction(function () use ($debitNote) {
@@ -20,7 +20,7 @@ class SupplierDebitNoteService
             $journalLines = [];
 
             $journalLines[] = [
-                'account_id' => $supplier->payable_account_id ?? $this->getDefaultPayableAccount($debitNote->company_id),
+                'account_id' => $supplier->payable_account_id ?? app(\Modules\Core\Services\DefaultAccountService::class)->getPayableAccount($debitNote->company_id),
                 'description' => "Debit Note - {$debitNote->note_number}",
                 'debit' => 0,
                 'credit' => $debitNote->amount,
@@ -48,13 +48,87 @@ class SupplierDebitNoteService
         });
     }
 
-    protected function getDefaultPayableAccount(int $companyId): int
+    public function submitDebitNote(SupplierDebitNote $debitNote): SupplierDebitNote
     {
-        $account = \Modules\Finance\Models\Account::where('company_id', $companyId)
-            ->where('account_code', 'like', '2100%')
-            ->where('is_postable', true)
-            ->first();
+        if (!$debitNote->isDraft()) {
+            throw new InvalidAccountingTransactionException('Only draft debit notes can be submitted');
+        }
 
-        return $account?->id ?? throw new \Exception('No payable account found');
+        $debitNote->update(['status' => SupplierDebitNote::STATUS_SUBMITTED]);
+
+        return $debitNote->fresh();
+    }
+
+    public function approveDebitNote(SupplierDebitNote $debitNote): SupplierDebitNote
+    {
+        if (!$debitNote->isSubmitted()) {
+            throw new InvalidAccountingTransactionException('Only submitted debit notes can be approved');
+        }
+
+        $debitNote->update(['status' => SupplierDebitNote::STATUS_APPROVED]);
+
+        event(new \Modules\Finance\Events\SupplierDebitNoteApproved($debitNote));
+
+        return $debitNote->fresh();
+    }
+
+    public function rejectDebitNote(SupplierDebitNote $debitNote, ?string $reason = null): SupplierDebitNote
+    {
+        if (!$debitNote->isSubmitted()) {
+            throw new InvalidAccountingTransactionException('Only submitted debit notes can be rejected');
+        }
+
+        $debitNote->update(['status' => SupplierDebitNote::STATUS_REJECTED]);
+
+        return $debitNote->fresh();
+    }
+
+    public function cancelDebitNote(SupplierDebitNote $debitNote): SupplierDebitNote
+    {
+        if ($debitNote->isPosted()) {
+            throw new InvalidAccountingTransactionException('Posted debit notes cannot be cancelled directly');
+        }
+
+        $debitNote->update(['status' => SupplierDebitNote::STATUS_CANCELLED]);
+
+        return $debitNote->fresh();
+    }
+
+    public function createDebitNote(array $data): SupplierDebitNote
+    {
+        return DB::transaction(function () use ($data) {
+            $debitNote = SupplierDebitNote::create([
+                'company_id' => $data['company_id'],
+                'supplier_id' => $data['supplier_id'],
+                'note_number' => $data['note_number'] ?? 'DN-' . strtoupper(uniqid()),
+                'note_date' => $data['note_date'],
+                'reference_type' => $data['reference_type'] ?? null,
+                'reference_id' => $data['reference_id'] ?? null,
+                'description' => $data['description'] ?? null,
+                'amount' => $data['amount'],
+                'status' => SupplierDebitNote::STATUS_DRAFT,
+            ]);
+
+            return $debitNote->fresh();
+        });
+    }
+
+    public function updateDebitNote(SupplierDebitNote $debitNote, array $data): SupplierDebitNote
+    {
+        if (!$debitNote->isDraft()) {
+            throw new InvalidAccountingTransactionException('Only draft debit notes can be updated');
+        }
+
+        $debitNote->update([
+            'supplier_id' => $data['supplier_id'],
+            'note_number' => $data['note_number'],
+            'note_date' => $data['note_date'],
+            'reference_type' => $data['reference_type'] ?? null,
+            'reference_id' => $data['reference_id'] ?? null,
+            'description' => $data['description'] ?? null,
+            'amount' => $data['amount'],
+        ]);
+
+        return $debitNote->fresh();
     }
 }

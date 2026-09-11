@@ -77,6 +77,85 @@ class PaymentController extends Controller
         }
     }
 
+    public function submit(int $id)
+    {
+        $payment = SupplierPayment::findOrFail($id);
+
+        try {
+            $payment = $this->paymentService->submitPayment($payment);
+            return $this->successResponse($payment, 'Payment submitted successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
+    public function approve(int $id)
+    {
+        $payment = SupplierPayment::findOrFail($id);
+
+        try {
+            $payment = $this->paymentService->approvePayment($payment);
+            return $this->successResponse($payment, 'Payment approved successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
+    public function reject(Request $request, int $id)
+    {
+        $payment = SupplierPayment::findOrFail($id);
+
+        try {
+            $payment = $this->paymentService->rejectPayment($payment, $request->get('reason'));
+            return $this->successResponse($payment, 'Payment rejected');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
+    public function update(Request $request, int $id)
+    {
+        $payment = SupplierPayment::findOrFail($id);
+
+        if (!$payment->isDraft()) {
+            return $this->errorResponse('Only draft payments can be updated', 400);
+        }
+
+        $validated = $request->validate([
+            'payment_number' => 'required|string|max:50|unique:supplier_payments,payment_number,' . $id,
+            'payment_date' => 'required|date',
+            'currency_id' => 'nullable|exists:currencies,id',
+            'exchange_rate' => 'nullable|numeric|min:0',
+            'amount' => 'required|numeric|min:0',
+            'payment_method' => 'nullable|string|max:50',
+            'bank_account_id' => 'nullable|exists:bank_accounts,id',
+            'reference' => 'nullable|string|max:100',
+            'description' => 'nullable|string',
+            'allocations' => 'nullable|array',
+            'allocations.*.invoice_id' => 'required|exists:supplier_invoices,id',
+            'allocations.*.amount' => 'required|numeric|min:0',
+        ]);
+
+        try {
+            $payment = $this->paymentService->updatePayment($payment, $validated);
+            return $this->successResponse($payment, 'Payment updated successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
+    public function cancel(int $id)
+    {
+        $payment = SupplierPayment::findOrFail($id);
+
+        try {
+            $payment = $this->paymentService->cancelPayment($payment);
+            return $this->successResponse($payment, 'Payment cancelled');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
     public function aging(Request $request)
     {
         $companyId = $request->get('company_id') ?? $this->companyContext->getCompanyId();

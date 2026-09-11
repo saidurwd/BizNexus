@@ -5,6 +5,7 @@ use Modules\Finance\Controllers\AccountController;
 use Modules\Finance\Controllers\JournalController;
 use Modules\Finance\Controllers\SupplierController;
 use Modules\Finance\Controllers\SupplierInvoiceController;
+use Modules\Finance\Controllers\SupplierDebitNoteController;
 use Modules\Finance\Controllers\CustomerController;
 use Modules\Finance\Controllers\CustomerInvoiceController;
 use Modules\Finance\Controllers\PaymentController;
@@ -49,7 +50,19 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
         Route::post('/supplier-invoices', [SupplierInvoiceController::class, 'store']);
         Route::get('/supplier-invoices/{id}', [SupplierInvoiceController::class, 'show']);
         Route::post('/supplier-invoices/{id}/post', [SupplierInvoiceController::class, 'post']);
+        Route::post('/supplier-invoices/{id}/submit', [SupplierInvoiceController::class, 'submit']);
+        Route::post('/supplier-invoices/{id}/approve', [SupplierInvoiceController::class, 'approve']);
+        Route::post('/supplier-invoices/{id}/reject', [SupplierInvoiceController::class, 'reject']);
         Route::post('/supplier-invoices/{id}/cancel', [SupplierInvoiceController::class, 'cancel']);
+
+        Route::get('/supplier-debit-notes', [SupplierDebitNoteController::class, 'index']);
+        Route::post('/supplier-debit-notes', [SupplierDebitNoteController::class, 'store']);
+        Route::get('/supplier-debit-notes/{id}', [SupplierDebitNoteController::class, 'show']);
+        Route::post('/supplier-debit-notes/{id}/post', [SupplierDebitNoteController::class, 'post']);
+        Route::post('/supplier-debit-notes/{id}/submit', [SupplierDebitNoteController::class, 'submit']);
+        Route::post('/supplier-debit-notes/{id}/approve', [SupplierDebitNoteController::class, 'approve']);
+        Route::post('/supplier-debit-notes/{id}/reject', [SupplierDebitNoteController::class, 'reject']);
+        Route::post('/supplier-debit-notes/{id}/cancel', [SupplierDebitNoteController::class, 'cancel']);
 
         Route::get('/customers', [CustomerController::class, 'index']);
         Route::post('/customers', [CustomerController::class, 'store']);
@@ -65,18 +78,29 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
         Route::post('/customer-invoices', [CustomerInvoiceController::class, 'store']);
         Route::get('/customer-invoices/{id}', [CustomerInvoiceController::class, 'show']);
         Route::post('/customer-invoices/{id}/post', [CustomerInvoiceController::class, 'post']);
+        Route::post('/customer-invoices/{id}/submit', [CustomerInvoiceController::class, 'submit']);
+        Route::post('/customer-invoices/{id}/approve', [CustomerInvoiceController::class, 'approve']);
+        Route::post('/customer-invoices/{id}/reject', [CustomerInvoiceController::class, 'reject']);
         Route::post('/customer-invoices/{id}/cancel', [CustomerInvoiceController::class, 'cancel']);
 
         Route::get('/payments', [PaymentController::class, 'index']);
         Route::post('/payments', [PaymentController::class, 'store']);
         Route::get('/payments/{id}', [PaymentController::class, 'show']);
         Route::post('/payments/{id}/post', [PaymentController::class, 'post']);
+        Route::post('/payments/{id}/submit', [PaymentController::class, 'submit']);
+        Route::post('/payments/{id}/approve', [PaymentController::class, 'approve']);
+        Route::post('/payments/{id}/reject', [PaymentController::class, 'reject']);
+        Route::post('/payments/{id}/cancel', [PaymentController::class, 'cancel']);
         Route::get('/payments/aging', [PaymentController::class, 'aging']);
 
         Route::get('/receipts', [ReceiptController::class, 'index']);
         Route::post('/receipts', [ReceiptController::class, 'store']);
         Route::get('/receipts/{id}', [ReceiptController::class, 'show']);
         Route::post('/receipts/{id}/post', [ReceiptController::class, 'post']);
+        Route::post('/receipts/{id}/submit', [ReceiptController::class, 'submit']);
+        Route::post('/receipts/{id}/approve', [ReceiptController::class, 'approve']);
+        Route::post('/receipts/{id}/reject', [ReceiptController::class, 'reject']);
+        Route::post('/receipts/{id}/cancel', [ReceiptController::class, 'cancel']);
         Route::get('/receipts/aging', [ReceiptController::class, 'aging']);
 
         Route::prefix('reports')->group(function () {

@@ -89,8 +89,8 @@ class CustomerInvoiceService
 
     public function postInvoice(CustomerInvoice $invoice): CustomerInvoice
     {
-        if (!$invoice->isDraft() && !$invoice->isSubmitted() && !$invoice->isApproved()) {
-            throw new InvalidAccountingTransactionException('Invoice cannot be posted');
+        if (!$invoice->isApproved()) {
+            throw new InvalidAccountingTransactionException('Only approved invoices can be posted');
         }
 
         if ($invoice->lines->isEmpty()) {
@@ -206,6 +206,8 @@ class CustomerInvoiceService
             'previous_status' => CustomerInvoice::STATUS_SUBMITTED,
         ]);
 
+        event(new \Modules\Finance\Events\CustomerInvoiceApproved($invoice));
+
         try {
             app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
                 'customer_invoice',
@@ -274,5 +276,56 @@ class CustomerInvoiceService
             ->orderBy('due_date')
             ->get()
             ->toArray();
+    }
+
+    public function updateInvoice(CustomerInvoice $invoice, array $data): CustomerInvoice
+    {
+        if (!$invoice->isDraft()) {
+            throw new InvalidAccountingTransactionException('Only draft invoices can be updated');
+        }
+
+        $invoice->update([
+            'customer_id' => $data['customer_id'],
+            'invoice_number' => $data['invoice_number'],
+            'invoice_date' => $data['invoice_date'],
+            'due_date' => $data['due_date'],
+            'currency_id' => $data['currency_id'] ?? null,
+            'exchange_rate' => $data['exchange_rate'] ?? 1,
+            'discount_amount' => $data['discount_amount'] ?? 0,
+            'description' => $data['description'] ?? null,
+        ]);
+
+        $invoice->lines()->delete();
+
+        $totalSubtotal = 0;
+        $totalTax = 0;
+
+        foreach ($data['lines'] ?? [] as $lineData) {
+            $line = $invoice->lines()->create([
+                'account_id' => $lineData['account_id'],
+                'description' => $lineData['description'],
+                'quantity' => $lineData['quantity'] ?? 1,
+                'unit_price' => $lineData['unit_price'] ?? 0,
+                'subtotal' => 0,
+                'tax_id' => $lineData['tax_id'] ?? null,
+                'tax_amount' => 0,
+                'discount_amount' => $lineData['discount_amount'] ?? 0,
+                'total_amount' => 0,
+            ]);
+
+            $line->calculateTotals();
+            $line->save();
+
+            $totalSubtotal = bcadd($totalSubtotal, $line->subtotal, 4);
+            $totalTax = bcadd($totalTax, $line->tax_amount ?? 0, 4);
+        }
+
+        $invoice->subtotal = $totalSubtotal;
+        $invoice->tax_amount = $totalTax;
+        $invoice->total_amount = bcadd(bcadd($totalSubtotal, $totalTax, 4), $invoice->discount_amount, 4);
+        $invoice->outstanding_amount = $invoice->total_amount;
+        $invoice->save();
+
+        return $invoice->fresh();
     }
 }

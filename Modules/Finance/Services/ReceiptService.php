@@ -87,8 +87,8 @@ class ReceiptService
 
     public function postReceipt(CustomerReceipt $receipt): CustomerReceipt
     {
-        if (!$receipt->isDraft()) {
-            throw new InvalidAccountingTransactionException('Receipt cannot be posted');
+        if (!$receipt->isApproved()) {
+            throw new InvalidAccountingTransactionException('Only approved receipts can be posted');
         }
 
         return DB::transaction(function () use ($receipt) {
@@ -378,5 +378,59 @@ class ReceiptService
             ->first();
 
         return $account?->id ?? throw new \Exception('No cash account found');
+    }
+
+    public function updateReceipt(CustomerReceipt $receipt, array $data): CustomerReceipt
+    {
+        if (!$receipt->isDraft()) {
+            throw new InvalidAccountingTransactionException('Only draft receipts can be updated');
+        }
+
+        $receipt->update([
+            'customer_id' => $data['customer_id'],
+            'receipt_number' => $data['receipt_number'],
+            'receipt_date' => $data['receipt_date'],
+            'currency_id' => $data['currency_id'] ?? null,
+            'exchange_rate' => $data['exchange_rate'] ?? 1,
+            'amount' => $data['amount'],
+            'receipt_method' => $data['receipt_method'] ?? 'BANK_TRANSFER',
+            'bank_account_id' => $data['bank_account_id'] ?? null,
+            'reference' => $data['reference'] ?? null,
+            'description' => $data['description'] ?? null,
+            'updated_by' => Auth::id(),
+        ]);
+
+        $receipt->allocations()->delete();
+
+        $totalAllocated = 0;
+        foreach ($data['allocations'] ?? [] as $allocation) {
+            $invoice = CustomerInvoice::where('id', $allocation['invoice_id'])
+                ->where('customer_id', $data['customer_id'])
+                ->firstOrFail();
+
+            $outstanding = $invoice->outstanding_amount - $invoice->allocations()
+                ->where('customer_receipt_id', '!=', $receipt->id)
+                ->sum('amount');
+
+            if ($allocation['amount'] > $outstanding) {
+                throw new InvalidAccountingTransactionException(
+                    "Allocation amount ({$allocation['amount']}) exceeds outstanding amount ({$outstanding}) for invoice {$invoice->invoice_number}"
+                );
+            }
+
+            $totalAllocated = bcadd($totalAllocated, $allocation['amount'], 4);
+            $receipt->allocations()->create([
+                'customer_invoice_id' => $allocation['invoice_id'],
+                'amount' => $allocation['amount'],
+            ]);
+        }
+
+        if (bccomp($totalAllocated, $data['amount'], 4) > 0) {
+            throw new InvalidAccountingTransactionException(
+                "Total allocated amount ({$totalAllocated}) exceeds receipt amount ({$data['amount']})"
+            );
+        }
+
+        return $receipt->fresh();
     }
 }

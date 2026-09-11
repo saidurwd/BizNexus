@@ -123,8 +123,8 @@ class ReportController extends Controller
 
         $aging = $this->paymentService->getAPAging($this->getActiveCompanyId());
 
-        return view('finance.reports.ap-aging', [
-            'aging' => $aging,
+        return view('finance.reports.ap', [
+            'apAging' => $aging,
         ]);
     }
 
@@ -134,8 +134,8 @@ class ReportController extends Controller
 
         $aging = $this->receiptService->getARAging($this->getActiveCompanyId());
 
-        return view('finance.reports.ar-aging', [
-            'aging' => $aging,
+        return view('finance.reports.ar', [
+            'arAging' => $aging,
         ]);
     }
 

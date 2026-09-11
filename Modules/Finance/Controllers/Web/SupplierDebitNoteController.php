@@ -143,8 +143,8 @@ class SupplierDebitNoteController extends Controller
 
         $debitNote = SupplierDebitNote::findOrFail($id);
 
-        if (!$debitNote->isDraft()) {
-            return back()->with('error', 'Only draft debit notes can be posted.');
+        if (!$debitNote->isApproved()) {
+            return back()->with('error', 'Only approved debit notes can be posted.');
         }
 
         try {
@@ -154,6 +154,59 @@ class SupplierDebitNoteController extends Controller
         }
 
         return back()->with('success', 'Debit note posted successfully.');
+    }
+
+    public function submit(int $id): RedirectResponse
+    {
+        $this->checkPermission('finance.suppliers.approve');
+
+        $debitNote = SupplierDebitNote::findOrFail($id);
+
+        if (!$debitNote->isDraft()) {
+            return back()->with('error', 'Only draft debit notes can be submitted.');
+        }
+
+        try {
+            $this->debitNoteService->submitDebitNote($debitNote);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to submit debit note: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Debit note submitted successfully.');
+    }
+
+    public function approve(int $id): RedirectResponse
+    {
+        $this->checkPermission('finance.suppliers.approve');
+
+        $debitNote = SupplierDebitNote::findOrFail($id);
+
+        if (!$debitNote->isSubmitted()) {
+            return back()->with('error', 'Only submitted debit notes can be approved.');
+        }
+
+        try {
+            $this->debitNoteService->approveDebitNote($debitNote);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to approve debit note: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Debit note approved successfully.');
+    }
+
+    public function reject(int $id): RedirectResponse
+    {
+        $this->checkPermission('finance.suppliers.approve');
+
+        $debitNote = SupplierDebitNote::findOrFail($id);
+
+        if (!$debitNote->isSubmitted()) {
+            return back()->with('error', 'Only submitted debit notes can be rejected.');
+        }
+
+        $debitNote->update(['status' => SupplierDebitNote::STATUS_REJECTED]);
+
+        return back()->with('success', 'Debit note rejected successfully.');
     }
 
     public function cancel(int $id): RedirectResponse

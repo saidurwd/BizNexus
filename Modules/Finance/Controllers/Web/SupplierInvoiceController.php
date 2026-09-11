@@ -152,8 +152,8 @@ class SupplierInvoiceController extends Controller
 
         $invoice = SupplierInvoice::findOrFail($id);
 
-        if (!$invoice->isDraft() && !$invoice->isSubmitted() && !$invoice->isApproved()) {
-            return back()->with('error', 'Only draft, submitted, or approved invoices can be posted.');
+        if (!$invoice->isApproved()) {
+            return back()->with('error', 'Only approved invoices can be posted.');
         }
 
         try {

@@ -77,6 +77,85 @@ class ReceiptController extends Controller
         }
     }
 
+    public function submit(int $id)
+    {
+        $receipt = CustomerReceipt::findOrFail($id);
+
+        try {
+            $receipt = $this->receiptService->submitReceipt($receipt);
+            return $this->successResponse($receipt, 'Receipt submitted successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
+    public function approve(int $id)
+    {
+        $receipt = CustomerReceipt::findOrFail($id);
+
+        try {
+            $receipt = $this->receiptService->approveReceipt($receipt);
+            return $this->successResponse($receipt, 'Receipt approved successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
+    public function reject(Request $request, int $id)
+    {
+        $receipt = CustomerReceipt::findOrFail($id);
+
+        try {
+            $receipt = $this->receiptService->rejectReceipt($receipt, $request->get('reason'));
+            return $this->successResponse($receipt, 'Receipt rejected');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
+    public function update(Request $request, int $id)
+    {
+        $receipt = CustomerReceipt::findOrFail($id);
+
+        if (!$receipt->isDraft()) {
+            return $this->errorResponse('Only draft receipts can be updated', 400);
+        }
+
+        $validated = $request->validate([
+            'receipt_number' => 'required|string|max:50|unique:customer_receipts,receipt_number,' . $id,
+            'receipt_date' => 'required|date',
+            'currency_id' => 'nullable|exists:currencies,id',
+            'exchange_rate' => 'nullable|numeric|min:0',
+            'amount' => 'required|numeric|min:0',
+            'receipt_method' => 'nullable|string|max:50',
+            'bank_account_id' => 'nullable|exists:bank_accounts,id',
+            'reference' => 'nullable|string|max:100',
+            'description' => 'nullable|string',
+            'allocations' => 'nullable|array',
+            'allocations.*.invoice_id' => 'required|exists:customer_invoices,id',
+            'allocations.*.amount' => 'required|numeric|min:0',
+        ]);
+
+        try {
+            $receipt = $this->receiptService->updateReceipt($receipt, $validated);
+            return $this->successResponse($receipt, 'Receipt updated successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
+    public function cancel(int $id)
+    {
+        $receipt = CustomerReceipt::findOrFail($id);
+
+        try {
+            $receipt = $this->receiptService->cancelReceipt($receipt);
+            return $this->successResponse($receipt, 'Receipt cancelled');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
     public function aging(Request $request)
     {
         $companyId = $request->get('company_id') ?? $this->companyContext->getCompanyId();

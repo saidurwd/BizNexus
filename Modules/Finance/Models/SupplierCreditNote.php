@@ -33,6 +33,12 @@ class SupplierCreditNote extends Model
         'total_amount' => 'decimal:4',
     ];
 
+    public const STATUS_DRAFT = 'DRAFT';
+    public const STATUS_SUBMITTED = 'SUBMITTED';
+    public const STATUS_APPROVED = 'APPROVED';
+    public const STATUS_POSTED = 'POSTED';
+    public const STATUS_CANCELLED = 'CANCELLED';
+
     protected static function booted()
     {
         static::addGlobalScope(new CompanyScope);
@@ -60,11 +66,11 @@ class SupplierCreditNote extends Model
 
     public function isPosted(): bool
     {
-        return $this->status === 'posted';
+        return $this->status === self::STATUS_POSTED;
     }
 
     public function canBePosted(): bool
     {
-        return in_array($this->status, ['approved']);
+        return $this->status === self::STATUS_APPROVED;
     }
 }

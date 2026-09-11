@@ -35,6 +35,8 @@ class SupplierDebitNote extends Model
     ];
 
     public const STATUS_DRAFT = 'DRAFT';
+    public const STATUS_SUBMITTED = 'SUBMITTED';
+    public const STATUS_APPROVED = 'APPROVED';
     public const STATUS_POSTED = 'POSTED';
     public const STATUS_CANCELLED = 'CANCELLED';
 
@@ -66,6 +68,16 @@ class SupplierDebitNote extends Model
     public function isDraft(): bool
     {
         return $this->status === self::STATUS_DRAFT;
+    }
+
+    public function isSubmitted(): bool
+    {
+        return $this->status === self::STATUS_SUBMITTED;
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->status === self::STATUS_APPROVED;
     }
 
     public function isPosted(): bool

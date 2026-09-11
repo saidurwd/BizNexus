@@ -9,6 +9,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withProviders([
         \Modules\Core\CoreServiceProvider::class,
         \Modules\Finance\FinanceServiceProvider::class,
+        \App\Providers\EventServiceProvider::class,
         \JeroenNoten\LaravelAdminLte\AdminLteServiceProvider::class,
     ])
     ->withRouting(

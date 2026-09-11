@@ -92,6 +92,22 @@ class PaymentController extends Controller
         return back()->with('success', 'Payment approved successfully.');
     }
 
+    public function post(string $id)
+    {
+        $payment = SupplierPayment::findOrFail($id);
+
+        if (!$payment->isApproved()) {
+            return back()->with('error', 'Only approved payments can be posted.');
+        }
+
+        try {
+            $this->paymentService->postPayment($payment);
+            return back()->with('success', 'Payment posted successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
     public function reject(Request $request, string $id)
     {
         $payment = SupplierPayment::findOrFail($id);

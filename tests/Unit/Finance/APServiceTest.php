@@ -30,6 +30,9 @@ class APServiceTest extends TestCase
                 new \Modules\Core\Services\AccountingPeriodService(),
                 new \Modules\Core\Services\DocumentNumberService(),
                 new \Modules\Core\Services\AuditService()
+            ),
+            new \Modules\Core\Services\DefaultAccountService(
+                new \Modules\Core\Services\CompanyContextService()
             )
         );
 
@@ -41,6 +44,9 @@ class APServiceTest extends TestCase
                 new \Modules\Core\Services\AccountingPeriodService(),
                 new \Modules\Core\Services\DocumentNumberService(),
                 new \Modules\Core\Services\AuditService()
+            ),
+            new \Modules\Core\Services\DefaultAccountService(
+                new \Modules\Core\Services\CompanyContextService()
             )
         );
     }
@@ -122,6 +128,9 @@ class APServiceTest extends TestCase
         ];
 
         $invoice = $this->supplierInvoiceService->createInvoice($invoiceData);
+
+        // Post the invoice to include it in aging
+        $invoice->update(['status' => SupplierInvoice::STATUS_POSTED]);
 
         $aging = $this->paymentService->getAPAging($company->id);
 

@@ -17,7 +17,8 @@ class SupplierInvoiceService
     public function __construct(
         protected DocumentNumberService $documentNumber,
         protected AuditService $audit,
-        protected JournalService $journalService
+        protected JournalService $journalService,
+        protected \Modules\Core\Services\DefaultAccountService $defaultAccounts
     ) {}
 
     public function createInvoice(array $data): SupplierInvoice
@@ -89,8 +90,8 @@ class SupplierInvoiceService
 
     public function postInvoice(SupplierInvoice $invoice): SupplierInvoice
     {
-        if (!$invoice->isDraft() && !$invoice->isSubmitted() && !$invoice->isApproved()) {
-            throw new InvalidAccountingTransactionException('Invoice cannot be posted');
+        if (!$invoice->isApproved()) {
+            throw new InvalidAccountingTransactionException('Only approved invoices can be posted');
         }
 
         if ($invoice->lines->isEmpty()) {
@@ -125,7 +126,7 @@ class SupplierInvoiceService
             }
 
             $journalLines[] = [
-                'account_id' => $supplier->payable_account_id ?? $this->getDefaultPayableAccount($company->id),
+                'account_id' => $supplier->payable_account_id ?? $this->defaultAccounts->getPayableAccount($company->id),
                 'description' => "Payable to {$supplier->name}",
                 'debit' => 0,
                 'credit' => $invoice->total_amount,
@@ -206,6 +207,8 @@ class SupplierInvoiceService
             'previous_status' => SupplierInvoice::STATUS_SUBMITTED,
         ]);
 
+        event(new \Modules\Finance\Events\SupplierInvoiceApproved($invoice));
+
         try {
             app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
                 'supplier_invoice',
@@ -246,16 +249,6 @@ class SupplierInvoiceService
         return $invoice->fresh();
     }
 
-    protected function getDefaultPayableAccount(int $companyId): int
-    {
-        $account = \Modules\Finance\Models\Account::where('company_id', $companyId)
-            ->where('account_code', 'like', '2100%')
-            ->where('is_postable', true)
-            ->first();
-
-        return $account?->id ?? throw new \Exception('No payable account found');
-    }
-
     public function cancelInvoice(SupplierInvoice $invoice): SupplierInvoice
     {
         if ($invoice->isPosted()) {
@@ -274,5 +267,57 @@ class SupplierInvoiceService
             ->orderBy('due_date')
             ->get()
             ->toArray();
+    }
+
+    public function updateInvoice(SupplierInvoice $invoice, array $data): SupplierInvoice
+    {
+        if (!$invoice->isDraft()) {
+            throw new InvalidAccountingTransactionException('Only draft invoices can be updated');
+        }
+
+        $invoice->update([
+            'supplier_id' => $data['supplier_id'],
+            'invoice_number' => $data['invoice_number'],
+            'invoice_date' => $data['invoice_date'],
+            'due_date' => $data['due_date'],
+            'currency_id' => $data['currency_id'] ?? null,
+            'exchange_rate' => $data['exchange_rate'] ?? 1,
+            'discount_amount' => $data['discount_amount'] ?? 0,
+            'description' => $data['description'] ?? null,
+            'updated_by' => Auth::id(),
+        ]);
+
+        $invoice->lines()->delete();
+
+        $totalSubtotal = 0;
+        $totalTax = 0;
+
+        foreach ($data['lines'] ?? [] as $lineData) {
+            $line = $invoice->lines()->create([
+                'account_id' => $lineData['account_id'],
+                'description' => $lineData['description'],
+                'quantity' => $lineData['quantity'] ?? 1,
+                'unit_price' => $lineData['unit_price'] ?? 0,
+                'subtotal' => 0,
+                'tax_id' => $lineData['tax_id'] ?? null,
+                'tax_amount' => 0,
+                'discount_amount' => $lineData['discount_amount'] ?? 0,
+                'total_amount' => 0,
+            ]);
+
+            $line->calculateTotals();
+            $line->save();
+
+            $totalSubtotal = bcadd($totalSubtotal, $line->subtotal, 4);
+            $totalTax = bcadd($totalTax, $line->tax_amount ?? 0, 4);
+        }
+
+        $invoice->subtotal = $totalSubtotal;
+        $invoice->tax_amount = $totalTax;
+        $invoice->total_amount = bcadd(bcadd($totalSubtotal, $totalTax, 4), $invoice->discount_amount, 4);
+        $invoice->outstanding_amount = $invoice->total_amount;
+        $invoice->save();
+
+        return $invoice->fresh();
     }
 }

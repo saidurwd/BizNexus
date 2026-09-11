@@ -12,6 +12,7 @@ class SupplierInvoice extends Model
 {
     protected $fillable = [
         'company_id',
+        'branch_id',
         'supplier_id',
         'invoice_number',
         'invoice_date',
@@ -90,6 +91,11 @@ class SupplierInvoice extends Model
         return $this->hasMany(SupplierPayment::class);
     }
 
+    public function allocations(): HasMany
+    {
+        return $this->hasMany(PaymentAllocation::class);
+    }
+
     public function createdBy()
     {
         return $this->belongsTo(\App\Models\User::class, 'created_by');
@@ -132,8 +138,8 @@ class SupplierInvoice extends Model
 
     public function calculateOutstanding(): void
     {
-        $paidAmount = $this->payments()
-            ->where('status', 'POSTED')
+        $paidAmount = $this->allocations()
+            ->whereHas('payment', fn($q) => $q->where('status', 'POSTED'))
             ->sum('amount');
 
         $this->outstanding_amount = (float) bcsub($this->total_amount, $paidAmount, 4);

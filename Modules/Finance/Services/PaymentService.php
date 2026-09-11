@@ -17,7 +17,8 @@ class PaymentService
     public function __construct(
         protected DocumentNumberService $documentNumber,
         protected AuditService $audit,
-        protected JournalService $journalService
+        protected JournalService $journalService,
+        protected \Modules\Core\Services\DefaultAccountService $defaultAccounts
     ) {}
 
     public function createPayment(array $data): SupplierPayment
@@ -87,8 +88,8 @@ class PaymentService
 
     public function postPayment(SupplierPayment $payment): SupplierPayment
     {
-        if (!$payment->isDraft()) {
-            throw new InvalidAccountingTransactionException('Payment cannot be posted');
+        if (!$payment->isApproved()) {
+            throw new InvalidAccountingTransactionException('Only approved payments can be posted');
         }
 
         return DB::transaction(function () use ($payment) {
@@ -98,7 +99,7 @@ class PaymentService
             $journalLines = [];
 
             $journalLines[] = [
-                'account_id' => $supplier->payable_account_id ?? $this->getDefaultPayableAccount($company->id),
+                'account_id' => $supplier->payable_account_id ?? $this->defaultAccounts->getPayableAccount($company->id),
                 'description' => "Payment to {$supplier->name}",
                 'debit' => $payment->amount,
                 'credit' => 0,
@@ -114,7 +115,7 @@ class PaymentService
                 ];
             } else {
                 $journalLines[] = [
-                    'account_id' => $this->getDefaultCashAccount($company->id),
+                    'account_id' => $this->defaultAccounts->getCashAccount($company->id),
                     'description' => "Cash Payment #{$payment->payment_number}",
                     'debit' => 0,
                     'credit' => $payment->amount,
@@ -360,23 +361,57 @@ class PaymentService
         return $aging;
     }
 
-    protected function getDefaultPayableAccount(int $companyId): int
+    public function updatePayment(SupplierPayment $payment, array $data): SupplierPayment
     {
-        $account = \Modules\Finance\Models\Account::where('company_id', $companyId)
-            ->where('account_code', 'like', '2100%')
-            ->where('is_postable', true)
-            ->first();
+        if (!$payment->isDraft()) {
+            throw new InvalidAccountingTransactionException('Only draft payments can be updated');
+        }
 
-        return $account?->id ?? throw new \Exception('No payable account found');
-    }
+        $payment->update([
+            'supplier_id' => $data['supplier_id'],
+            'payment_number' => $data['payment_number'],
+            'payment_date' => $data['payment_date'],
+            'currency_id' => $data['currency_id'] ?? null,
+            'exchange_rate' => $data['exchange_rate'] ?? 1,
+            'amount' => $data['amount'],
+            'payment_method' => $data['payment_method'] ?? 'BANK_TRANSFER',
+            'bank_account_id' => $data['bank_account_id'] ?? null,
+            'reference' => $data['reference'] ?? null,
+            'description' => $data['description'] ?? null,
+            'updated_by' => Auth::id(),
+        ]);
 
-    protected function getDefaultCashAccount(int $companyId): int
-    {
-        $account = \Modules\Finance\Models\Account::where('company_id', $companyId)
-            ->where('account_code', 'like', '1110%')
-            ->where('is_postable', true)
-            ->first();
+        $payment->allocations()->delete();
 
-        return $account?->id ?? throw new \Exception('No cash account found');
+        $totalAllocated = 0;
+        foreach ($data['allocations'] ?? [] as $allocation) {
+            $invoice = SupplierInvoice::where('id', $allocation['invoice_id'])
+                ->where('supplier_id', $data['supplier_id'])
+                ->firstOrFail();
+
+            $outstanding = $invoice->outstanding_amount - $invoice->allocations()
+                ->where('supplier_payment_id', '!=', $payment->id)
+                ->sum('amount');
+
+            if ($allocation['amount'] > $outstanding) {
+                throw new InvalidAccountingTransactionException(
+                    "Allocation amount ({$allocation['amount']}) exceeds outstanding amount ({$outstanding}) for invoice {$invoice->invoice_number}"
+                );
+            }
+
+            $totalAllocated = bcadd($totalAllocated, $allocation['amount'], 4);
+            $payment->allocations()->create([
+                'supplier_invoice_id' => $allocation['invoice_id'],
+                'amount' => $allocation['amount'],
+            ]);
+        }
+
+        if (bccomp($totalAllocated, $data['amount'], 4) > 0) {
+            throw new InvalidAccountingTransactionException(
+                "Total allocated amount ({$totalAllocated}) exceeds payment amount ({$data['amount']})"
+            );
+        }
+
+        return $payment->fresh();
     }
 }

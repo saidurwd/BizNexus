@@ -79,6 +79,76 @@ class SupplierInvoiceController extends Controller
         }
     }
 
+    public function submit(int $id)
+    {
+        $invoice = SupplierInvoice::findOrFail($id);
+
+        try {
+            $invoice = $this->supplierInvoiceService->submitInvoice($invoice);
+            return $this->successResponse($invoice, 'Invoice submitted successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
+    public function approve(int $id)
+    {
+        $invoice = SupplierInvoice::findOrFail($id);
+
+        try {
+            $invoice = $this->supplierInvoiceService->approveInvoice($invoice);
+            return $this->successResponse($invoice, 'Invoice approved successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
+    public function reject(Request $request, int $id)
+    {
+        $invoice = SupplierInvoice::findOrFail($id);
+
+        try {
+            $invoice = $this->supplierInvoiceService->rejectInvoice($invoice, $request->get('reason'));
+            return $this->successResponse($invoice, 'Invoice rejected');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
+    public function update(Request $request, int $id)
+    {
+        $invoice = SupplierInvoice::findOrFail($id);
+
+        if (!$invoice->isDraft()) {
+            return $this->errorResponse('Only draft invoices can be updated', 400);
+        }
+
+        $validated = $request->validate([
+            'supplier_id' => 'required|exists:suppliers,id',
+            'invoice_number' => 'required|string|max:50|unique:supplier_invoices,invoice_number,' . $id,
+            'invoice_date' => 'required|date',
+            'due_date' => 'nullable|date|after_or_equal:invoice_date',
+            'currency_id' => 'nullable|exists:currencies,id',
+            'exchange_rate' => 'nullable|numeric|min:0',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'description' => 'nullable|string',
+            'lines' => 'required|array|min:1',
+            'lines.*.account_id' => 'required|exists:accounts,id',
+            'lines.*.description' => 'required|string',
+            'lines.*.quantity' => 'nullable|numeric|min:0',
+            'lines.*.unit_price' => 'required|numeric|min:0',
+            'lines.*.tax_id' => 'nullable|exists:taxes,id',
+            'lines.*.discount_amount' => 'nullable|numeric|min:0',
+        ]);
+
+        try {
+            $invoice = $this->supplierInvoiceService->updateInvoice($invoice, $validated);
+            return $this->successResponse($invoice, 'Invoice updated successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
     public function cancel(int $id)
     {
         $invoice = SupplierInvoice::findOrFail($id);
