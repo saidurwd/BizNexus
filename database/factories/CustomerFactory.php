@@ -12,7 +12,7 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         return [
-            'company_id' => \Modules\Core\Models\Company::first()?->id ?? 1,
+            'company_id' => \Modules\Core\Models\Company::factory(),
             'customer_code' => 'CUS-' . $this->faker->unique()->numerify('####'),
             'name' => $this->faker->company(),
             'contact_person' => $this->faker->name(),
@@ -20,11 +20,9 @@ class CustomerFactory extends Factory
             'phone' => $this->faker->phoneNumber(),
             'email' => $this->faker->companyEmail(),
             'tax_number' => $this->faker->numerify('TAX-########'),
-            'currency_id' => 1,
+            'currency_id' => null,
             'receivable_account_id' => null,
             'status' => 'active',
-            'created_by' => 1,
-            'updated_by' => 1,
         ];
     }
 

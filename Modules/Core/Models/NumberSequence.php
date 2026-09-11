@@ -10,6 +10,7 @@ class NumberSequence extends Model
 {
     protected $fillable = [
         'company_id',
+        'fiscal_year_id',
         'document_type',
         'prefix',
         'format',
@@ -25,6 +26,11 @@ class NumberSequence extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function fiscalYear(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Core\Models\FiscalYear::class);
     }
 
     public function getNextNumber(): string

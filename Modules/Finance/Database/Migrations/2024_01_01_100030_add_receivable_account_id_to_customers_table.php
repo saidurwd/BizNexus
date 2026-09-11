@@ -9,8 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('customers', function (Blueprint $table) {
-            $table->unsignedBigInteger('receivable_account_id')->nullable()->after('currency_id');
-            $table->foreign('receivable_account_id')->references('id')->on('accounts')->nullOnDelete();
+            if (!Schema::hasColumn('customers', 'receivable_account_id')) {
+                $table->unsignedBigInteger('receivable_account_id')->nullable()->after('currency_id');
+                $table->foreign('receivable_account_id')->references('id')->on('accounts')->nullOnDelete();
+            }
         });
     }
 

@@ -13,7 +13,7 @@ class JournalFactory extends Factory
     public function definition(): array
     {
         return [
-            'company_id' => \Modules\Core\Models\Company::first()?->id ?? 1,
+            'company_id' => \Modules\Core\Models\Company::factory(),
             'journal_number' => 'JV-' . date('Y') . '-' . str_pad($this->faker->unique()->numberBetween(1, 9999), 6, '0', STR_PAD_LEFT),
             'journal_date' => $this->faker->dateTimeBetween('-1 year', 'now'),
             'posting_date' => null,
@@ -22,14 +22,14 @@ class JournalFactory extends Factory
             'reference_id' => null,
             'description' => $this->faker->sentence(),
             'status' => Journal::STATUS_DRAFT,
-            'currency_id' => 1,
+            'currency_id' => fn (array $attributes) => \Modules\Core\Models\Company::find($attributes['company_id'])?->base_currency_id ?? 1,
             'exchange_rate' => 1.00000000,
             'total_debit' => 0,
             'total_credit' => 0,
             'posted_at' => null,
             'posted_by' => null,
-            'created_by' => 1,
-            'updated_by' => 1,
+            'created_by' => null,
+            'updated_by' => null,
         ];
     }
 
@@ -60,7 +60,7 @@ class JournalFactory extends Factory
             'status' => Journal::STATUS_POSTED,
             'posting_date' => now(),
             'posted_at' => now(),
-            'posted_by' => 1,
+            'posted_by' => null,
         ]);
     }
 

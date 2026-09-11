@@ -3,6 +3,7 @@
 namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Finance\Scopes\BranchScope;
 use Modules\Finance\Scopes\CompanyScope;
@@ -10,6 +11,12 @@ use Modules\Finance\Scopes\DepartmentScope;
 
 class JournalLine extends Model
 {
+    use HasFactory;
+
+    protected static function newFactory()
+    {
+        return \Database\Factories\JournalLineFactory::new();
+    }
 
     protected static function booted()
     {
@@ -28,6 +35,7 @@ class JournalLine extends Model
         'cost_center_id',
         'department_id',
         'branch_id',
+        'business_unit_id',
         'project_id',
         'tax_id',
         'reference',

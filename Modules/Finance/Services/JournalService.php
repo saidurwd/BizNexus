@@ -36,7 +36,7 @@ class JournalService
 
             $journal = Journal::create([
                 'company_id' => $companyId,
-                'journal_number' => $this->documentNumber->generateNumber($companyId, 'JV'),
+                'journal_number' => $this->documentNumber->generateNumber($companyId, 'JV', $data['fiscal_year_id'] ?? null),
                 'journal_date' => $data['journal_date'],
                 'fiscal_period_id' => $data['fiscal_period_id'] ?? null,
                 'reference_type' => $data['reference_type'] ?? null,
@@ -52,8 +52,16 @@ class JournalService
                 $this->addLine($journal, $lineData);
             }
 
+            if (count($data['lines']) < 2) {
+                throw new InvalidAccountingTransactionException('Journal must have at least two lines.');
+            }
+
             $journal->calculateTotals();
             $journal->save();
+
+            if (!$journal->isBalanced()) {
+                throw new UnbalancedJournalException((float) $journal->total_debit, (float) $journal->total_credit);
+            }
 
             $this->audit->logCreate('Finance', 'Journal', $journal->id, $journal->toArray(), $companyId);
 
@@ -63,6 +71,10 @@ class JournalService
 
     public function addLine(Journal $journal, array $lineData): JournalLine
     {
+        if (!$journal->isDraft()) {
+            throw new InvalidAccountingTransactionException('Can only add lines to draft journals.');
+        }
+
         $account = Account::findOrFail($lineData['account_id']);
 
         if (!$account->canReceivePosting()) {
@@ -82,6 +94,7 @@ class JournalService
             'cost_center_id' => $lineData['cost_center_id'] ?? null,
             'department_id' => $lineData['department_id'] ?? null,
             'branch_id' => $lineData['branch_id'] ?? null,
+            'business_unit_id' => $lineData['business_unit_id'] ?? null,
             'project_id' => $lineData['project_id'] ?? null,
             'tax_id' => $lineData['tax_id'] ?? null,
             'reference' => $lineData['reference'] ?? null,
@@ -258,7 +271,7 @@ class JournalService
 
         return DB::transaction(function () use ($journal, $reason) {
             $reversal = $journal->replicate();
-            $reversal->journal_number = $this->documentNumber->generateNumber($journal->company_id, 'JV');
+            $reversal->journal_number = $this->documentNumber->generateNumber($journal->company_id, 'JV', $journal->fiscal_period_id ? \Modules\Core\Models\FiscalPeriod::find($journal->fiscal_period_id)?->fiscal_year_id : null);
             $reversal->journal_date = now()->toDateString();
             $reversal->posting_date = null;
             $reversal->fiscal_period_id = null;
@@ -283,6 +296,7 @@ class JournalService
                     'cost_center_id' => $line->cost_center_id,
                     'department_id' => $line->department_id,
                     'branch_id' => $line->branch_id,
+                    'business_unit_id' => $line->business_unit_id,
                     'project_id' => $line->project_id,
                     'tax_id' => $line->tax_id,
                     'reference' => $line->reference,

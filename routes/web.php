@@ -151,6 +151,8 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::get('/journals/create', [JournalController::class, 'create'])->name('journals.create');
         Route::post('/journals', [JournalController::class, 'store'])->name('journals.store');
         Route::get('/journals/{id}', [JournalController::class, 'show'])->name('journals.show');
+        Route::get('/journals/{id}/edit', [JournalController::class, 'edit'])->name('journals.edit');
+        Route::put('/journals/{id}', [JournalController::class, 'update'])->name('journals.update');
         Route::delete('/journals/{id}', [JournalController::class, 'destroy'])->name('journals.destroy');
         Route::post('/journals/{id}/submit', [JournalController::class, 'submit'])->name('journals.submit');
         Route::post('/journals/{id}/approve', [JournalController::class, 'approve'])->name('journals.approve');
@@ -158,6 +160,9 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::post('/journals/{id}/post', [JournalController::class, 'post'])->name('journals.post');
         Route::post('/journals/{id}/reverse', [JournalController::class, 'reverse'])->name('journals.reverse');
         Route::post('/journals/{id}/cancel', [JournalController::class, 'cancel'])->name('journals.cancel');
+        Route::post('/journals/{id}/lines', [JournalController::class, 'addLine'])->name('journals.lines.store');
+        Route::put('/journals/lines/{lineId}', [JournalController::class, 'updateLine'])->name('journals.lines.update');
+        Route::delete('/journals/lines/{lineId}', [JournalController::class, 'removeLine'])->name('journals.lines.destroy');
 
         // General Ledger
         Route::get('/general-ledger', [JournalController::class, 'generalLedger'])->name('general-ledger');

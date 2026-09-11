@@ -23,6 +23,7 @@ class StoreJournalRequest extends FormRequest
             'lines.*.cost_center_id' => 'nullable|exists:cost_centers,id',
             'lines.*.department_id' => 'nullable|exists:departments,id',
             'lines.*.branch_id' => 'nullable|exists:branches,id',
+            'lines.*.business_unit_id' => 'nullable|exists:business_units,id',
             'lines.*.project_id' => 'nullable|exists:projects,id',
             'lines.*.reference' => 'nullable|string|max:100',
         ];

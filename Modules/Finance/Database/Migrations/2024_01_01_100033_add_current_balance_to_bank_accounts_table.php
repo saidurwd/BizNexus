@@ -9,7 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bank_accounts', function (Blueprint $table) {
-            $table->decimal('current_balance', 20, 4)->nullable()->after('opening_balance');
+            if (!Schema::hasColumn('bank_accounts', 'current_balance')) {
+                $table->decimal('current_balance', 20, 4)->nullable()->after('opening_balance');
+            }
         });
     }
 

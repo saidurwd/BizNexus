@@ -4,6 +4,7 @@
 namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Finance\Scopes\CompanyScope;
 use Modules\Finance\Scopes\BranchScope;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,12 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Journal extends Model
 {
+    use HasFactory;
+
+    public static function factory()
+    {
+        return \Database\Factories\JournalFactory::new();
+    }
 
     protected static function booted()
     {
@@ -158,7 +165,7 @@ class Journal extends Model
 
     public function canReverse(): bool
     {
-        return $this->isPosted();
+        return $this->isPosted() && !$this->isReversed();
     }
 
     public function canCancel(): bool

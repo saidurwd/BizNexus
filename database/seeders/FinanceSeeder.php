@@ -214,31 +214,12 @@ class FinanceSeeder extends Seeder
 
     protected function initializeDocumentSequences(Company $company): void
     {
-        $documentTypes = [
-            ['document_type' => 'JV', 'prefix' => 'JV'],
-            ['document_type' => 'PV', 'prefix' => 'PV'],
-            ['document_type' => 'RV', 'prefix' => 'RV'],
-            ['document_type' => 'BRV', 'prefix' => 'BRV'],
-            ['document_type' => 'BPV', 'prefix' => 'BPV'],
-            ['document_type' => 'SI', 'prefix' => 'SI'],
-            ['document_type' => 'CI', 'prefix' => 'CI'],
-            ['document_type' => 'SP', 'prefix' => 'SP'],
-            ['document_type' => 'CR', 'prefix' => 'CR'],
-        ];
+        $fiscalYear = $company->currentFiscalYear()->first();
 
-        foreach ($documentTypes as $type) {
-            \Modules\Core\Models\NumberSequence::firstOrCreate(
-                [
-                    'company_id' => $company->id,
-                    'document_type' => $type['document_type'],
-                ],
-                [
-                    'prefix' => $type['prefix'],
-                    'format' => '{PREFIX}-{YEAR}-{SEQUENCE:6}',
-                    'last_number' => 0,
-                    'is_active' => true,
-                ]
-            );
+        if ($fiscalYear) {
+            app(\Modules\Core\Services\DocumentNumberService::class)->initializeDefaultsForCompany($company->id, $fiscalYear->id);
+        } else {
+            app(\Modules\Core\Services\DocumentNumberService::class)->initializeDefaultsForCompany($company->id);
         }
     }
 }

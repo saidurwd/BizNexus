@@ -9,12 +9,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('customer_invoices', function (Blueprint $table) {
-            $table->unsignedBigInteger('currency_id')->nullable()->after('due_date');
-            $table->foreign('currency_id')->references('id')->on('currencies')->nullOnDelete();
-            $table->decimal('exchange_rate', 20, 6)->nullable()->after('currency_id');
-            $table->decimal('outstanding_amount', 20, 4)->nullable()->after('total_amount');
-            $table->unsignedBigInteger('journal_id')->nullable()->after('outstanding_amount');
-            $table->foreign('journal_id')->references('id')->on('journals')->nullOnDelete();
+            if (!Schema::hasColumn('customer_invoices', 'currency_id')) {
+                $table->unsignedBigInteger('currency_id')->nullable()->after('due_date');
+                $table->foreign('currency_id')->references('id')->on('currencies')->nullOnDelete();
+            }
+            if (!Schema::hasColumn('customer_invoices', 'exchange_rate')) {
+                $table->decimal('exchange_rate', 20, 6)->nullable()->after('currency_id');
+            }
+            if (!Schema::hasColumn('customer_invoices', 'outstanding_amount')) {
+                $table->decimal('outstanding_amount', 20, 4)->nullable()->after('total_amount');
+            }
+            if (!Schema::hasColumn('customer_invoices', 'journal_id')) {
+                $table->unsignedBigInteger('journal_id')->nullable()->after('outstanding_amount');
+                $table->foreign('journal_id')->references('id')->on('journals')->nullOnDelete();
+            }
         });
     }
 

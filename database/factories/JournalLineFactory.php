@@ -15,7 +15,7 @@ class JournalLineFactory extends Factory
         $isDebit = $this->faker->boolean();
 
         return [
-            'journal_id' => 1,
+            'journal_id' => null,
             'account_id' => Account::factory(),
             'description' => $this->faker->sentence(),
             'debit' => $isDebit ? $this->faker->randomFloat(2, 100, 10000) : 0,

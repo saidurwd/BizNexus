@@ -243,4 +243,104 @@ class JournalServiceTest extends TestCase
         $this->assertNotNull($reversal);
         $this->assertEquals($journal->id, $reversal->reversal_of_journal_id);
     }
+
+    public function test_cannot_reverse_reversed_journal(): void
+    {
+        $journal = Journal::factory()->create([
+            'status' => Journal::STATUS_REVERSED,
+            'total_debit' => 1000,
+            'total_credit' => 1000,
+        ]);
+
+        $this->expectException(\Modules\Core\Exceptions\InvalidAccountingTransactionException::class);
+
+        $this->journalService->reverse($journal);
+    }
+
+    public function test_journal_line_includes_business_unit_id(): void
+    {
+        $company = \Modules\Core\Models\Company::factory()->create();
+        $cashAccount = Account::factory()->asset()->create(['company_id' => $company->id]);
+        $revenueAccount = Account::factory()->revenue()->create(['company_id' => $company->id]);
+        $businessUnit = \Modules\Core\Models\BusinessUnit::factory()->create(['company_id' => $company->id]);
+
+        $journalData = [
+            'company_id' => $company->id,
+            'journal_date' => now()->format('Y-m-d'),
+            'description' => 'Test with business unit',
+            'lines' => [
+                [
+                    'account_id' => $cashAccount->id,
+                    'description' => 'Cash received',
+                    'debit' => 1000,
+                    'credit' => 0,
+                    'business_unit_id' => $businessUnit->id,
+                ],
+                ['account_id' => $revenueAccount->id, 'description' => 'Revenue', 'debit' => 0, 'credit' => 1000],
+            ],
+        ];
+
+        $journal = $this->journalService->create($journalData);
+        $line = $journal->lines()->first();
+
+        $this->assertEquals($businessUnit->id, $line->business_unit_id);
+    }
+
+    public function test_can_update_line_in_draft_journal(): void
+    {
+        $company = \Modules\Core\Models\Company::factory()->create();
+        $cashAccount = Account::factory()->asset()->create(['company_id' => $company->id]);
+        $revenueAccount = Account::factory()->revenue()->create(['company_id' => $company->id]);
+
+        $journal = Journal::factory()->create([
+            'company_id' => $company->id,
+            'status' => Journal::STATUS_DRAFT,
+        ]);
+
+        $line = JournalLine::factory()->create([
+            'journal_id' => $journal->id,
+            'account_id' => $cashAccount->id,
+            'debit' => 1000,
+            'credit' => 0,
+        ]);
+
+        $this->journalService->updateLine($line, [
+            'account_id' => $revenueAccount->id,
+            'debit' => 500,
+            'credit' => 0,
+        ]);
+
+        $this->assertEquals($revenueAccount->id, $line->fresh()->account_id);
+        $this->assertEquals(500, $line->fresh()->debit);
+    }
+
+    public function test_can_remove_line_from_draft_journal(): void
+    {
+        $company = \Modules\Core\Models\Company::factory()->create();
+        $cashAccount = Account::factory()->asset()->create(['company_id' => $company->id]);
+        $revenueAccount = Account::factory()->revenue()->create(['company_id' => $company->id]);
+
+        $journal = Journal::factory()->create([
+            'company_id' => $company->id,
+            'status' => Journal::STATUS_DRAFT,
+        ]);
+
+        $line1 = JournalLine::factory()->create([
+            'journal_id' => $journal->id,
+            'account_id' => $cashAccount->id,
+            'debit' => 1000,
+            'credit' => 0,
+        ]);
+
+        $line2 = JournalLine::factory()->create([
+            'journal_id' => $journal->id,
+            'account_id' => $revenueAccount->id,
+            'debit' => 0,
+            'credit' => 1000,
+        ]);
+
+        $this->journalService->removeLine($line1);
+
+        $this->assertEquals(1, $journal->fresh()->lines()->count());
+    }
 }

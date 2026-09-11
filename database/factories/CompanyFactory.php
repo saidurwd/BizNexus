@@ -20,12 +20,13 @@ class CompanyFactory extends Factory
             'email' => $this->faker->companyEmail(),
             'tax_number' => $this->faker->numerify('TAX-########'),
             'registration_number' => $this->faker->numerify('REG-######'),
-            'base_currency_id' => 1,
+            'base_currency_id' => \Modules\Core\Models\Currency::firstOrCreate(
+                ['code' => 'USD'],
+                ['name' => 'US Dollar', 'symbol' => '$', 'decimal_places' => 2, 'status' => 'active']
+            )->id,
             'timezone' => 'Asia/Dhaka',
             'fiscal_year_start' => now()->startOfYear()->format('Y-m-d'),
             'status' => 'active',
-            'created_by' => 1,
-            'updated_by' => 1,
         ];
     }
 

@@ -26,6 +26,22 @@
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
+                            <label for="fiscal_period_id">Fiscal Period</label>
+                            <select class="form-control" id="fiscal_period_id" name="fiscal_period_id">
+                                <option value="">Select Period</option>
+                                @foreach($fiscalPeriods as $period)
+                                    <option value="{{ $period->id }}" {{ old('fiscal_period_id') == $period->id ? 'selected' : '' }}>
+                                        {{ $period->fiscalYear->name }} - {{ $period->period_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
                             <label for="description">Description</label>
                             <input type="text" class="form-control" id="description" name="description" 
                                    value="{{ old('description') }}" placeholder="Enter description">
@@ -35,91 +51,198 @@
 
                 <div class="mt-4">
                     <h5>Journal Lines</h5>
-                    <table class="table table-bordered" id="journalLinesTable">
-                        <thead>
-                            <tr>
-                                <th>Account</th>
-                                <th>Description</th>
-                                <th class="text-right">Debit</th>
-                                <th class="text-right">Credit</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="linesBody">
-                            <tr class="line-row">
-                                <td>
-                                    <select class="form-control account-select" name="lines[0][account_id]" required>
-                                        <option value="">Select Account</option>
-                                        @foreach($accounts as $account)
-                                            <option value="{{ $account->id }}" @selected(old('lines.0.account_id') == $account->id)>
-                                                {{ $account->account_code }} — {{ $account->account_name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </td>
-                                <td>
-                                    <input type="text" class="form-control" name="lines[0][description]" placeholder="Description" value="{{ old('lines.0.description') }}">
-                                </td>
-                                <td>
-                                    <input type="number" class="form-control text-right debit-input" name="lines[0][debit]" 
-                                           step="0.01" min="0" value="{{ old('lines.0.debit', 0) }}">
-                                </td>
-                                <td>
-                                    <input type="number" class="form-control text-right credit-input" name="lines[0][credit]" 
-                                           step="0.01" min="0" value="{{ old('lines.0.credit', 0) }}">
-                                </td>
-                                <td>
-                                    <button type="button" class="btn btn-danger btn-sm remove-line">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr class="line-row">
-                                <td>
-                                    <select class="form-control account-select" name="lines[1][account_id]" required>
-                                        <option value="">Select Account</option>
-                                        @foreach($accounts as $account)
-                                            <option value="{{ $account->id }}" @selected(old('lines.1.account_id') == $account->id)>
-                                                {{ $account->account_code }} — {{ $account->account_name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </td>
-                                <td>
-                                    <input type="text" class="form-control" name="lines[1][description]" placeholder="Description" value="{{ old('lines.1.description') }}">
-                                </td>
-                                <td>
-                                    <input type="number" class="form-control text-right debit-input" name="lines[1][debit]" 
-                                           step="0.01" min="0" value="{{ old('lines.1.debit', 0) }}">
-                                </td>
-                                <td>
-                                    <input type="number" class="form-control text-right credit-input" name="lines[1][credit]" 
-                                           step="0.01" min="0" value="{{ old('lines.1.credit', 0) }}">
-                                </td>
-                                <td>
-                                    <button type="button" class="btn btn-danger btn-sm remove-line">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="2" class="text-right"><strong>Totals:</strong></td>
-                                <td class="text-right">
-                                    <strong id="totalDebit">0.00</strong>
-                                </td>
-                                <td class="text-right">
-                                    <strong id="totalCredit">0.00</strong>
-                                </td>
-                                <td>
-                                    <button type="button" class="btn btn-success btn-sm" id="addLine">
-                                        <i class="bi bi-plus"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="journalLinesTable">
+                            <thead>
+                                <tr>
+                                    <th>Account</th>
+                                    <th>Description</th>
+                                    <th class="text-right">Debit</th>
+                                    <th class="text-right">Credit</th>
+                                    <th>Cost Center</th>
+                                    <th>Department</th>
+                                    <th>Branch</th>
+                                    <th>Business Unit</th>
+                                    <th>Tax</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="linesBody">
+                                <tr class="line-row">
+                                    <td>
+                                        <select class="form-control account-select" name="lines[0][account_id]" required>
+                                            <option value="">Select Account</option>
+                                            @foreach($accounts as $account)
+                                                <option value="{{ $account->id }}" @selected(old('lines.0.account_id') == $account->id)>
+                                                    {{ $account->account_code }} — {{ $account->account_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control" name="lines[0][description]" placeholder="Description" value="{{ old('lines.0.description') }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control text-right debit-input" name="lines[0][debit]" 
+                                               step="0.01" min="0" value="{{ old('lines.0.debit', 0) }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control text-right credit-input" name="lines[0][credit]" 
+                                               step="0.01" min="0" value="{{ old('lines.0.credit', 0) }}">
+                                    </td>
+                                    <td>
+                                        <select class="form-control" name="lines[0][cost_center_id]">
+                                            <option value="">Select</option>
+                                            @foreach($costCenters as $cc)
+                                                <option value="{{ $cc->id }}" {{ old('lines.0.cost_center_id') == $cc->id ? 'selected' : '' }}>
+                                                    {{ $cc->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="form-control" name="lines[0][department_id]">
+                                            <option value="">Select</option>
+                                            @foreach($departments as $dept)
+                                                <option value="{{ $dept->id }}" {{ old('lines.0.department_id') == $dept->id ? 'selected' : '' }}>
+                                                    {{ $dept->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="form-control" name="lines[0][branch_id]">
+                                            <option value="">Select</option>
+                                            @foreach($branches as $branch)
+                                                <option value="{{ $branch->id }}" {{ old('lines.0.branch_id') == $branch->id ? 'selected' : '' }}>
+                                                    {{ $branch->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="form-control" name="lines[0][business_unit_id]">
+                                            <option value="">Select</option>
+                                            @foreach($businessUnits as $bu)
+                                                <option value="{{ $bu->id }}" {{ old('lines.0.business_unit_id') == $bu->id ? 'selected' : '' }}>
+                                                    {{ $bu->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="form-control" name="lines[0][tax_id]">
+                                            <option value="">Select</option>
+                                            @foreach($taxes as $tax)
+                                                <option value="{{ $tax->id }}" {{ old('lines.0.tax_id') == $tax->id ? 'selected' : '' }}>
+                                                    {{ $tax->tax_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger btn-sm remove-line">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr class="line-row">
+                                    <td>
+                                        <select class="form-control account-select" name="lines[1][account_id]" required>
+                                            <option value="">Select Account</option>
+                                            @foreach($accounts as $account)
+                                                <option value="{{ $account->id }}" @selected(old('lines.1.account_id') == $account->id)>
+                                                    {{ $account->account_code }} — {{ $account->account_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control" name="lines[1][description]" placeholder="Description" value="{{ old('lines.1.description') }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control text-right debit-input" name="lines[1][debit]" 
+                                               step="0.01" min="0" value="{{ old('lines.1.debit', 0) }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control text-right credit-input" name="lines[1][credit]" 
+                                               step="0.01" min="0" value="{{ old('lines.1.credit', 0) }}">
+                                    </td>
+                                    <td>
+                                        <select class="form-control" name="lines[1][cost_center_id]">
+                                            <option value="">Select</option>
+                                            @foreach($costCenters as $cc)
+                                                <option value="{{ $cc->id }}" {{ old('lines.1.cost_center_id') == $cc->id ? 'selected' : '' }}>
+                                                    {{ $cc->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="form-control" name="lines[1][department_id]">
+                                            <option value="">Select</option>
+                                            @foreach($departments as $dept)
+                                                <option value="{{ $dept->id }}" {{ old('lines.1.department_id') == $dept->id ? 'selected' : '' }}>
+                                                    {{ $dept->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="form-control" name="lines[1][branch_id]">
+                                            <option value="">Select</option>
+                                            @foreach($branches as $branch)
+                                                <option value="{{ $branch->id }}" {{ old('lines.1.branch_id') == $branch->id ? 'selected' : '' }}>
+                                                    {{ $branch->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="form-control" name="lines[1][business_unit_id]">
+                                            <option value="">Select</option>
+                                            @foreach($businessUnits as $bu)
+                                                <option value="{{ $bu->id }}" {{ old('lines.1.business_unit_id') == $bu->id ? 'selected' : '' }}>
+                                                    {{ $bu->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="form-control" name="lines[1][tax_id]">
+                                            <option value="">Select</option>
+                                            @foreach($taxes as $tax)
+                                                <option value="{{ $tax->id }}" {{ old('lines.1.tax_id') == $tax->id ? 'selected' : '' }}>
+                                                    {{ $tax->tax_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger btn-sm remove-line">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="5" class="text-right"><strong>Totals:</strong></td>
+                                    <td class="text-right">
+                                        <strong id="totalDebit">0.00</strong>
+                                    </td>
+                                    <td class="text-right">
+                                        <strong id="totalCredit">0.00</strong>
+                                    </td>
+                                    <td colspan="3">
+                                        <button type="button" class="btn btn-success btn-sm" id="addLine">
+                                            <i class="bi bi-plus"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
                     <div id="balanceWarning" class="text-danger d-none">
                         <i class="bi bi-exclamation-triangle"></i> Journal is not balanced!
                     </div>
@@ -144,6 +267,36 @@
             <option value="">Select Account</option>
             @foreach($accounts as $account)
                 <option value="{{ $account->id }}">{{ $account->account_code }} — {{ $account->account_name }}</option>
+            @endforeach
+        `;
+        const costCenterOptions = `
+            <option value="">Select</option>
+            @foreach($costCenters as $cc)
+                <option value="{{ $cc->id }}">{{ $cc->name }}</option>
+            @endforeach
+        `;
+        const departmentOptions = `
+            <option value="">Select</option>
+            @foreach($departments as $dept)
+                <option value="{{ $dept->id }}">{{ $dept->name }}</option>
+            @endforeach
+        `;
+        const branchOptions = `
+            <option value="">Select</option>
+            @foreach($branches as $branch)
+                <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+            @endforeach
+        `;
+        const businessUnitOptions = `
+            <option value="">Select</option>
+            @foreach($businessUnits as $bu)
+                <option value="{{ $bu->id }}">{{ $bu->name }}</option>
+            @endforeach
+        `;
+        const taxOptions = `
+            <option value="">Select</option>
+            @foreach($taxes as $tax)
+                <option value="{{ $tax->id }}">{{ $tax->tax_name }}</option>
             @endforeach
         `;
         
@@ -192,6 +345,31 @@
                 <td>
                     <input type="number" class="form-control text-right credit-input" name="lines[${lineIndex}][credit]" 
                            step="0.01" min="0" value="0">
+                </td>
+                <td>
+                    <select class="form-control" name="lines[${lineIndex}][cost_center_id]">
+                        ${costCenterOptions}
+                    </select>
+                </td>
+                <td>
+                    <select class="form-control" name="lines[${lineIndex}][department_id]">
+                        ${departmentOptions}
+                    </select>
+                </td>
+                <td>
+                    <select class="form-control" name="lines[${lineIndex}][branch_id]">
+                        ${branchOptions}
+                    </select>
+                </td>
+                <td>
+                    <select class="form-control" name="lines[${lineIndex}][business_unit_id]">
+                        ${businessUnitOptions}
+                    </select>
+                </td>
+                <td>
+                    <select class="form-control" name="lines[${lineIndex}][tax_id]">
+                        ${taxOptions}
+                    </select>
                 </td>
                 <td>
                     <button type="button" class="btn btn-danger btn-sm remove-line">

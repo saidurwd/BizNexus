@@ -101,6 +101,10 @@ class LedgerService
         ?Carbon $endDate,
         ?int $fiscalPeriodId
     ): float {
+        if (!$startDate && !$endDate && !$fiscalPeriodId) {
+            return 0;
+        }
+
         $query = JournalLine::where('account_id', $account->id)
             ->whereHas('journal', fn($q) => $q->posted());
 
@@ -146,6 +150,8 @@ class LedgerService
 
         $totalDebit = 0;
         $totalCredit = 0;
+        $totalOpeningDebit = 0;
+        $totalOpeningCredit = 0;
         $accountBalances = [];
 
         foreach ($accounts as $account) {
@@ -157,45 +163,96 @@ class LedgerService
                 $credit = bcadd($credit, $line->credit, 4);
             }
 
+            $openingDebit = 0;
+            $openingCredit = 0;
+            $openingBalance = $this->calculateOpeningBalanceForTrialBalance($account->id, $fiscalPeriodId, $date);
+
             if ($account->isDebitNormal()) {
-                $balance = bcsub($debit, $credit, 4);
+                if ($openingBalance >= 0) {
+                    $openingDebit = $openingBalance;
+                } else {
+                    $openingCredit = abs($openingBalance);
+                }
+            } else {
+                if ($openingBalance >= 0) {
+                    $openingCredit = $openingBalance;
+                } else {
+                    $openingDebit = abs($openingBalance);
+                }
+            }
+
+            $balance = bcsub($debit, $credit, 4);
+
+            if ($account->isDebitNormal()) {
                 if (bccomp($balance, 0, 4) >= 0) {
                     $totalDebit = bcadd($totalDebit, $balance, 4);
                 } else {
-                    $totalCredit = bcadd($totalCredit, abs((float) $balance), 4);
+                    $totalCredit = bcadd($totalCredit, abs($balance), 4);
                 }
             } else {
-                $balance = bcsub($credit, $debit, 4);
-                if (bccomp($balance, 0, 4) >= 0) {
-                    $totalCredit = bcadd($totalCredit, $balance, 4);
+                $creditBalance = bcsub($credit, $debit, 4);
+                if (bccomp($creditBalance, 0, 4) >= 0) {
+                    $totalCredit = bcadd($totalCredit, $creditBalance, 4);
                 } else {
-                    $totalDebit = bcadd($totalDebit, abs((float) $balance), 4);
+                    $totalDebit = bcadd($totalDebit, abs($creditBalance), 4);
                 }
             }
+
+            $totalOpeningDebit = bcadd($totalOpeningDebit, $openingDebit, 4);
+            $totalOpeningCredit = bcadd($totalOpeningCredit, $openingCredit, 4);
 
             $accountBalances[] = [
                 'account_id' => $account->id,
                 'account_code' => $account->account_code,
                 'account_name' => $account->account_name,
                 'account_type' => $account->account_type,
-                'debit' => $debit,
-                'credit' => $credit,
-                'balance' => $balance,
+                'opening_debit' => $openingDebit,
+                'opening_credit' => $openingCredit,
+                'period_debit' => $debit,
+                'period_credit' => $credit,
+                'closing_debit' => $openingDebit + $debit,
+                'closing_credit' => $openingCredit + $credit,
             ];
         }
-
-        $isBalanced = bccomp($totalDebit, $totalCredit, 4) === 0;
 
         return [
             'company_id' => $companyId,
             'fiscal_period_id' => $fiscalPeriodId,
             'date' => $date?->format('Y-m-d'),
-            'total_debit' => $totalDebit,
-            'total_credit' => $totalCredit,
-            'is_balanced' => $isBalanced,
-            'difference' => bcsub($totalDebit, $totalCredit, 4),
+            'total_opening_debit' => $totalOpeningDebit,
+            'total_opening_credit' => $totalOpeningCredit,
+            'total_period_debit' => $totalDebit,
+            'total_period_credit' => $totalCredit,
+            'total_closing_debit' => bcadd($totalOpeningDebit, $totalDebit, 4),
+            'total_closing_credit' => bcadd($totalOpeningCredit, $totalCredit, 4),
+            'is_balanced' => bccomp(bcadd($totalOpeningDebit, $totalDebit, 4), bcadd($totalOpeningCredit, $totalCredit, 4), 4) === 0,
+            'difference' => bcsub(bcadd($totalOpeningDebit, $totalDebit, 4), bcadd($totalOpeningCredit, $totalCredit, 4), 4),
             'accounts' => $accountBalances,
         ];
+    }
+
+    protected function calculateOpeningBalanceForTrialBalance(int $accountId, ?int $fiscalPeriodId, ?Carbon $date): float
+    {
+        if (!$fiscalPeriodId && !$date) {
+            return 0;
+        }
+
+        $query = JournalLine::where('account_id', $accountId)
+            ->whereHas('journal', fn($q) => $q->posted());
+
+        if ($fiscalPeriodId) {
+            $period = \Modules\Core\Models\FiscalPeriod::find($fiscalPeriodId);
+            if ($period) {
+                $query->whereHas('journal', fn($q) => $q->where('journal_date', '<', $period->start_date));
+            }
+        } elseif ($date) {
+            $query->whereHas('journal', fn($q) => $q->where('journal_date', '<', $date));
+        }
+
+        $totalDebit = (float) $query->clone()->sum('debit');
+        $totalCredit = (float) $query->clone()->sum('credit');
+
+        return bcsub($totalDebit, $totalCredit, 4);
     }
 
     public function getGeneralLedger(

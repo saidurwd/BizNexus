@@ -19,12 +19,13 @@ class DocumentNumberService
         'CR' => ['prefix' => 'CR', 'format' => '{PREFIX}-{YEAR}-{SEQUENCE:6}'],
     ];
 
-    public function generateNumber(int $companyId, string $documentType): string
+    public function generateNumber(int $companyId, string $documentType, ?int $fiscalYearId = null): string
     {
         $sequence = NumberSequence::firstOrCreate(
             [
                 'company_id' => $companyId,
                 'document_type' => $documentType,
+                'fiscal_year_id' => $fiscalYearId,
             ],
             [
                 'prefix' => $documentType,
@@ -37,13 +38,14 @@ class DocumentNumberService
         return $sequence->getNextNumber();
     }
 
-    public function initializeDefaultsForCompany(int $companyId): void
+    public function initializeDefaultsForCompany(int $companyId, ?int $fiscalYearId = null): void
     {
         foreach ($this->defaultDocumentTypes as $type => $config) {
             NumberSequence::firstOrCreate(
                 [
                     'company_id' => $companyId,
                     'document_type' => $type,
+                    'fiscal_year_id' => $fiscalYearId,
                 ],
                 [
                     'prefix' => $config['prefix'],
@@ -55,28 +57,33 @@ class DocumentNumberService
         }
     }
 
-    public function resetSequence(int $companyId, string $documentType): void
+    public function resetSequence(int $companyId, string $documentType, ?int $fiscalYearId = null): void
     {
         NumberSequence::where('company_id', $companyId)
             ->where('document_type', $documentType)
+            ->when($fiscalYearId, fn($q) => $q->where('fiscal_year_id', $fiscalYearId))
+            ->when(!$fiscalYearId, fn($q) => $q->whereNull('fiscal_year_id'))
             ->update(['last_number' => 0]);
     }
 
-    public function getCurrentNumber(int $companyId, string $documentType): int
+    public function getCurrentNumber(int $companyId, string $documentType, ?int $fiscalYearId = null): int
     {
         $sequence = NumberSequence::where('company_id', $companyId)
             ->where('document_type', $documentType)
+            ->when($fiscalYearId, fn($q) => $q->where('fiscal_year_id', $fiscalYearId))
+            ->when(!$fiscalYearId, fn($q) => $q->whereNull('fiscal_year_id'))
             ->first();
 
         return $sequence?->last_number ?? 0;
     }
 
-    public function previewNumber(int $companyId, string $documentType): string
+    public function previewNumber(int $companyId, string $documentType, ?int $fiscalYearId = null): string
     {
         $sequence = NumberSequence::firstOrCreate(
             [
                 'company_id' => $companyId,
                 'document_type' => $documentType,
+                'fiscal_year_id' => $fiscalYearId,
             ],
             [
                 'prefix' => $documentType,

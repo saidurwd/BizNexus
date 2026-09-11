@@ -14,8 +14,12 @@ return new class extends Migration
         });
 
         \DB::table('budget_lines')
-            ->join('budgets', 'budgets.id', '=', 'budget_lines.budget_id')
-            ->update(['budget_lines.company_id' => \DB::raw('budgets.company_id')]);
+            ->whereExists(function ($query) {
+                $query->select(\DB::raw(1))
+                    ->from('budgets')
+                    ->whereColumn('budgets.id', 'budget_lines.budget_id');
+            })
+            ->update(['company_id' => \DB::table('budgets')->select('company_id')->whereColumn('budgets.id', 'budget_lines.budget_id')]);
 
         Schema::table('budget_lines', function (Blueprint $table) {
             $table->unsignedBigInteger('company_id')->nullable(false)->change();

@@ -47,7 +47,38 @@ class JournalController extends Controller
             ->orderByRaw("CAST(account_code AS UNSIGNED)")
             ->get(['id', 'account_code', 'account_name']);
 
-        return view('finance.journals.create', compact('accounts', 'companyId'));
+        $fiscalPeriods = \Modules\Core\Models\FiscalPeriod::whereHas('fiscalYear', function ($q) use ($companyId) {
+            $q->where('company_id', $companyId);
+        })->where('status', 'OPEN')->orderBy('period_number')->get();
+
+        $costCenters = \Modules\Core\Models\CostCenter::where('company_id', $companyId)->where('status', 'active')->get();
+        $departments = \Modules\Core\Models\Department::where('company_id', $companyId)->where('status', 'active')->get();
+        $branches = \Modules\Core\Models\Branch::where('company_id', $companyId)->where('status', 'active')->get();
+        $businessUnits = \Modules\Core\Models\BusinessUnit::where('company_id', $companyId)->where('status', 'active')->get();
+        $projects = \Modules\Core\Models\Project::where('company_id', $companyId)->where('status', 'active')->get();
+        $taxes = \Modules\Finance\Models\Tax::where('company_id', $companyId)->where('status', 'active')->get();
+
+        return view('finance.journals.create', compact('accounts', 'companyId', 'fiscalPeriods', 'costCenters', 'departments', 'branches', 'businessUnits', 'projects', 'taxes'));
+    }
+
+    public function edit(int $id)
+    {
+        $this->checkPermission('finance.journals.update');
+
+        $journal = Journal::with('lines.account')->findOrFail($id);
+
+        if (!$journal->isDraft()) {
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('error', 'Only draft journals can be edited.');
+        }
+
+        $companyId = $this->getActiveCompanyId();
+        $accounts = \Modules\Finance\Models\Account::postable()
+            ->where('company_id', $companyId)
+            ->orderByRaw("CAST(account_code AS UNSIGNED)")
+            ->get(['id', 'account_code', 'account_name']);
+
+        return view('finance.journals.edit', compact('journal', 'accounts', 'companyId'));
     }
 
     public function store(Request $request)
@@ -68,6 +99,35 @@ class JournalController extends Controller
         try {
             $journal = $this->journalService->create($validated);
             return redirect()->route('finance.journals.show', $journal->id)->with('success', 'Journal created successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    public function update(Request $request, int $id)
+    {
+        $this->checkPermission('finance.journals.update');
+
+        $journal = Journal::findOrFail($id);
+
+        if (!$journal->isDraft()) {
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('error', 'Only draft journals can be updated.');
+        }
+
+        $validated = $request->validate([
+            'journal_date' => 'required|date',
+            'description' => 'nullable|string',
+            'lines' => 'required|array|min:2',
+            'lines.*.account_id' => 'required|exists:accounts,id',
+            'lines.*.description' => 'nullable|string',
+            'lines.*.debit' => 'nullable|numeric|min:0',
+            'lines.*.credit' => 'nullable|numeric|min:0',
+        ]);
+
+        try {
+            $this->journalService->update($journal, $validated);
+            return redirect()->route('finance.journals.show', $journal->id)->with('success', 'Journal updated successfully.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
@@ -207,6 +267,99 @@ class JournalController extends Controller
             $this->journalService->cancel($journal);
             return redirect()->route('finance.journals.show', $journal->id)
                 ->with('success', 'Journal cancelled.');
+        } catch (\Exception $e) {
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function addLine(Request $request, int $id)
+    {
+        $this->checkPermission('finance.journals.update');
+
+        $journal = Journal::findOrFail($id);
+
+        if (!$journal->isDraft()) {
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('error', 'Can only add lines to draft journals.');
+        }
+
+        $validated = $request->validate([
+            'account_id' => 'required|exists:accounts,id',
+            'description' => 'nullable|string|max:500',
+            'debit' => 'nullable|numeric|min:0',
+            'credit' => 'nullable|numeric|min:0',
+            'cost_center_id' => 'nullable|exists:cost_centers,id',
+            'department_id' => 'nullable|exists:departments,id',
+            'branch_id' => 'nullable|exists:branches,id',
+            'business_unit_id' => 'nullable|exists:business_units,id',
+            'project_id' => 'nullable|exists:projects,id',
+            'tax_id' => 'nullable|exists:taxes,id',
+            'reference' => 'nullable|string|max:100',
+        ]);
+
+        try {
+            $this->journalService->addLine($journal, $validated);
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('success', 'Line added successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function updateLine(Request $request, int $lineId)
+    {
+        $this->checkPermission('finance.journals.update');
+
+        $line = \Modules\Finance\Models\JournalLine::findOrFail($lineId);
+        $journal = $line->journal;
+
+        if (!$journal->isDraft()) {
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('error', 'Can only update lines in draft journals.');
+        }
+
+        $validated = $request->validate([
+            'account_id' => 'required|exists:accounts,id',
+            'description' => 'nullable|string|max:500',
+            'debit' => 'nullable|numeric|min:0',
+            'credit' => 'nullable|numeric|min:0',
+            'cost_center_id' => 'nullable|exists:cost_centers,id',
+            'department_id' => 'nullable|exists:departments,id',
+            'branch_id' => 'nullable|exists:branches,id',
+            'business_unit_id' => 'nullable|exists:business_units,id',
+            'project_id' => 'nullable|exists:projects,id',
+            'tax_id' => 'nullable|exists:taxes,id',
+            'reference' => 'nullable|string|max:100',
+        ]);
+
+        try {
+            $this->journalService->updateLine($line, $validated);
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('success', 'Line updated successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function removeLine(int $lineId)
+    {
+        $this->checkPermission('finance.journals.update');
+
+        $line = \Modules\Finance\Models\JournalLine::findOrFail($lineId);
+        $journal = $line->journal;
+
+        if (!$journal->isDraft()) {
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('error', 'Can only remove lines from draft journals.');
+        }
+
+        try {
+            $this->journalService->removeLine($line);
+            return redirect()->route('finance.journals.show', $journal->id)
+                ->with('success', 'Line removed successfully.');
         } catch (\Exception $e) {
             return redirect()->route('finance.journals.show', $journal->id)
                 ->with('error', $e->getMessage());

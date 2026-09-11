@@ -3,12 +3,19 @@
 namespace Modules\Core\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Core\Models\UserCompany;
 
 class Company extends Model
 {
+    use HasFactory;
+
+    protected static function newFactory()
+    {
+        return \Database\Factories\CompanyFactory::new();
+    }
     protected $fillable = [
         'code',
         'name',
@@ -97,7 +104,7 @@ class Company extends Model
 
     public function currentFiscalYear()
     {
-        return $this->fiscalYears()->where('is_current', true)->first();
+        return $this->fiscalYears()->where('is_current', true);
     }
 
     public function scopeActive($query)

@@ -4,11 +4,18 @@
 namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Finance\Scopes\CompanyScope;
 
 class Tax extends Model
 {
+    use HasFactory;
+
+    protected static function newFactory()
+    {
+        return \Database\Factories\TaxFactory::new();
+    }
 
     protected static function booted()
     {
