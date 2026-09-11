@@ -5,11 +5,13 @@ namespace Modules\Finance\Controllers\Web;
 use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Finance\Models\Journal;
+use Modules\Finance\Models\JournalLine;
 use Modules\Finance\Services\JournalService;
 use Modules\Finance\Services\LedgerService;
 use Modules\Finance\Services\FinancialReportService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Scopes\CompanyScope;
 
 class JournalController extends Controller
 {
@@ -27,6 +29,9 @@ class JournalController extends Controller
     {
         $this->checkPermission('finance.journals.view');
 
+        $companyId = $this->getActiveCompanyId();
+        $company = $companyId ? \Modules\Core\Models\Company::find($companyId) : null;
+
         $journals = Journal::with(['lines.account', 'fiscalPeriod'])
             ->when($request->get('status'), fn($q, $status) => $q->where('status', $status))
             ->orderBy('journal_date', 'desc')
@@ -34,6 +39,7 @@ class JournalController extends Controller
 
         return view('finance.journals.index', [
             'journals' => $journals,
+            'company' => $company,
         ]);
     }
 
@@ -64,7 +70,9 @@ class JournalController extends Controller
     {
         $this->checkPermission('finance.journals.update');
 
-        $journal = Journal::with('lines.account')->findOrFail($id);
+        $journal = Journal::withoutGlobalScope(CompanyScope::class)
+            ->with('lines.account')
+            ->findOrFail($id);
 
         if (!$journal->isDraft()) {
             return redirect()->route('finance.journals.show', $journal->id)
@@ -94,6 +102,7 @@ class JournalController extends Controller
         ]);
 
         $validated['company_id'] = $this->getActiveCompanyId();
+        $validated['branch_id'] = $this->getActiveBranchId();
 
         try {
             $journal = $this->journalService->create($validated);
@@ -107,7 +116,7 @@ class JournalController extends Controller
     {
         $this->checkPermission('finance.journals.update');
 
-        $journal = Journal::findOrFail($id);
+        $journal = Journal::withoutGlobalScope(CompanyScope::class)->findOrFail($id);
 
         if (!$journal->isDraft()) {
             return redirect()->route('finance.journals.show', $journal->id)
@@ -136,7 +145,8 @@ class JournalController extends Controller
     {
         $this->checkPermission('finance.journals.view');
 
-        $journal = Journal::with(['lines.account', 'fiscalPeriod', 'postedBy', 'createdBy'])
+        $journal = Journal::with(['lines.account', 'fiscalPeriod', 'postedBy', 'createdBy', 'branch'])
+            ->withoutGlobalScope(CompanyScope::class)
             ->findOrFail($id);
 
         return view('finance.journals.show', [
@@ -163,7 +173,7 @@ class JournalController extends Controller
     {
         $this->checkPermission('finance.journals.delete');
 
-        $journal = Journal::findOrFail($id);
+        $journal = Journal::withoutGlobalScope(CompanyScope::class)->findOrFail($id);
 
         if ($journal->status !== 'DRAFT') {
             return redirect()->route('finance.journals.show', $journal->id)
@@ -180,7 +190,7 @@ class JournalController extends Controller
     {
         $this->checkPermission('finance.journals.approve');
 
-        $journal = Journal::findOrFail($id);
+        $journal = Journal::withoutGlobalScope(CompanyScope::class)->findOrFail($id);
 
         try {
             $this->journalService->submit($journal);
@@ -196,7 +206,7 @@ class JournalController extends Controller
     {
         $this->checkPermission('finance.journals.approve');
 
-        $journal = Journal::findOrFail($id);
+        $journal = Journal::withoutGlobalScope(CompanyScope::class)->findOrFail($id);
 
         try {
             $this->journalService->approve($journal);
@@ -212,7 +222,7 @@ class JournalController extends Controller
     {
         $this->checkPermission('finance.journals.approve');
 
-        $journal = Journal::findOrFail($id);
+        $journal = Journal::withoutGlobalScope(CompanyScope::class)->findOrFail($id);
 
         try {
             $this->journalService->reject($journal);
@@ -228,7 +238,7 @@ class JournalController extends Controller
     {
         $this->checkPermission('finance.journals.post');
 
-        $journal = Journal::findOrFail($id);
+        $journal = Journal::withoutGlobalScope(CompanyScope::class)->findOrFail($id);
 
         try {
             $this->journalService->post($journal);
@@ -244,7 +254,7 @@ class JournalController extends Controller
     {
         $this->checkPermission('finance.journals.post');
 
-        $journal = Journal::findOrFail($id);
+        $journal = Journal::withoutGlobalScope(CompanyScope::class)->findOrFail($id);
 
         try {
             $this->journalService->reverse($journal);
@@ -260,7 +270,7 @@ class JournalController extends Controller
     {
         $this->checkPermission('finance.journals.delete');
 
-        $journal = Journal::findOrFail($id);
+        $journal = Journal::withoutGlobalScope(CompanyScope::class)->findOrFail($id);
 
         try {
             $this->journalService->cancel($journal);
@@ -276,7 +286,7 @@ class JournalController extends Controller
     {
         $this->checkPermission('finance.journals.update');
 
-        $journal = Journal::findOrFail($id);
+        $journal = Journal::withoutGlobalScope(CompanyScope::class)->findOrFail($id);
 
         if (!$journal->isDraft()) {
             return redirect()->route('finance.journals.show', $journal->id)
@@ -311,7 +321,8 @@ class JournalController extends Controller
     {
         $this->checkPermission('finance.journals.update');
 
-        $line = \Modules\Finance\Models\JournalLine::findOrFail($lineId);
+        $line = \Modules\Finance\Models\JournalLine::withoutGlobalScope(CompanyScope::class)
+            ->findOrFail($lineId);
         $journal = $line->journal;
 
         if (!$journal->isDraft()) {
@@ -347,7 +358,8 @@ class JournalController extends Controller
     {
         $this->checkPermission('finance.journals.update');
 
-        $line = \Modules\Finance\Models\JournalLine::findOrFail($lineId);
+        $line = \Modules\Finance\Models\JournalLine::withoutGlobalScope(CompanyScope::class)
+            ->findOrFail($lineId);
         $journal = $line->journal;
 
         if (!$journal->isDraft()) {

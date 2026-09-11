@@ -36,6 +36,7 @@ class JournalService
 
             $journal = Journal::create([
                 'company_id' => $companyId,
+                'branch_id' => $data['branch_id'] ?? null,
                 'journal_number' => $this->documentNumber->generateNumber($companyId, 'JV', $data['fiscal_year_id'] ?? null),
                 'journal_date' => $data['journal_date'],
                 'fiscal_period_id' => $data['fiscal_period_id'] ?? null,

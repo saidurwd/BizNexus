@@ -15,6 +15,9 @@
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Journal Register</h3>
+            @if($company)
+                <span class="text-muted ml-2">({{ $company->code }} — {{ $company->name }})</span>
+            @endif
             <div class="card-tools">
                 <form method="GET" action="{{ route('finance.journals.index') }}" class="form-inline">
                     <select name="status" class="form-control form-control-sm" onchange="this.form.submit()">
@@ -65,7 +68,12 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center">No journals found</td>
+                            <td colspan="8" class="text-center">
+                                No journals found for {{ $company?->name ?? 'this company' }}.
+                                @if($company && \Modules\Finance\Models\Journal::where('company_id', $company->id)->count() == 0)
+                                    <br><small class="text-muted">You can <a href="{{ route('finance.journals.create') }}">create a new journal entry</a> or switch to a different company.</small>
+                                @endif
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>

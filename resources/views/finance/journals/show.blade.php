@@ -33,6 +33,10 @@
                     <td>{{ $journal->journal_date->format('Y-m-d') }}</td>
                 </tr>
                 <tr>
+                    <th>Branch</th>
+                    <td>{{ $journal->branch?->name ?? '-' }}</td>
+                </tr>
+                <tr>
                     <th>Posting Date</th>
                     <td>{{ $journal->posting_date?->format('Y-m-d H:i:s') ?? '-' }}</td>
                 </tr>

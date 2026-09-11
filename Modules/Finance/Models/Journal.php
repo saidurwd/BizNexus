@@ -27,6 +27,7 @@ class Journal extends Model
     }
     protected $fillable = [
         'company_id',
+        'branch_id',
         'journal_number',
         'journal_date',
         'posting_date',
@@ -71,6 +72,11 @@ class Journal extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(\Modules\Core\Models\Company::class);
+    }
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Core\Models\Branch::class);
     }
 
     public function fiscalPeriod(): BelongsTo
