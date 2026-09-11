@@ -36,22 +36,24 @@
                                         <th>Date</th>
                                         <th>Journal #</th>
                                         <th>Description</th>
-                                        <th>Debit</th>
-                                        <th>Credit</th>
+                                        <th>Cost Center</th>
+                                        <th class="text-right">Debit</th>
+                                        <th class="text-right">Credit</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($account['entries'] as $entry)
                                         <tr>
-                                            <td>{{ $entry['date'] }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($entry['date'])->format('Y-m-d') }}</td>
                                             <td>{{ $entry['journal_number'] }}</td>
-                                            <td>{{ $entry['description'] }}</td>
+                                            <td>{{ $entry['description'] ?? '-' }}</td>
+                                            <td>{{ $entry['cost_center'] ?? '-' }}</td>
                                             <td class="text-right">{{ number_format($entry['debit'], 2) }}</td>
                                             <td class="text-right">{{ number_format($entry['credit'], 2) }}</td>
                                         </tr>
                                     @endforeach
                                     <tr class="table-active">
-                                        <td colspan="3" class="text-end"><strong>Total</strong></td>
+                                        <td colspan="4" class="text-end"><strong>Total</strong></td>
                                         <td class="text-right"><strong>{{ number_format($account['total_debit'], 2) }}</strong></td>
                                         <td class="text-right"><strong>{{ number_format($account['total_credit'], 2) }}</strong></td>
                                     </tr>
