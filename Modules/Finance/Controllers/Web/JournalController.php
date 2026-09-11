@@ -55,10 +55,9 @@ class JournalController extends Controller
         $departments = \Modules\Core\Models\Department::where('company_id', $companyId)->where('status', 'active')->get();
         $branches = \Modules\Core\Models\Branch::where('company_id', $companyId)->where('status', 'active')->get();
         $businessUnits = \Modules\Core\Models\BusinessUnit::where('company_id', $companyId)->where('status', 'active')->get();
-        $projects = \Modules\Core\Models\Project::where('company_id', $companyId)->where('status', 'active')->get();
         $taxes = \Modules\Finance\Models\Tax::where('company_id', $companyId)->where('status', 'active')->get();
 
-        return view('finance.journals.create', compact('accounts', 'companyId', 'fiscalPeriods', 'costCenters', 'departments', 'branches', 'businessUnits', 'projects', 'taxes'));
+        return view('finance.journals.create', compact('accounts', 'companyId', 'fiscalPeriods', 'costCenters', 'departments', 'branches', 'businessUnits', 'taxes'));
     }
 
     public function edit(int $id)
