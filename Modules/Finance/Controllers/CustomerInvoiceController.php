@@ -3,9 +3,9 @@
 namespace Modules\Finance\Controllers;
 
 use Illuminate\Http\Request;
+use Modules\Core\Services\CompanyContextService;
 use Modules\Finance\Models\CustomerInvoice;
 use Modules\Finance\Services\CustomerInvoiceService;
-use Modules\Core\Services\CompanyContextService;
 
 class CustomerInvoiceController extends Controller
 {
@@ -20,10 +20,10 @@ class CustomerInvoiceController extends Controller
 
         $invoices = CustomerInvoice::with(['customer', 'currency'])
             ->where('company_id', $companyId)
-            ->when($request->get('customer_id'), fn($q, $id) => $q->where('customer_id', $id))
-            ->when($request->get('status'), fn($q, $status) => $q->where('status', $status))
-            ->when($request->get('start_date'), fn($q, $date) => $q->where('invoice_date', '>=', $date))
-            ->when($request->get('end_date'), fn($q, $date) => $q->where('invoice_date', '<=', $date))
+            ->when($request->get('customer_id'), fn ($q, $id) => $q->where('customer_id', $id))
+            ->when($request->get('status'), fn ($q, $status) => $q->where('status', $status))
+            ->when($request->get('start_date'), fn ($q, $date) => $q->where('invoice_date', '>=', $date))
+            ->when($request->get('end_date'), fn ($q, $date) => $q->where('invoice_date', '<=', $date))
             ->orderBy('invoice_date', 'desc')
             ->paginate($request->get('per_page', 15));
 
@@ -61,6 +61,7 @@ class CustomerInvoiceController extends Controller
 
         try {
             $invoice = $this->customerInvoiceService->createInvoice($validated);
+
             return $this->successResponse($invoice, 'Invoice created successfully', 201);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -73,6 +74,7 @@ class CustomerInvoiceController extends Controller
 
         try {
             $invoice = $this->customerInvoiceService->postInvoice($invoice);
+
             return $this->successResponse($invoice, 'Invoice posted successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -85,6 +87,7 @@ class CustomerInvoiceController extends Controller
 
         try {
             $invoice = $this->customerInvoiceService->submitInvoice($invoice);
+
             return $this->successResponse($invoice, 'Invoice submitted successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -97,6 +100,7 @@ class CustomerInvoiceController extends Controller
 
         try {
             $invoice = $this->customerInvoiceService->approveInvoice($invoice);
+
             return $this->successResponse($invoice, 'Invoice approved successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -109,6 +113,7 @@ class CustomerInvoiceController extends Controller
 
         try {
             $invoice = $this->customerInvoiceService->rejectInvoice($invoice, $request->get('reason'));
+
             return $this->successResponse($invoice, 'Invoice rejected');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -119,13 +124,13 @@ class CustomerInvoiceController extends Controller
     {
         $invoice = CustomerInvoice::findOrFail($id);
 
-        if (!$invoice->isDraft()) {
+        if (! $invoice->isDraft()) {
             return $this->errorResponse('Only draft invoices can be updated', 400);
         }
 
         $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
-            'invoice_number' => 'required|string|max:50|unique:customer_invoices,invoice_number,' . $id,
+            'invoice_number' => 'required|string|max:50|unique:customer_invoices,invoice_number,'.$id,
             'invoice_date' => 'required|date',
             'due_date' => 'nullable|date|after_or_equal:invoice_date',
             'currency_id' => 'nullable|exists:currencies,id',
@@ -143,6 +148,7 @@ class CustomerInvoiceController extends Controller
 
         try {
             $invoice = $this->customerInvoiceService->updateInvoice($invoice, $validated);
+
             return $this->successResponse($invoice, 'Invoice updated successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -155,6 +161,7 @@ class CustomerInvoiceController extends Controller
 
         try {
             $invoice = $this->customerInvoiceService->cancelInvoice($invoice);
+
             return $this->successResponse($invoice, 'Invoice cancelled');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);

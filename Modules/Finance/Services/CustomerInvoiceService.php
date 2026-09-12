@@ -2,15 +2,15 @@
 
 namespace Modules\Finance\Services;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Modules\Finance\Models\Customer;
-use Modules\Finance\Models\CustomerInvoice;
-use Modules\Finance\Models\CustomerInvoiceLine;
-use Modules\Finance\Models\Journal;
-use Modules\Core\Services\DocumentNumberService;
-use Modules\Core\Services\AuditService;
+use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
+use Modules\Core\Services\AuditService;
+use Modules\Core\Services\DocumentNumberService;
+use Modules\Finance\Events\CustomerInvoiceApproved;
+use Modules\Finance\Models\Account;
+use Modules\Finance\Models\CustomerInvoice;
+use Modules\Workflow\Services\WorkflowService;
 
 class CustomerInvoiceService
 {
@@ -73,7 +73,7 @@ class CustomerInvoiceService
             $this->audit->logCreate('Finance', 'CustomerInvoice', $invoice->id, $invoice->toArray());
 
             try {
-                app(\Modules\Workflow\Services\WorkflowService::class)->createInstance(
+                app(WorkflowService::class)->createInstance(
                     'customer_invoice',
                     $invoice->id,
                     CustomerInvoice::STATUS_DRAFT,
@@ -89,7 +89,7 @@ class CustomerInvoiceService
 
     public function postInvoice(CustomerInvoice $invoice): CustomerInvoice
     {
-        if (!$invoice->isApproved()) {
+        if (! $invoice->isApproved()) {
             throw new InvalidAccountingTransactionException('Only approved invoices can be posted');
         }
 
@@ -156,7 +156,7 @@ class CustomerInvoiceService
             ]);
 
             try {
-                app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+                app(WorkflowService::class)->transitionInstance(
                     'customer_invoice',
                     $invoice->id,
                     CustomerInvoice::STATUS_POSTED
@@ -171,7 +171,7 @@ class CustomerInvoiceService
 
     public function submitInvoice(CustomerInvoice $invoice): CustomerInvoice
     {
-        if (!$invoice->isDraft()) {
+        if (! $invoice->isDraft()) {
             throw new InvalidAccountingTransactionException('Only draft invoices can be submitted');
         }
 
@@ -182,7 +182,7 @@ class CustomerInvoiceService
         ]);
 
         try {
-            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+            app(WorkflowService::class)->transitionInstance(
                 'customer_invoice',
                 $invoice->id,
                 CustomerInvoice::STATUS_SUBMITTED
@@ -196,7 +196,7 @@ class CustomerInvoiceService
 
     public function approveInvoice(CustomerInvoice $invoice): CustomerInvoice
     {
-        if (!$invoice->isSubmitted()) {
+        if (! $invoice->isSubmitted()) {
             throw new InvalidAccountingTransactionException('Only submitted invoices can be approved');
         }
 
@@ -206,10 +206,10 @@ class CustomerInvoiceService
             'previous_status' => CustomerInvoice::STATUS_SUBMITTED,
         ]);
 
-        event(new \Modules\Finance\Events\CustomerInvoiceApproved($invoice));
+        event(new CustomerInvoiceApproved($invoice));
 
         try {
-            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+            app(WorkflowService::class)->transitionInstance(
                 'customer_invoice',
                 $invoice->id,
                 CustomerInvoice::STATUS_APPROVED
@@ -223,7 +223,7 @@ class CustomerInvoiceService
 
     public function rejectInvoice(CustomerInvoice $invoice, ?string $reason = null): CustomerInvoice
     {
-        if (!$invoice->isSubmitted()) {
+        if (! $invoice->isSubmitted()) {
             throw new InvalidAccountingTransactionException('Only submitted invoices can be rejected');
         }
 
@@ -235,7 +235,7 @@ class CustomerInvoiceService
         ]);
 
         try {
-            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+            app(WorkflowService::class)->transitionInstance(
                 'customer_invoice',
                 $invoice->id,
                 CustomerInvoice::STATUS_REJECTED,
@@ -250,7 +250,7 @@ class CustomerInvoiceService
 
     protected function getDefaultReceivableAccount(int $companyId): int
     {
-        $account = \Modules\Finance\Models\Account::where('company_id', $companyId)
+        $account = Account::where('company_id', $companyId)
             ->where('account_code', 'like', '1100%')
             ->where('is_postable', true)
             ->first();
@@ -280,7 +280,7 @@ class CustomerInvoiceService
 
     public function updateInvoice(CustomerInvoice $invoice, array $data): CustomerInvoice
     {
-        if (!$invoice->isDraft()) {
+        if (! $invoice->isDraft()) {
             throw new InvalidAccountingTransactionException('Only draft invoices can be updated');
         }
 

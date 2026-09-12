@@ -2,11 +2,14 @@
 
 namespace Modules\Finance\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Modules\Finance\Scopes\CompanyScope;
+use Modules\Core\Models\Company;
+use Modules\Core\Models\Currency;
 use Modules\Finance\Scopes\BranchScope;
+use Modules\Finance\Scopes\CompanyScope;
 
 class SupplierInvoice extends Model
 {
@@ -49,16 +52,22 @@ class SupplierInvoice extends Model
     ];
 
     public const STATUS_DRAFT = 'DRAFT';
+
     public const STATUS_SUBMITTED = 'SUBMITTED';
+
     public const STATUS_APPROVED = 'APPROVED';
+
     public const STATUS_POSTED = 'POSTED';
+
     public const STATUS_PARTIALLY_PAID = 'PARTIALLY_PAID';
+
     public const STATUS_PAID = 'PAID';
+
     public const STATUS_CANCELLED = 'CANCELLED';
 
     public function company(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Company::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function supplier(): BelongsTo
@@ -68,7 +77,7 @@ class SupplierInvoice extends Model
 
     public function currency(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Currency::class);
+        return $this->belongsTo(Currency::class);
     }
 
     public function journal(): BelongsTo
@@ -98,12 +107,12 @@ class SupplierInvoice extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function isDraft(): bool
@@ -139,7 +148,7 @@ class SupplierInvoice extends Model
     public function calculateOutstanding(): void
     {
         $paidAmount = $this->allocations()
-            ->whereHas('payment', fn($q) => $q->where('status', 'POSTED'))
+            ->whereHas('payment', fn ($q) => $q->where('status', 'POSTED'))
             ->sum('amount');
 
         $this->outstanding_amount = (float) bcsub($this->total_amount, $paidAmount, 4);
@@ -158,7 +167,7 @@ class SupplierInvoice extends Model
             return 0;
         }
 
-        return (int) now()->diffInDays($this->due_date);
+        return (int) abs(now()->diffInDays($this->due_date));
     }
 
     public function scopePending($query)

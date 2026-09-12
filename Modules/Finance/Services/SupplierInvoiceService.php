@@ -2,15 +2,15 @@
 
 namespace Modules\Finance\Services;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Modules\Finance\Models\Supplier;
-use Modules\Finance\Models\SupplierInvoice;
-use Modules\Finance\Models\SupplierInvoiceLine;
-use Modules\Finance\Models\Journal;
-use Modules\Core\Services\DocumentNumberService;
-use Modules\Core\Services\AuditService;
+use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
+use Modules\Core\Services\AuditService;
+use Modules\Core\Services\DefaultAccountService;
+use Modules\Core\Services\DocumentNumberService;
+use Modules\Finance\Events\SupplierInvoiceApproved;
+use Modules\Finance\Models\SupplierInvoice;
+use Modules\Workflow\Services\WorkflowService;
 
 class SupplierInvoiceService
 {
@@ -18,7 +18,7 @@ class SupplierInvoiceService
         protected DocumentNumberService $documentNumber,
         protected AuditService $audit,
         protected JournalService $journalService,
-        protected \Modules\Core\Services\DefaultAccountService $defaultAccounts
+        protected DefaultAccountService $defaultAccounts
     ) {}
 
     public function createInvoice(array $data): SupplierInvoice
@@ -74,7 +74,7 @@ class SupplierInvoiceService
             $this->audit->logCreate('Finance', 'SupplierInvoice', $invoice->id, $invoice->toArray());
 
             try {
-                app(\Modules\Workflow\Services\WorkflowService::class)->createInstance(
+                app(WorkflowService::class)->createInstance(
                     'supplier_invoice',
                     $invoice->id,
                     SupplierInvoice::STATUS_DRAFT,
@@ -90,7 +90,7 @@ class SupplierInvoiceService
 
     public function postInvoice(SupplierInvoice $invoice): SupplierInvoice
     {
-        if (!$invoice->isApproved()) {
+        if (! $invoice->isApproved()) {
             throw new InvalidAccountingTransactionException('Only approved invoices can be posted');
         }
 
@@ -157,7 +157,7 @@ class SupplierInvoiceService
             ]);
 
             try {
-                app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+                app(WorkflowService::class)->transitionInstance(
                     'supplier_invoice',
                     $invoice->id,
                     SupplierInvoice::STATUS_POSTED
@@ -172,7 +172,7 @@ class SupplierInvoiceService
 
     public function submitInvoice(SupplierInvoice $invoice): SupplierInvoice
     {
-        if (!$invoice->isDraft()) {
+        if (! $invoice->isDraft()) {
             throw new InvalidAccountingTransactionException('Only draft invoices can be submitted');
         }
 
@@ -183,7 +183,7 @@ class SupplierInvoiceService
         ]);
 
         try {
-            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+            app(WorkflowService::class)->transitionInstance(
                 'supplier_invoice',
                 $invoice->id,
                 SupplierInvoice::STATUS_SUBMITTED
@@ -197,7 +197,7 @@ class SupplierInvoiceService
 
     public function approveInvoice(SupplierInvoice $invoice): SupplierInvoice
     {
-        if (!$invoice->isSubmitted()) {
+        if (! $invoice->isSubmitted()) {
             throw new InvalidAccountingTransactionException('Only submitted invoices can be approved');
         }
 
@@ -207,10 +207,10 @@ class SupplierInvoiceService
             'previous_status' => SupplierInvoice::STATUS_SUBMITTED,
         ]);
 
-        event(new \Modules\Finance\Events\SupplierInvoiceApproved($invoice));
+        event(new SupplierInvoiceApproved($invoice));
 
         try {
-            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+            app(WorkflowService::class)->transitionInstance(
                 'supplier_invoice',
                 $invoice->id,
                 SupplierInvoice::STATUS_APPROVED
@@ -224,7 +224,7 @@ class SupplierInvoiceService
 
     public function rejectInvoice(SupplierInvoice $invoice, ?string $reason = null): SupplierInvoice
     {
-        if (!$invoice->isSubmitted()) {
+        if (! $invoice->isSubmitted()) {
             throw new InvalidAccountingTransactionException('Only submitted invoices can be rejected');
         }
 
@@ -236,7 +236,7 @@ class SupplierInvoiceService
         ]);
 
         try {
-            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+            app(WorkflowService::class)->transitionInstance(
                 'supplier_invoice',
                 $invoice->id,
                 SupplierInvoice::STATUS_REJECTED,
@@ -271,7 +271,7 @@ class SupplierInvoiceService
 
     public function updateInvoice(SupplierInvoice $invoice, array $data): SupplierInvoice
     {
-        if (!$invoice->isDraft()) {
+        if (! $invoice->isDraft()) {
             throw new InvalidAccountingTransactionException('Only draft invoices can be updated');
         }
 

@@ -2,15 +2,17 @@
 
 namespace Modules\Finance\Services;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Modules\Finance\Models\SupplierPayment;
+use Illuminate\Support\Facades\DB;
+use Modules\Core\Exceptions\InvalidAccountingTransactionException;
+use Modules\Core\Services\AuditService;
+use Modules\Core\Services\DefaultAccountService;
+use Modules\Core\Services\DocumentNumberService;
+use Modules\Finance\Events\PaymentApproved;
 use Modules\Finance\Models\PaymentAllocation;
 use Modules\Finance\Models\SupplierInvoice;
-use Modules\Finance\Models\Journal;
-use Modules\Core\Services\DocumentNumberService;
-use Modules\Core\Services\AuditService;
-use Modules\Core\Exceptions\InvalidAccountingTransactionException;
+use Modules\Finance\Models\SupplierPayment;
+use Modules\Workflow\Services\WorkflowService;
 
 class PaymentService
 {
@@ -18,7 +20,7 @@ class PaymentService
         protected DocumentNumberService $documentNumber,
         protected AuditService $audit,
         protected JournalService $journalService,
-        protected \Modules\Core\Services\DefaultAccountService $defaultAccounts
+        protected DefaultAccountService $defaultAccounts
     ) {}
 
     public function createPayment(array $data): SupplierPayment
@@ -72,7 +74,7 @@ class PaymentService
             $this->audit->logCreate('Finance', 'SupplierPayment', $payment->id, $payment->toArray());
 
             try {
-                app(\Modules\Workflow\Services\WorkflowService::class)->createInstance(
+                app(WorkflowService::class)->createInstance(
                     'supplier_payment',
                     $payment->id,
                     SupplierPayment::STATUS_DRAFT,
@@ -88,7 +90,7 @@ class PaymentService
 
     public function postPayment(SupplierPayment $payment): SupplierPayment
     {
-        if (!$payment->isApproved()) {
+        if (! $payment->isApproved()) {
             throw new InvalidAccountingTransactionException('Only approved payments can be posted');
         }
 
@@ -152,7 +154,7 @@ class PaymentService
             ]);
 
             try {
-                app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+                app(WorkflowService::class)->transitionInstance(
                     'supplier_payment',
                     $payment->id,
                     SupplierPayment::STATUS_POSTED
@@ -161,7 +163,7 @@ class PaymentService
                 // Workflow definitions may not be seeded yet
             }
 
-            event(new \Modules\Finance\Events\PaymentApproved($payment));
+            event(new PaymentApproved($payment));
 
             return $payment->fresh();
         });
@@ -169,7 +171,7 @@ class PaymentService
 
     public function submitPayment(SupplierPayment $payment): SupplierPayment
     {
-        if (!$payment->isDraft()) {
+        if (! $payment->isDraft()) {
             throw new InvalidAccountingTransactionException('Only draft payments can be submitted');
         }
 
@@ -180,7 +182,7 @@ class PaymentService
         ]);
 
         try {
-            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+            app(WorkflowService::class)->transitionInstance(
                 'supplier_payment',
                 $payment->id,
                 SupplierPayment::STATUS_SUBMITTED
@@ -194,7 +196,7 @@ class PaymentService
 
     public function approvePayment(SupplierPayment $payment): SupplierPayment
     {
-        if (!$payment->isSubmitted()) {
+        if (! $payment->isSubmitted()) {
             throw new InvalidAccountingTransactionException('Only submitted payments can be approved');
         }
 
@@ -205,7 +207,7 @@ class PaymentService
         ]);
 
         try {
-            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+            app(WorkflowService::class)->transitionInstance(
                 'supplier_payment',
                 $payment->id,
                 SupplierPayment::STATUS_APPROVED
@@ -219,7 +221,7 @@ class PaymentService
 
     public function rejectPayment(SupplierPayment $payment, ?string $reason = null): SupplierPayment
     {
-        if (!$payment->isSubmitted()) {
+        if (! $payment->isSubmitted()) {
             throw new InvalidAccountingTransactionException('Only submitted payments can be rejected');
         }
 
@@ -231,7 +233,7 @@ class PaymentService
         ]);
 
         try {
-            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+            app(WorkflowService::class)->transitionInstance(
                 'supplier_payment',
                 $payment->id,
                 SupplierPayment::STATUS_REJECTED,
@@ -257,7 +259,7 @@ class PaymentService
         ]);
 
         try {
-            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+            app(WorkflowService::class)->transitionInstance(
                 'supplier_payment',
                 $payment->id,
                 SupplierPayment::STATUS_CANCELLED
@@ -276,7 +278,7 @@ class PaymentService
             ->where('supplier_id', $payment->supplier_id)
             ->firstOrFail();
 
-        if (!$payment->isDraft()) {
+        if (! $payment->isDraft()) {
             throw new InvalidAccountingTransactionException('Can only allocate from draft payments');
         }
 
@@ -363,7 +365,7 @@ class PaymentService
 
     public function updatePayment(SupplierPayment $payment, array $data): SupplierPayment
     {
-        if (!$payment->isDraft()) {
+        if (! $payment->isDraft()) {
             throw new InvalidAccountingTransactionException('Only draft payments can be updated');
         }
 

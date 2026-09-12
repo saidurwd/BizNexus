@@ -3,9 +3,9 @@
 namespace Modules\Finance\Controllers;
 
 use Illuminate\Http\Request;
+use Modules\Core\Services\CompanyContextService;
 use Modules\Finance\Models\SupplierPayment;
 use Modules\Finance\Services\PaymentService;
-use Modules\Core\Services\CompanyContextService;
 
 class PaymentController extends Controller
 {
@@ -20,10 +20,10 @@ class PaymentController extends Controller
 
         $payments = SupplierPayment::with(['supplier', 'bankAccount', 'currency'])
             ->where('company_id', $companyId)
-            ->when($request->get('supplier_id'), fn($q, $id) => $q->where('supplier_id', $id))
-            ->when($request->get('status'), fn($q, $status) => $q->where('status', $status))
-            ->when($request->get('start_date'), fn($q, $date) => $q->where('payment_date', '>=', $date))
-            ->when($request->get('end_date'), fn($q, $date) => $q->where('payment_date', '<=', $date))
+            ->when($request->get('supplier_id'), fn ($q, $id) => $q->where('supplier_id', $id))
+            ->when($request->get('status'), fn ($q, $status) => $q->where('status', $status))
+            ->when($request->get('start_date'), fn ($q, $date) => $q->where('payment_date', '>=', $date))
+            ->when($request->get('end_date'), fn ($q, $date) => $q->where('payment_date', '<=', $date))
             ->orderBy('payment_date', 'desc')
             ->paginate($request->get('per_page', 15));
 
@@ -59,6 +59,7 @@ class PaymentController extends Controller
 
         try {
             $payment = $this->paymentService->createPayment($validated);
+
             return $this->successResponse($payment, 'Payment created successfully', 201);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -71,6 +72,7 @@ class PaymentController extends Controller
 
         try {
             $payment = $this->paymentService->postPayment($payment);
+
             return $this->successResponse($payment, 'Payment posted successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -83,6 +85,7 @@ class PaymentController extends Controller
 
         try {
             $payment = $this->paymentService->submitPayment($payment);
+
             return $this->successResponse($payment, 'Payment submitted successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -95,6 +98,7 @@ class PaymentController extends Controller
 
         try {
             $payment = $this->paymentService->approvePayment($payment);
+
             return $this->successResponse($payment, 'Payment approved successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -107,6 +111,7 @@ class PaymentController extends Controller
 
         try {
             $payment = $this->paymentService->rejectPayment($payment, $request->get('reason'));
+
             return $this->successResponse($payment, 'Payment rejected');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -117,12 +122,12 @@ class PaymentController extends Controller
     {
         $payment = SupplierPayment::findOrFail($id);
 
-        if (!$payment->isDraft()) {
+        if (! $payment->isDraft()) {
             return $this->errorResponse('Only draft payments can be updated', 400);
         }
 
         $validated = $request->validate([
-            'payment_number' => 'required|string|max:50|unique:supplier_payments,payment_number,' . $id,
+            'payment_number' => 'required|string|max:50|unique:supplier_payments,payment_number,'.$id,
             'payment_date' => 'required|date',
             'currency_id' => 'nullable|exists:currencies,id',
             'exchange_rate' => 'nullable|numeric|min:0',
@@ -138,6 +143,7 @@ class PaymentController extends Controller
 
         try {
             $payment = $this->paymentService->updatePayment($payment, $validated);
+
             return $this->successResponse($payment, 'Payment updated successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -150,6 +156,7 @@ class PaymentController extends Controller
 
         try {
             $payment = $this->paymentService->cancelPayment($payment);
+
             return $this->successResponse($payment, 'Payment cancelled');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);

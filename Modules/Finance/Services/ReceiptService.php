@@ -2,15 +2,17 @@
 
 namespace Modules\Finance\Services;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Modules\Core\Exceptions\InvalidAccountingTransactionException;
+use Modules\Core\Services\AuditService;
+use Modules\Core\Services\DocumentNumberService;
+use Modules\Finance\Events\ReceiptApproved;
+use Modules\Finance\Models\Account;
+use Modules\Finance\Models\CustomerInvoice;
 use Modules\Finance\Models\CustomerReceipt;
 use Modules\Finance\Models\ReceiptAllocation;
-use Modules\Finance\Models\CustomerInvoice;
-use Modules\Finance\Models\Journal;
-use Modules\Core\Services\DocumentNumberService;
-use Modules\Core\Services\AuditService;
-use Modules\Core\Exceptions\InvalidAccountingTransactionException;
+use Modules\Workflow\Services\WorkflowService;
 
 class ReceiptService
 {
@@ -71,7 +73,7 @@ class ReceiptService
             $this->audit->logCreate('Finance', 'CustomerReceipt', $receipt->id, $receipt->toArray());
 
             try {
-                app(\Modules\Workflow\Services\WorkflowService::class)->createInstance(
+                app(WorkflowService::class)->createInstance(
                     'customer_receipt',
                     $receipt->id,
                     CustomerReceipt::STATUS_DRAFT,
@@ -87,7 +89,7 @@ class ReceiptService
 
     public function postReceipt(CustomerReceipt $receipt): CustomerReceipt
     {
-        if (!$receipt->isApproved()) {
+        if (! $receipt->isApproved()) {
             throw new InvalidAccountingTransactionException('Only approved receipts can be posted');
         }
 
@@ -151,7 +153,7 @@ class ReceiptService
             ]);
 
             try {
-                app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+                app(WorkflowService::class)->transitionInstance(
                     'customer_receipt',
                     $receipt->id,
                     CustomerReceipt::STATUS_POSTED
@@ -160,7 +162,7 @@ class ReceiptService
                 // Workflow definitions may not be seeded yet
             }
 
-            event(new \Modules\Finance\Events\ReceiptApproved($receipt));
+            event(new ReceiptApproved($receipt));
 
             return $receipt->fresh();
         });
@@ -168,7 +170,7 @@ class ReceiptService
 
     public function submitReceipt(CustomerReceipt $receipt): CustomerReceipt
     {
-        if (!$receipt->isDraft()) {
+        if (! $receipt->isDraft()) {
             throw new InvalidAccountingTransactionException('Only draft receipts can be submitted');
         }
 
@@ -179,7 +181,7 @@ class ReceiptService
         ]);
 
         try {
-            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+            app(WorkflowService::class)->transitionInstance(
                 'customer_receipt',
                 $receipt->id,
                 CustomerReceipt::STATUS_SUBMITTED
@@ -193,7 +195,7 @@ class ReceiptService
 
     public function approveReceipt(CustomerReceipt $receipt): CustomerReceipt
     {
-        if (!$receipt->isDraft() && !$receipt->isSubmitted()) {
+        if (! $receipt->isDraft() && ! $receipt->isSubmitted()) {
             throw new InvalidAccountingTransactionException('Only draft or submitted receipts can be approved');
         }
 
@@ -204,7 +206,7 @@ class ReceiptService
         ]);
 
         try {
-            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+            app(WorkflowService::class)->transitionInstance(
                 'customer_receipt',
                 $receipt->id,
                 CustomerReceipt::STATUS_APPROVED
@@ -218,7 +220,7 @@ class ReceiptService
 
     public function rejectReceipt(CustomerReceipt $receipt, ?string $reason = null): CustomerReceipt
     {
-        if (!$receipt->isSubmitted()) {
+        if (! $receipt->isSubmitted()) {
             throw new InvalidAccountingTransactionException('Only submitted receipts can be rejected');
         }
 
@@ -230,7 +232,7 @@ class ReceiptService
         ]);
 
         try {
-            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+            app(WorkflowService::class)->transitionInstance(
                 'customer_receipt',
                 $receipt->id,
                 CustomerReceipt::STATUS_REJECTED,
@@ -256,7 +258,7 @@ class ReceiptService
         ]);
 
         try {
-            app(\Modules\Workflow\Services\WorkflowService::class)->transitionInstance(
+            app(WorkflowService::class)->transitionInstance(
                 'customer_receipt',
                 $receipt->id,
                 CustomerReceipt::STATUS_CANCELLED
@@ -275,7 +277,7 @@ class ReceiptService
             ->where('customer_id', $receipt->customer_id)
             ->firstOrFail();
 
-        if (!$receipt->isDraft()) {
+        if (! $receipt->isDraft()) {
             throw new InvalidAccountingTransactionException('Can only allocate from draft receipts');
         }
 
@@ -362,7 +364,7 @@ class ReceiptService
 
     protected function getDefaultReceivableAccount(int $companyId): int
     {
-        $account = \Modules\Finance\Models\Account::where('company_id', $companyId)
+        $account = Account::where('company_id', $companyId)
             ->where('account_code', 'like', '1100%')
             ->where('is_postable', true)
             ->first();
@@ -372,7 +374,7 @@ class ReceiptService
 
     protected function getDefaultCashAccount(int $companyId): int
     {
-        $account = \Modules\Finance\Models\Account::where('company_id', $companyId)
+        $account = Account::where('company_id', $companyId)
             ->where('account_code', 'like', '1110%')
             ->where('is_postable', true)
             ->first();
@@ -382,7 +384,7 @@ class ReceiptService
 
     public function updateReceipt(CustomerReceipt $receipt, array $data): CustomerReceipt
     {
-        if (!$receipt->isDraft()) {
+        if (! $receipt->isDraft()) {
             throw new InvalidAccountingTransactionException('Only draft receipts can be updated');
         }
 

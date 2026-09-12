@@ -1,16 +1,17 @@
 <?php
 
+use App\Http\Controllers\Api\BranchController;
 use Illuminate\Support\Facades\Route;
 use Modules\Finance\Controllers\AccountController;
-use Modules\Finance\Controllers\JournalController;
-use Modules\Finance\Controllers\SupplierController;
-use Modules\Finance\Controllers\SupplierInvoiceController;
-use Modules\Finance\Controllers\SupplierDebitNoteController;
 use Modules\Finance\Controllers\CustomerController;
 use Modules\Finance\Controllers\CustomerInvoiceController;
+use Modules\Finance\Controllers\JournalController;
 use Modules\Finance\Controllers\PaymentController;
 use Modules\Finance\Controllers\ReceiptController;
 use Modules\Finance\Controllers\ReportController;
+use Modules\Finance\Controllers\SupplierController;
+use Modules\Finance\Controllers\SupplierDebitNoteController;
+use Modules\Finance\Controllers\SupplierInvoiceController;
 
 Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
 
@@ -72,7 +73,7 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
         Route::get('/customers/{id}/outstanding', [CustomerController::class, 'outstandingInvoices']);
         Route::get('/customers/{id}/aging', [CustomerController::class, 'aging']);
 
-        Route::get('/branches', [\App\Http\Controllers\Api\BranchController::class, 'index'])->name('api.branches.index');
+        Route::get('/branches', [BranchController::class, 'index'])->name('api.branches.index');
 
         Route::get('/customer-invoices', [CustomerInvoiceController::class, 'index']);
         Route::post('/customer-invoices', [CustomerInvoiceController::class, 'store']);

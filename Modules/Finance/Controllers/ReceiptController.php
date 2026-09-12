@@ -3,9 +3,9 @@
 namespace Modules\Finance\Controllers;
 
 use Illuminate\Http\Request;
+use Modules\Core\Services\CompanyContextService;
 use Modules\Finance\Models\CustomerReceipt;
 use Modules\Finance\Services\ReceiptService;
-use Modules\Core\Services\CompanyContextService;
 
 class ReceiptController extends Controller
 {
@@ -20,10 +20,10 @@ class ReceiptController extends Controller
 
         $receipts = CustomerReceipt::with(['customer', 'bankAccount', 'currency'])
             ->where('company_id', $companyId)
-            ->when($request->get('customer_id'), fn($q, $id) => $q->where('customer_id', $id))
-            ->when($request->get('status'), fn($q, $status) => $q->where('status', $status))
-            ->when($request->get('start_date'), fn($q, $date) => $q->where('receipt_date', '>=', $date))
-            ->when($request->get('end_date'), fn($q, $date) => $q->where('receipt_date', '<=', $date))
+            ->when($request->get('customer_id'), fn ($q, $id) => $q->where('customer_id', $id))
+            ->when($request->get('status'), fn ($q, $status) => $q->where('status', $status))
+            ->when($request->get('start_date'), fn ($q, $date) => $q->where('receipt_date', '>=', $date))
+            ->when($request->get('end_date'), fn ($q, $date) => $q->where('receipt_date', '<=', $date))
             ->orderBy('receipt_date', 'desc')
             ->paginate($request->get('per_page', 15));
 
@@ -59,6 +59,7 @@ class ReceiptController extends Controller
 
         try {
             $receipt = $this->receiptService->createReceipt($validated);
+
             return $this->successResponse($receipt, 'Receipt created successfully', 201);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -71,6 +72,7 @@ class ReceiptController extends Controller
 
         try {
             $receipt = $this->receiptService->postReceipt($receipt);
+
             return $this->successResponse($receipt, 'Receipt posted successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -83,6 +85,7 @@ class ReceiptController extends Controller
 
         try {
             $receipt = $this->receiptService->submitReceipt($receipt);
+
             return $this->successResponse($receipt, 'Receipt submitted successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -95,6 +98,7 @@ class ReceiptController extends Controller
 
         try {
             $receipt = $this->receiptService->approveReceipt($receipt);
+
             return $this->successResponse($receipt, 'Receipt approved successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -107,6 +111,7 @@ class ReceiptController extends Controller
 
         try {
             $receipt = $this->receiptService->rejectReceipt($receipt, $request->get('reason'));
+
             return $this->successResponse($receipt, 'Receipt rejected');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -117,12 +122,12 @@ class ReceiptController extends Controller
     {
         $receipt = CustomerReceipt::findOrFail($id);
 
-        if (!$receipt->isDraft()) {
+        if (! $receipt->isDraft()) {
             return $this->errorResponse('Only draft receipts can be updated', 400);
         }
 
         $validated = $request->validate([
-            'receipt_number' => 'required|string|max:50|unique:customer_receipts,receipt_number,' . $id,
+            'receipt_number' => 'required|string|max:50|unique:customer_receipts,receipt_number,'.$id,
             'receipt_date' => 'required|date',
             'currency_id' => 'nullable|exists:currencies,id',
             'exchange_rate' => 'nullable|numeric|min:0',
@@ -138,6 +143,7 @@ class ReceiptController extends Controller
 
         try {
             $receipt = $this->receiptService->updateReceipt($receipt, $validated);
+
             return $this->successResponse($receipt, 'Receipt updated successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -150,6 +156,7 @@ class ReceiptController extends Controller
 
         try {
             $receipt = $this->receiptService->cancelReceipt($receipt);
+
             return $this->successResponse($receipt, 'Receipt cancelled');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);

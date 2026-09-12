@@ -115,8 +115,8 @@ class APServiceTest extends TestCase
         $invoiceData = [
             'company_id' => $company->id,
             'supplier_id' => $supplier->id,
-            'invoice_date' => now()->subDays(45)->format('Y-m-d'),
-            'due_date' => now()->subDays(15)->format('Y-m-d'),
+            'invoice_date' => now()->subDays(90)->format('Y-m-d'),
+            'due_date' => now()->subDays(60)->format('Y-m-d'),
             'lines' => [
                 [
                     'account_id' => $expenseAccount->id,
