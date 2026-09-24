@@ -4,14 +4,21 @@ namespace Modules\Core\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Finance\Enums\ExchangeRateType;
 
+/**
+ * Functional-currency units of the company per one unit of the foreign currency, for a date and rate type.
+ */
 class ExchangeRate extends Model
 {
+    use BelongsToCompany;
+
     protected $fillable = [
         'company_id',
         'currency_id',
         'rate_date',
+        'rate_type',
         'exchange_rate',
         'source',
         'status',
@@ -21,6 +28,7 @@ class ExchangeRate extends Model
     protected $casts = [
         'rate_date' => 'date',
         'exchange_rate' => 'decimal:8',
+        'rate_type' => ExchangeRateType::class,
     ];
 
     public function company(): BelongsTo

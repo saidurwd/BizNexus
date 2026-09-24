@@ -56,6 +56,21 @@
                                 <small class="text-muted">
                                     {{ $fiscalYear->start_date->format('Y-m-d') }} to {{ $fiscalYear->end_date->format('Y-m-d') }}
                                 </small>
+                                @if ($fiscalYear->status === 'OPEN')
+                                    @can('core.fiscal-years.close')
+                                        <form action="{{ route('core.fiscal-years.close', $fiscalYear->id) }}" method="POST" class="d-inline ml-2" onsubmit="return confirm('Close {{ $fiscalYear->name }} and transfer profit or loss to retained earnings?')">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-outline-dark">Close year</button>
+                                        </form>
+                                    @endcan
+                                @elseif ($fiscalYear->status === 'CLOSED')
+                                    @can('core.fiscal-years.reopen')
+                                        <form action="{{ route('core.fiscal-years.reopen', $fiscalYear->id) }}" method="POST" class="d-inline ml-2" onsubmit="return confirm('Reopen {{ $fiscalYear->name }}? The closing entry will be reversed.')">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-outline-warning">Reopen year</button>
+                                        </form>
+                                    @endcan
+                                @endif
                             </div>
                         </div>
                         <div class="card-body table-responsive">

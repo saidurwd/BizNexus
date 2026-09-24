@@ -3,9 +3,9 @@
 namespace Modules\Finance\Services;
 
 use Illuminate\Support\Facades\DB;
-use Modules\Finance\Models\SupplierCreditNote;
-use Modules\Finance\Models\SupplierInvoice;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
+use Modules\Core\Services\DefaultAccountService;
+use Modules\Finance\Models\SupplierCreditNote;
 
 class SupplierCreditNoteService
 {
@@ -37,7 +37,7 @@ class SupplierCreditNoteService
                 ];
             }
 
-            $journal = app(\Modules\Finance\Services\JournalService::class)->create([
+            $journal = app(JournalService::class)->create([
                 'company_id' => $creditNote->company_id,
                 'journal_date' => $creditNote->credit_note_date->toDateString(),
                 'reference_type' => SupplierCreditNote::class,
@@ -46,9 +46,9 @@ class SupplierCreditNoteService
                 'lines' => $journalLines,
             ]);
 
-            app(\Modules\Finance\Services\JournalService::class)->submit($journal);
-            app(\Modules\Finance\Services\JournalService::class)->approve($journal);
-            app(\Modules\Finance\Services\JournalService::class)->post($journal);
+            app(JournalService::class)->submit($journal);
+            app(JournalService::class)->approve($journal);
+            app(JournalService::class)->post($journal);
 
             $creditNote->update([
                 'status' => 'posted',
@@ -70,11 +70,6 @@ class SupplierCreditNoteService
 
     protected function getDefaultPayableAccount(int $companyId): int
     {
-        $account = \Modules\Finance\Models\Account::where('company_id', $companyId)
-            ->where('account_code', 'like', '2100%')
-            ->where('is_postable', true)
-            ->first();
-
-        return $account?->id ?? throw new \Exception('No payable account found');
+        return app(DefaultAccountService::class)->getPayableAccount($companyId);
     }
 }

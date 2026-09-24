@@ -116,7 +116,7 @@ test('a user cannot change an exchange rate of another company', function () {
         ->delete(route('core.exchange-rates.destroy', $foreignRate->id))
         ->assertNotFound();
 
-    expect(ExchangeRate::find($foreignRate->id))->not->toBeNull();
+    expect(ExchangeRate::withoutGlobalScopes()->find($foreignRate->id))->not->toBeNull();
 });
 
 test('the audit log only shows entries of the active company', function () {

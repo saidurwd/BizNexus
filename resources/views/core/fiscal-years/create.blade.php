@@ -16,6 +16,7 @@
                         <div class="form-group">
                             <label for="name">Fiscal Year Name</label>
                             <input type="text" class="form-control" name="name" value="{{ old('name') }}" placeholder="e.g., 2026-2027" required>
+                            @error('start_date')<div class="text-danger mt-1">{{ $message }}</div>@enderror
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -31,6 +32,17 @@
                         <div class="form-group">
                             <label for="end_date">End Date</label>
                             <input type="date" class="form-control" name="end_date" value="{{ old('end_date') }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="period_pattern">Period calendar</label>
+                            <select class="form-control" name="period_pattern" id="period_pattern" required>
+                                @foreach (\Modules\Core\Enums\FiscalCalendarPattern::cases() as $pattern)
+                                    <option value="{{ $pattern->value }}" @selected(old('period_pattern', 'monthly') === $pattern->value)>{{ $pattern->label() }}</option>
+                                @endforeach
+                            </select>
+                            <small class="form-text text-muted">An adjustment period on the last day of the year is added for audit adjustments and the year-end close.</small>
                         </div>
                     </div>
                 </div>

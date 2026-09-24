@@ -5,9 +5,11 @@ use Modules\Core\Models\Company;
 use Modules\Core\Models\FiscalPeriod;
 use Modules\Core\Models\FiscalYear;
 use Modules\Core\Services\CompanyContextService;
+use Modules\Finance\Enums\CashFlowCategory;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\Journal;
 use Modules\Finance\Services\JournalService;
+use Modules\Finance\Services\LedgerService;
 
 beforeEach(function () {
     $this->company = Company::factory()->create();
@@ -157,4 +159,61 @@ test('a reversal into a closed period leaves the original posted and creates not
 
     expect($original->fresh()->status)->toBe(Journal::STATUS_POSTED)
         ->and(Journal::count())->toBe($journalCount);
+});
+
+test('a reversed journal and its reversal net to zero in the trial balance', function () {
+    openPeriod($this->company, now()->year);
+    $this->journals->reverse($this->journals->post(approvedJournal()), 'Wrong account');
+
+    $cash = collect(app(LedgerService::class)->getTrialBalance($this->company->id)['accounts'])
+        ->firstWhere('account_id', $this->cash->id);
+
+    expect($cash['period_debit'])->toEqual('500.0000')
+        ->and($cash['period_credit'])->toEqual('500.0000');
+});
+
+test('manual journals cannot post to control accounts', function () {
+    $this->cash->update(['is_control_account' => true]);
+
+    draftJournal();
+})->throws(InvalidAccountingTransactionException::class, 'is a control account');
+
+test('system postings may use control accounts', function () {
+    openPeriod($this->company, now()->year);
+    $this->cash->update(['is_control_account' => true]);
+
+    $journal = $this->journals->postFromSource([
+        'journal_date' => now()->toDateString(),
+        'lines' => [
+            ['account_id' => $this->cash->id, 'debit' => 100],
+            ['account_id' => $this->revenue->id, 'credit' => 100],
+        ],
+    ]);
+
+    expect($journal->status)->toBe(Journal::STATUS_POSTED);
+});
+
+test('account codes are unique per company, not across companies', function () {
+    $user = companyUser(['finance.accounts.create'], $this->company);
+    $otherCompany = Company::factory()->create();
+    app(CompanyContextService::class)->runAs($otherCompany->id, fn () => Account::factory()->asset()->create(['company_id' => $otherCompany->id, 'account_code' => '9990']));
+
+    actingInCompany($user, $this->company)->post(route('finance.accounts.store'), [
+        'account_code' => '9990', 'account_name' => 'Petty cash', 'account_type' => 'ASSET',
+        'normal_balance' => 'DEBIT', 'level' => 1, 'status' => 'active',
+        'cash_flow_category' => 'cash', 'is_current' => '1', 'revalue_foreign_currency' => '1',
+    ])->assertSessionHasNoErrors();
+
+    $account = Account::where('account_code', '9990')->sole();
+    expect($account->cash_flow_category)->toBe(CashFlowCategory::CashAndEquivalents)
+        ->and($account->is_current)->toBeTrue()
+        ->and($account->revalue_foreign_currency)->toBeTrue();
+});
+
+test('the account forms show the classification fields', function () {
+    $user = companyUser(['finance.accounts.create', 'finance.accounts.update'], $this->company);
+    $this->cash->update(['cash_flow_category' => 'cash', 'is_current' => true]);
+
+    actingInCompany($user, $this->company)->get(route('finance.accounts.create'))->assertOk()->assertSee('Cash flow category');
+    actingInCompany($user, $this->company)->get(route('finance.accounts.edit', $this->cash->id))->assertOk()->assertSee('Cash and cash equivalents');
 });

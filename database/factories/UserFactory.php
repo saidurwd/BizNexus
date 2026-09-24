@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Modules\Core\Models\Tenant;
 
 /**
  * @extends Factory<User>
@@ -25,6 +26,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
+            'tenant_id' => fn () => Tenant::default()->id,
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),

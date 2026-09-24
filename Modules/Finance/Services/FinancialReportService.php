@@ -3,6 +3,9 @@
 namespace Modules\Finance\Services;
 
 use Carbon\Carbon;
+use Modules\Core\Services\DefaultAccountService;
+use Modules\Finance\Enums\AccountPurpose;
+use Modules\Finance\Exceptions\MissingAccountMappingException;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\Journal;
 use Modules\Finance\Models\JournalLine;
@@ -125,18 +128,18 @@ class FinancialReportService
             ];
         }
 
-        $revenueQuery = JournalLine::whereHas('account', fn($q) => $q->where('account_type', 'REVENUE'))
-            ->whereHas('journal', fn($q) => $q->where('company_id', $companyId)->posted());
+        $revenueQuery = JournalLine::whereHas('account', fn ($q) => $q->where('account_type', 'REVENUE'))
+            ->whereHas('journal', fn ($q) => $q->where('company_id', $companyId)->posted());
 
-        $expenseQuery = JournalLine::whereHas('account', fn($q) => $q->where('account_type', 'EXPENSE'))
-            ->whereHas('journal', fn($q) => $q->where('company_id', $companyId)->posted());
+        $expenseQuery = JournalLine::whereHas('account', fn ($q) => $q->where('account_type', 'EXPENSE'))
+            ->whereHas('journal', fn ($q) => $q->where('company_id', $companyId)->posted());
 
         if ($fiscalPeriodId) {
-            $revenueQuery->whereHas('journal', fn($q) => $q->where('fiscal_period_id', $fiscalPeriodId));
-            $expenseQuery->whereHas('journal', fn($q) => $q->where('fiscal_period_id', $fiscalPeriodId));
+            $revenueQuery->whereHas('journal', fn ($q) => $q->where('fiscal_period_id', $fiscalPeriodId));
+            $expenseQuery->whereHas('journal', fn ($q) => $q->where('fiscal_period_id', $fiscalPeriodId));
         } else {
-            $revenueQuery->whereHas('journal', fn($q) => $q->where('journal_date', '<=', $asOfDate));
-            $expenseQuery->whereHas('journal', fn($q) => $q->where('journal_date', '<=', $asOfDate));
+            $revenueQuery->whereHas('journal', fn ($q) => $q->where('journal_date', '<=', $asOfDate));
+            $expenseQuery->whereHas('journal', fn ($q) => $q->where('journal_date', '<=', $asOfDate));
         }
 
         $totalRevenue = (float) bcsub(
@@ -198,18 +201,18 @@ class FinancialReportService
         $account = Account::findOrFail($accountId);
 
         $query = JournalLine::where('account_id', $accountId)
-            ->whereHas('journal', fn($q) => $q->posted());
+            ->whereHas('journal', fn ($q) => $q->posted());
 
         if ($startDate) {
-            $query->whereHas('journal', fn($q) => $q->where('journal_date', '>=', $startDate));
+            $query->whereHas('journal', fn ($q) => $q->where('journal_date', '>=', $startDate));
         }
 
         if ($endDate) {
-            $query->whereHas('journal', fn($q) => $q->where('journal_date', '<=', $endDate));
+            $query->whereHas('journal', fn ($q) => $q->where('journal_date', '<=', $endDate));
         }
 
         if ($fiscalPeriodId) {
-            $query->whereHas('journal', fn($q) => $q->where('fiscal_period_id', $fiscalPeriodId));
+            $query->whereHas('journal', fn ($q) => $q->where('fiscal_period_id', $fiscalPeriodId));
         }
 
         $totalDebit = (float) $query->clone()->sum('debit');
@@ -267,25 +270,10 @@ class FinancialReportService
             $totalLiabilities = bcadd($totalLiabilities, $this->getAccountBalance($account->id, null, $asOfDate, null), 4);
         }
 
-        $cashAccount = Account::where('company_id', $companyId)
-            ->where('account_code', 'like', '1110%')
-            ->postable()
-            ->first();
-
-        $bankAccount = Account::where('company_id', $companyId)
-            ->where('account_code', 'like', '1120%')
-            ->postable()
-            ->first();
-
-        $receivableAccount = Account::where('company_id', $companyId)
-            ->where('account_code', 'like', '1130%')
-            ->postable()
-            ->first();
-
-        $payableAccount = Account::where('company_id', $companyId)
-            ->where('account_code', 'like', '2100%')
-            ->postable()
-            ->first();
+        [$cashAccount, $bankAccount, $receivableAccount, $payableAccount] = array_map(
+            fn (AccountPurpose $purpose) => $this->mappedAccount($companyId, $purpose),
+            [AccountPurpose::Cash, AccountPurpose::Bank, AccountPurpose::Receivable, AccountPurpose::Payable]
+        );
 
         return [
             'total_revenue' => $totalRevenue,
@@ -315,10 +303,10 @@ class FinancialReportService
         $financingTotal = 0;
 
         $journalLines = JournalLine::whereHas('journal', function ($q) use ($companyId, $startDate, $endDate) {
-                $q->where('company_id', $companyId)
-                  ->where('status', 'POSTED')
-                  ->whereBetween('journal_date', [$startDate, $endDate]);
-            })
+            $q->where('company_id', $companyId)
+                ->whereIn('status', Journal::LEDGER_STATUSES)
+                ->whereBetween('journal_date', [$startDate, $endDate]);
+        })
             ->with('account')
             ->get();
 
@@ -358,5 +346,17 @@ class FinancialReportService
             'financing_total' => $financingTotal,
             'net_change' => $operatingTotal + $investingTotal + $financingTotal,
         ];
+    }
+
+    /**
+     * The account determined for the purpose, or null when the company has not mapped one.
+     */
+    protected function mappedAccount(int $companyId, AccountPurpose $purpose): ?Account
+    {
+        try {
+            return Account::find(app(DefaultAccountService::class)->forPurpose($companyId, $purpose));
+        } catch (MissingAccountMappingException) {
+            return null;
+        }
     }
 }

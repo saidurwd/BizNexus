@@ -5,6 +5,7 @@ namespace Modules\Core\Models;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Core\Exceptions\UnauthorizedCompanyAccessException;
 
 class UserCompany extends Model
 {
@@ -15,6 +16,18 @@ class UserCompany extends Model
         'all_branches',
         'status',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (UserCompany $access) {
+            $userTenantId = User::whereKey($access->user_id)->value('tenant_id');
+            $companyTenantId = Company::whereKey($access->company_id)->value('tenant_id');
+
+            if ((int) $userTenantId !== (int) $companyTenantId) {
+                throw new UnauthorizedCompanyAccessException((int) $access->company_id, (int) $access->user_id);
+            }
+        });
+    }
 
     protected $casts = [
         'is_default' => 'boolean',

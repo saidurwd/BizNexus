@@ -15,6 +15,25 @@ use Modules\Finance\Scopes\BranchScope;
 
 class JournalLine extends Model
 {
+    public const TYPE_STANDARD = 'standard';
+
+    /**
+     * System line absorbing the functional-currency rounding difference of a foreign-currency journal.
+     */
+    public const TYPE_FX_ROUNDING = 'fx_rounding';
+
+    /**
+     * System line settling the functional-currency difference between an invoice rate and its settlement rate.
+     */
+    public const TYPE_FX_REALIZED = 'fx_realized';
+
+    /**
+     * System line restating a foreign-currency balance at the closing rate (IAS 21).
+     */
+    public const TYPE_FX_REVALUATION = 'fx_revaluation';
+
+    public const FUNCTIONAL_ADJUSTMENT_TYPES = [self::TYPE_FX_REALIZED, self::TYPE_FX_REVALUATION];
+
     use BelongsToCompany, HasFactory;
 
     protected static function newFactory()
@@ -45,6 +64,7 @@ class JournalLine extends Model
         'credit',
         'currency_debit',
         'currency_credit',
+        'line_type',
         'cost_center_id',
         'department_id',
         'branch_id',

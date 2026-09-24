@@ -7,10 +7,14 @@ use Modules\Core\Models\Company;
 use Modules\Core\Models\Currency;
 use Modules\Core\Models\FiscalPeriod;
 use Modules\Core\Models\FiscalYear;
+use Modules\Core\Models\Tenant;
+use Modules\Core\Services\AccountingPeriodService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DocumentNumberService;
+use Modules\Finance\Enums\AccountPurpose;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\AccountCategory;
+use Modules\Finance\Models\AccountMapping;
 
 class FinanceSeeder extends Seeder
 {
@@ -28,6 +32,15 @@ class FinanceSeeder extends Seeder
             ['code' => 'EUR', 'name' => 'Euro', 'symbol' => '€', 'decimal_places' => 2],
             ['code' => 'GBP', 'name' => 'British Pound', 'symbol' => '£', 'decimal_places' => 2],
             ['code' => 'INR', 'name' => 'Indian Rupee', 'symbol' => '₹', 'decimal_places' => 2],
+            ['code' => 'JPY', 'name' => 'Japanese Yen', 'symbol' => '¥', 'decimal_places' => 0],
+            ['code' => 'CNY', 'name' => 'Chinese Yuan', 'symbol' => '¥', 'decimal_places' => 2],
+            ['code' => 'SAR', 'name' => 'Saudi Riyal', 'symbol' => 'SAR', 'decimal_places' => 2],
+            ['code' => 'AED', 'name' => 'UAE Dirham', 'symbol' => 'AED', 'decimal_places' => 2],
+            ['code' => 'KWD', 'name' => 'Kuwaiti Dinar', 'symbol' => 'KWD', 'decimal_places' => 3],
+            ['code' => 'BHD', 'name' => 'Bahraini Dinar', 'symbol' => 'BHD', 'decimal_places' => 3],
+            ['code' => 'OMR', 'name' => 'Omani Rial', 'symbol' => 'OMR', 'decimal_places' => 3],
+            ['code' => 'SGD', 'name' => 'Singapore Dollar', 'symbol' => 'S$', 'decimal_places' => 2],
+            ['code' => 'MYR', 'name' => 'Malaysian Ringgit', 'symbol' => 'RM', 'decimal_places' => 2],
         ];
 
         foreach ($currencies as $currency) {
@@ -43,7 +56,7 @@ class FinanceSeeder extends Seeder
         $currency = Currency::where('code', 'BDT')->first();
 
         $company = Company::firstOrCreate(
-            ['code' => 'DEMO'],
+            ['tenant_id' => Tenant::default()->id, 'code' => 'DEMO'],
             [
                 'name' => 'Demo Company Ltd.',
                 'legal_name' => 'Demo Company Limited',
@@ -62,6 +75,8 @@ class FinanceSeeder extends Seeder
         app(CompanyContextService::class)->runAs($company->id, function () use ($company) {
             $this->createFiscalYear($company);
             $this->createChartOfAccounts($company);
+            $this->classifyAccounts();
+            $this->mapAutomaticPostingAccounts($company);
             $this->initializeDocumentSequences($company);
         });
     }
@@ -107,6 +122,8 @@ class FinanceSeeder extends Seeder
 
             $periodStart = $periodEnd->copy()->addDay();
         }
+
+        app(AccountingPeriodService::class)->ensureAdjustmentPeriod($fiscalYear);
     }
 
     protected function createAccountCategories(Company $company): void
@@ -164,12 +181,15 @@ class FinanceSeeder extends Seeder
             '3.1' => ['code' => '3100', 'name' => 'Owners Equity', 'type' => 'EQUITY', 'is_group' => true],
             '3.1.1' => ['code' => '3110', 'name' => 'Share Capital', 'type' => 'EQUITY', 'is_group' => false],
             '3.1.2' => ['code' => '3120', 'name' => 'Retained Earnings', 'type' => 'EQUITY', 'is_group' => false],
+            '3.1.3' => ['code' => '3130', 'name' => 'Foreign Currency Translation Reserve', 'type' => 'EQUITY', 'is_group' => false],
 
             '4' => ['code' => '4000', 'name' => 'Revenue', 'type' => 'REVENUE', 'is_group' => true],
             '4.1' => ['code' => '4100', 'name' => 'Sales Revenue', 'type' => 'REVENUE', 'is_group' => true],
             '4.1.1' => ['code' => '4110', 'name' => 'Sales', 'type' => 'REVENUE', 'is_group' => false],
             '4.2' => ['code' => '4200', 'name' => 'Other Income', 'type' => 'REVENUE', 'is_group' => true],
             '4.2.1' => ['code' => '4210', 'name' => 'Interest Income', 'type' => 'REVENUE', 'is_group' => false],
+            '4.2.2' => ['code' => '4220', 'name' => 'Realised Exchange Gain', 'type' => 'REVENUE', 'is_group' => false],
+            '4.2.3' => ['code' => '4230', 'name' => 'Unrealised Exchange Gain', 'type' => 'REVENUE', 'is_group' => false],
 
             '5' => ['code' => '5000', 'name' => 'Expenses', 'type' => 'EXPENSE', 'is_group' => true],
             '5.1' => ['code' => '5100', 'name' => 'Operating Expenses', 'type' => 'EXPENSE', 'is_group' => true],
@@ -182,6 +202,9 @@ class FinanceSeeder extends Seeder
             '5.2.1' => ['code' => '5210', 'name' => 'Cost of Goods Sold', 'type' => 'EXPENSE', 'is_group' => false],
             '5.3' => ['code' => '5300', 'name' => 'Financial Expenses', 'type' => 'EXPENSE', 'is_group' => true],
             '5.3.1' => ['code' => '5310', 'name' => 'Interest Expense', 'type' => 'EXPENSE', 'is_group' => false],
+            '5.3.2' => ['code' => '5320', 'name' => 'Realised Exchange Loss', 'type' => 'EXPENSE', 'is_group' => false],
+            '5.3.3' => ['code' => '5330', 'name' => 'Unrealised Exchange Loss', 'type' => 'EXPENSE', 'is_group' => false],
+            '5.3.4' => ['code' => '5340', 'name' => 'Currency Rounding Differences', 'type' => 'EXPENSE', 'is_group' => false],
         ];
 
         $accountIds = [];
@@ -214,6 +237,55 @@ class FinanceSeeder extends Seeder
             );
 
             $accountIds[$key] = $created->id;
+        }
+    }
+
+    /**
+     * Control accounts, foreign-currency revaluation (monetary items only, IAS 21), cash flow category
+     * (IAS 7) and current/non-current presentation (IAS 1) for the demo chart of accounts.
+     */
+    protected function classifyAccounts(): void
+    {
+        $classification = [
+            '1110' => ['cash_flow_category' => 'cash', 'is_current' => true, 'revalue_foreign_currency' => true],
+            '1120' => ['cash_flow_category' => 'cash', 'is_current' => true, 'revalue_foreign_currency' => true],
+            '1130' => ['cash_flow_category' => 'operating', 'is_current' => true, 'revalue_foreign_currency' => true, 'is_control_account' => true],
+            '1140' => ['cash_flow_category' => 'operating', 'is_current' => true],
+            '1210' => ['cash_flow_category' => 'investing', 'is_current' => false],
+            '1220' => ['cash_flow_category' => 'investing', 'is_current' => false],
+            '2110' => ['cash_flow_category' => 'operating', 'is_current' => true, 'revalue_foreign_currency' => true, 'is_control_account' => true],
+            '2120' => ['cash_flow_category' => 'operating', 'is_current' => true],
+            '2130' => ['cash_flow_category' => 'operating', 'is_current' => true],
+            '2210' => ['cash_flow_category' => 'financing', 'is_current' => false, 'revalue_foreign_currency' => true],
+            '3110' => ['cash_flow_category' => 'financing'],
+        ];
+
+        foreach ($classification as $accountCode => $attributes) {
+            Account::where('account_code', $accountCode)->update($attributes);
+        }
+    }
+
+    protected function mapAutomaticPostingAccounts(Company $company): void
+    {
+        $mappings = [
+            AccountPurpose::Payable->value => '2110',
+            AccountPurpose::Receivable->value => '1130',
+            AccountPurpose::Cash->value => '1110',
+            AccountPurpose::Bank->value => '1120',
+            AccountPurpose::FxRounding->value => '5340',
+            AccountPurpose::RealizedFxGain->value => '4220',
+            AccountPurpose::RealizedFxLoss->value => '5320',
+            AccountPurpose::UnrealizedFxGain->value => '4230',
+            AccountPurpose::UnrealizedFxLoss->value => '5330',
+            AccountPurpose::RetainedEarnings->value => '3120',
+            AccountPurpose::TranslationReserve->value => '3130',
+        ];
+
+        foreach ($mappings as $purpose => $accountCode) {
+            AccountMapping::firstOrCreate(
+                ['company_id' => $company->id, 'purpose' => $purpose],
+                ['account_id' => Account::where('account_code', $accountCode)->value('id')]
+            );
         }
     }
 

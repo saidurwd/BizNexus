@@ -95,9 +95,9 @@ class CustomerInvoice extends Model
         return $this->hasMany(CustomerInvoiceLine::class);
     }
 
-    public function receipts(): HasMany
+    public function allocations(): HasMany
     {
-        return $this->hasMany(CustomerReceipt::class);
+        return $this->hasMany(ReceiptAllocation::class, 'customer_invoice_id');
     }
 
     public function createdBy()
@@ -142,8 +142,8 @@ class CustomerInvoice extends Model
 
     public function calculateOutstanding(): void
     {
-        $paidAmount = $this->receipts()
-            ->where('status', 'POSTED')
+        $paidAmount = $this->allocations()
+            ->whereHas('receipt', fn ($q) => $q->where('status', 'POSTED'))
             ->sum('amount');
 
         $this->outstanding_amount = (float) bcsub($this->total_amount, $paidAmount, 4);

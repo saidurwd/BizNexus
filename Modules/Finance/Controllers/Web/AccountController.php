@@ -3,9 +3,11 @@
 namespace Modules\Finance\Controllers\Web;
 
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
 use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Enums\CashFlowCategory;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\AccountCategory;
 use Modules\Finance\Services\ChartOfAccountsService;
@@ -53,7 +55,7 @@ class AccountController extends Controller
 
         $validated = $request->validate([
             'parent_id' => 'nullable|exists:accounts,id',
-            'account_code' => 'required|string|max:50|unique:accounts,account_code',
+            'account_code' => ['required', 'string', 'max:50', Rule::unique('accounts', 'account_code')->where('company_id', $this->getActiveCompanyId())],
             'account_name' => 'required|string|max:255',
             'account_type' => 'required|string',
             'account_category_id' => 'nullable|exists:account_categories,id',
@@ -61,6 +63,10 @@ class AccountController extends Controller
             'level' => 'required|integer|min:1',
             'is_group' => 'boolean',
             'is_postable' => 'boolean',
+            'revalue_foreign_currency' => 'boolean',
+            'is_control_account' => 'boolean',
+            'cash_flow_category' => ['nullable', Rule::enum(CashFlowCategory::class)],
+            'is_current' => 'nullable|boolean',
             'currency_id' => 'nullable|exists:currencies,id',
             'status' => 'required|in:active,inactive',
             'description' => 'nullable|string',
@@ -118,7 +124,7 @@ class AccountController extends Controller
 
         $validated = $request->validate([
             'parent_id' => 'nullable|exists:accounts,id',
-            'account_code' => 'required|string|max:50|unique:accounts,account_code,'.$id,
+            'account_code' => ['required', 'string', 'max:50', Rule::unique('accounts', 'account_code')->where('company_id', $this->getActiveCompanyId())->ignore($id)],
             'account_name' => 'required|string|max:255',
             'account_type' => 'required|string',
             'account_category_id' => 'nullable|exists:account_categories,id',
@@ -126,6 +132,10 @@ class AccountController extends Controller
             'level' => 'required|integer|min:1',
             'is_group' => 'boolean',
             'is_postable' => 'boolean',
+            'revalue_foreign_currency' => 'boolean',
+            'is_control_account' => 'boolean',
+            'cash_flow_category' => ['nullable', Rule::enum(CashFlowCategory::class)],
+            'is_current' => 'nullable|boolean',
             'currency_id' => 'nullable|exists:currencies,id',
             'status' => 'required|in:active,inactive',
             'description' => 'nullable|string',

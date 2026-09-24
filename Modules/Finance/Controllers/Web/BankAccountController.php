@@ -38,7 +38,7 @@ class BankAccountController extends Controller
 
         $glOptions = Account::where('is_postable', true)
             ->where('company_id', $companyId)
-            ->where('account_code', 'like', '1120%')
+            ->where('account_type', 'ASSET')
             ->orderBy('account_code')
             ->get(['id', 'account_code', 'account_name']);
 
@@ -79,7 +79,7 @@ class BankAccountController extends Controller
         $companyId = $this->getActiveCompanyId();
         $glOptions = Account::where('is_postable', true)
             ->where('company_id', $companyId)
-            ->where('account_code', 'like', '1120%')
+            ->where('account_type', 'ASSET')
             ->orderBy('account_code')
             ->get(['id', 'account_code', 'account_name']);
 

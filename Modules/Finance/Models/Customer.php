@@ -3,6 +3,8 @@
 namespace Modules\Finance\Models;
 
 use App\Models\User;
+use Database\Factories\CustomerFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,7 +15,12 @@ use Modules\Core\Models\Currency;
 
 class Customer extends Model
 {
-    use BelongsToCompany, SoftDeletes;
+    use BelongsToCompany, HasFactory, SoftDeletes;
+
+    protected static function newFactory(): CustomerFactory
+    {
+        return CustomerFactory::new();
+    }
 
     protected $fillable = [
         'company_id',
@@ -24,6 +31,7 @@ class Customer extends Model
         'phone',
         'email',
         'tax_number',
+        'country_code',
         'currency_id',
         'receivable_account_id',
         'status',

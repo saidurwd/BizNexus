@@ -2,10 +2,13 @@
 
 namespace Modules\Finance\Models;
 
+use Carbon\CarbonInterface;
 use Database\Factories\TaxFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Core\Concerns\BelongsToCompany;
 use Modules\Core\Models\Company;
 
@@ -23,8 +26,12 @@ class Tax extends Model
         'tax_code',
         'tax_name',
         'tax_type',
+        'country_code',
+        'region_code',
         'rate',
         'is_inclusive',
+        'is_group',
+        'is_recoverable',
         'input_account_id',
         'output_account_id',
         'status',
@@ -33,6 +40,8 @@ class Tax extends Model
     protected $casts = [
         'rate' => 'decimal:4',
         'is_inclusive' => 'boolean',
+        'is_group' => 'boolean',
+        'is_recoverable' => 'boolean',
     ];
 
     public const TYPE_VAT = 'VAT';
@@ -42,6 +51,50 @@ class Tax extends Model
     public const TYPE_INCOME_TAX = 'INCOME_TAX';
 
     public const TYPE_OTHER = 'OTHER';
+
+    public const TYPE_SALES_TAX = 'SALES_TAX';
+
+    public const TYPE_EXCISE = 'EXCISE';
+
+    public const TYPES = [self::TYPE_VAT, self::TYPE_SALES_TAX, self::TYPE_EXCISE, self::TYPE_WITHHOLDING_TAX, self::TYPE_INCOME_TAX, self::TYPE_OTHER];
+
+    protected static function booted(): void
+    {
+        static::created(function (Tax $tax) {
+            if (! $tax->rates()->exists()) {
+                $tax->rates()->create(['rate' => $tax->rate ?? 0, 'effective_from' => '1900-01-01']);
+            }
+        });
+    }
+
+    public function rates(): HasMany
+    {
+        return $this->hasMany(TaxRate::class);
+    }
+
+    /**
+     * Components of a tax group in calculation order; pivot is_compound marks tax charged on earlier taxes.
+     */
+    public function components(): BelongsToMany
+    {
+        return $this->belongsToMany(Tax::class, 'tax_group_components', 'group_tax_id', 'component_tax_id')
+            ->withPivot(['sequence', 'is_compound'])
+            ->orderByPivot('sequence');
+    }
+
+    /**
+     * The rate (percent) in force on the date.
+     */
+    public function rateOn(CarbonInterface $date): string
+    {
+        $rate = $this->rates()
+            ->whereDate('effective_from', '<=', $date->toDateString())
+            ->where(fn ($query) => $query->whereNull('effective_to')->orWhereDate('effective_to', '>=', $date->toDateString()))
+            ->orderByDesc('effective_from')
+            ->value('rate');
+
+        return (string) ($rate ?? $this->rate ?? '0');
+    }
 
     public function company(): BelongsTo
     {

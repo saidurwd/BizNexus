@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
-use Modules\Core\Models\User;
-use Modules\Core\Models\UserBranch;
 use Modules\Core\Models\Branch;
+use Modules\Core\Models\UserBranch;
 
 class UserBranchSeeder extends Seeder
 {

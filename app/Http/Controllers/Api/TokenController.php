@@ -39,7 +39,7 @@ class TokenController extends Controller
 
         $user = User::where('email', $validated['email'])->first();
 
-        if (! $user || ! $user->isActive() || ! Hash::check($validated['password'], $user->password)) {
+        if (! $user || ! $user->canSignIn() || ! Hash::check($validated['password'], $user->password)) {
             throw ValidationException::withMessages(['email' => trans('auth.failed')]);
         }
 

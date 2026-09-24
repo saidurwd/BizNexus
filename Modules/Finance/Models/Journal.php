@@ -38,6 +38,7 @@ class Journal extends Model
         'journal_date',
         'posting_date',
         'fiscal_period_id',
+        'adjustment_period',
         'reference_type',
         'reference_id',
         'description',
@@ -61,6 +62,7 @@ class Journal extends Model
     ];
 
     protected $casts = [
+        'adjustment_period' => 'boolean',
         'journal_date' => 'date',
         'posting_date' => 'date',
         'exchange_rate' => 'decimal:8',
@@ -85,6 +87,8 @@ class Journal extends Model
     public const STATUS_CANCELLED = 'CANCELLED';
 
     public const STATUS_REVERSED = 'REVERSED';
+
+    public const LEDGER_STATUSES = [self::STATUS_POSTED, self::STATUS_REVERSED];
 
     public function company(): BelongsTo
     {
@@ -254,9 +258,13 @@ class Journal extends Model
         return $query->where('status', self::STATUS_APPROVED);
     }
 
+    /**
+     * Journals in the ledger: posted ones and reversed ones. A reversed journal stays in the ledger and is
+     * offset by its posted reversal; excluding it would leave only the reversal and misstate every balance.
+     */
     public function scopePosted($query)
     {
-        return $query->where('status', self::STATUS_POSTED);
+        return $query->whereIn($this->qualifyColumn('status'), self::LEDGER_STATUSES);
     }
 
     public function scopeForCompany($query, int $companyId)

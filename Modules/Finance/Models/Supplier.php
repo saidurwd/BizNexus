@@ -31,6 +31,7 @@ class Supplier extends Model
         'phone',
         'email',
         'tax_number',
+        'country_code',
         'currency_id',
         'payable_account_id',
         'status',

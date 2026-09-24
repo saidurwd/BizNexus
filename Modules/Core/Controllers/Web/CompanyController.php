@@ -2,10 +2,12 @@
 
 namespace Modules\Core\Controllers\Web;
 
+use Modules\Core\Support\Countries;
 use App\Http\Controllers\Controller;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Modules\Core\Models\Company;
 use Modules\Core\Services\PermissionService;
 
@@ -38,13 +40,14 @@ class CompanyController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'code' => 'required|string|max:50|unique:companies,code',
+            'code' => ['required', 'string', 'max:50', Rule::unique('companies', 'code')->where('tenant_id', $request->user()->tenant_id)],
             'name' => 'required|string|max:255',
             'legal_name' => 'nullable|string|max:255',
             'address' => 'nullable|string',
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
             'tax_number' => 'nullable|string|max:100',
+            'country_code' => ['nullable', Rule::in(Countries::codes())],
             'registration_number' => 'nullable|string|max:100',
             'base_currency_id' => 'nullable|exists:currencies,id',
             'timezone' => 'nullable|string|max:100',
@@ -71,13 +74,14 @@ class CompanyController extends Controller
         $company = $this->findPermittedCompany($id, 'core.companies.update');
 
         $validated = $request->validate([
-            'code' => 'required|string|max:50|unique:companies,code,'.$id,
+            'code' => ['required', 'string', 'max:50', Rule::unique('companies', 'code')->where('tenant_id', $request->user()->tenant_id)->ignore($id)],
             'name' => 'required|string|max:255',
             'legal_name' => 'nullable|string|max:255',
             'address' => 'nullable|string',
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
             'tax_number' => 'nullable|string|max:100',
+            'country_code' => ['nullable', Rule::in(Countries::codes())],
             'registration_number' => 'nullable|string|max:100',
             'base_currency_id' => 'nullable|exists:currencies,id',
             'timezone' => 'nullable|string|max:100',

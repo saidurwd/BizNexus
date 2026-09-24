@@ -16,6 +16,7 @@ use Modules\Core\Controllers\Web\RoleController;
 use Modules\Core\Controllers\Web\UserController;
 use Modules\Finance\Controllers\DashboardController;
 use Modules\Finance\Controllers\Web\AccountController;
+use Modules\Finance\Controllers\Web\AccountMappingController;
 use Modules\Finance\Controllers\Web\BankAccountController;
 use Modules\Finance\Controllers\Web\BankPaymentController;
 use Modules\Finance\Controllers\Web\BankReceiptController;
@@ -27,6 +28,7 @@ use Modules\Finance\Controllers\Web\CostCenterController;
 use Modules\Finance\Controllers\Web\CustomerController;
 use Modules\Finance\Controllers\Web\CustomerInvoiceController;
 use Modules\Finance\Controllers\Web\CustomerStatementController;
+use Modules\Finance\Controllers\Web\FxRevaluationController;
 use Modules\Finance\Controllers\Web\JournalController;
 use Modules\Finance\Controllers\Web\PaymentController;
 use Modules\Finance\Controllers\Web\ReceiptController;
@@ -39,6 +41,7 @@ use Modules\Finance\Controllers\Web\SupplierInvoiceController;
 use Modules\Finance\Controllers\Web\SupplierInvoiceLineController;
 use Modules\Finance\Controllers\Web\SupplierStatementController;
 use Modules\Finance\Controllers\Web\TaxController;
+use Modules\Finance\Controllers\Web\YearEndCloseController;
 use Modules\Workflow\Controllers\Web\WorkflowController;
 
 Route::get('/', function () {
@@ -106,6 +109,9 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
     Route::get('/fiscal-years/create', [FiscalYearController::class, 'create'])->middleware('permission:core.fiscal-years.create')->name('core.fiscal-years.create');
     Route::post('/fiscal-years', [FiscalYearController::class, 'store'])->middleware('permission:core.fiscal-years.create')->name('core.fiscal-years.store');
 
+    Route::post('/fiscal-years/{id}/close', [YearEndCloseController::class, 'close'])->whereNumber('id')->middleware('permission:core.fiscal-years.close')->name('core.fiscal-years.close');
+    Route::post('/fiscal-years/{id}/reopen', [YearEndCloseController::class, 'reopen'])->whereNumber('id')->middleware('permission:core.fiscal-years.reopen')->name('core.fiscal-years.reopen');
+
     Route::post('/periods/{id}/close', [PeriodClosingController::class, 'closePeriod'])->middleware('permission:core.periods.close')->name('core.periods.close');
     Route::post('/periods/{id}/reopen', [PeriodClosingController::class, 'reopenPeriod'])->middleware('permission:core.periods.reopen')->name('core.periods.reopen');
     Route::post('/periods/{id}/lock', [PeriodClosingController::class, 'lockPeriod'])->middleware('permission:core.periods.lock')->name('core.periods.lock');
@@ -144,6 +150,14 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::get('/accounts/{id}/edit', [AccountController::class, 'edit'])->middleware('permission:finance.accounts.update')->name('accounts.edit');
         Route::put('/accounts/{id}', [AccountController::class, 'update'])->middleware('permission:finance.accounts.update')->name('accounts.update');
         Route::delete('/accounts/{id}', [AccountController::class, 'destroy'])->middleware('permission:finance.accounts.delete')->name('accounts.destroy');
+
+        // Foreign currency revaluation
+        Route::get('/fx-revaluations', [FxRevaluationController::class, 'index'])->middleware('permission:finance.fx-revaluation.view')->name('fx-revaluations.index');
+        Route::post('/fx-revaluations', [FxRevaluationController::class, 'store'])->middleware('permission:finance.fx-revaluation.run')->name('fx-revaluations.store');
+
+        // Account determination
+        Route::get('/account-mappings', [AccountMappingController::class, 'index'])->middleware('permission:finance.accounts.view')->name('account-mappings.index');
+        Route::put('/account-mappings', [AccountMappingController::class, 'update'])->middleware('permission:finance.accounts.update')->name('account-mappings.update');
 
         // Journals
         Route::get('/journals', [JournalController::class, 'index'])->middleware('permission:finance.journals.view')->name('journals.index');

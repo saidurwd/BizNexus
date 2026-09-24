@@ -3,6 +3,7 @@
 namespace Modules\Finance\Services;
 
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\DuplicatePostingException;
@@ -11,11 +12,16 @@ use Modules\Core\Exceptions\InvalidAccountingTransactionException;
 use Modules\Core\Exceptions\NonPostableAccountException;
 use Modules\Core\Exceptions\UnauthorizedCompanyAccessException;
 use Modules\Core\Exceptions\UnbalancedJournalException;
+use Modules\Core\Models\Company;
+use Modules\Core\Models\Currency;
 use Modules\Core\Scopes\CompanyScope;
 use Modules\Core\Services\AccountingPeriodService;
 use Modules\Core\Services\AuditService;
 use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
+use Modules\Core\Support\Money;
+use Modules\Finance\Enums\AccountPurpose;
 use Modules\Finance\Events\JournalPosted;
 use Modules\Finance\Jobs\ProcessIntegrationJob;
 use Modules\Finance\Models\Account;
@@ -28,11 +34,19 @@ class JournalService
 {
     use EnforcesSegregationOfDuties;
 
+    /**
+     * True while a system posting (source document, revaluation) builds its journal; only then may lines
+     * use control accounts.
+     */
+    protected bool $systemPosting = false;
+
     public function __construct(
         protected CompanyContextService $companyContext,
         protected AccountingPeriodService $periodService,
         protected DocumentNumberService $documentNumber,
-        protected AuditService $audit
+        protected AuditService $audit,
+        protected ExchangeRateService $exchangeRates,
+        protected DefaultAccountService $defaultAccounts
     ) {}
 
     /**
@@ -56,16 +70,20 @@ class JournalService
                 throw new InvalidAccountingTransactionException('Journal must have at least two lines.');
             }
 
+            $company = $this->companyContext->getActiveCompany();
+            $currencyId = $data['currency_id'] ?? $company->base_currency_id;
+
             $journal = Journal::create([
                 'company_id' => $companyId,
                 'branch_id' => $data['branch_id'] ?? null,
                 'journal_number' => 'DRAFT-'.uniqid(),
                 'journal_date' => $data['journal_date'],
+                'adjustment_period' => (bool) ($data['adjustment_period'] ?? false),
                 'reference_type' => $data['reference_type'] ?? null,
                 'reference_id' => $data['reference_id'] ?? null,
                 'description' => $data['description'] ?? null,
-                'currency_id' => $data['currency_id'] ?? $this->companyContext->getBaseCurrency()?->id,
-                'exchange_rate' => $data['exchange_rate'] ?? 1,
+                'currency_id' => $currencyId,
+                'exchange_rate' => $this->resolveExchangeRate($company, $currencyId, $data['journal_date'], $data['exchange_rate'] ?? null),
                 'status' => Journal::STATUS_DRAFT,
                 'created_by' => Auth::id(),
             ]);
@@ -79,7 +97,7 @@ class JournalService
             $journal->calculateTotals();
             $journal->save();
 
-            if (! $journal->isBalanced()) {
+            if (! $journal->isBalanced() || ! $this->isBalancedInTransactionCurrency($journal)) {
                 throw new UnbalancedJournalException((float) $journal->total_debit, (float) $journal->total_credit);
             }
 
@@ -97,13 +115,14 @@ class JournalService
 
         $this->ensureAccountCanReceivePosting($journal, (int) $lineData['account_id']);
 
+        $isFunctionalAdjustment = in_array($lineData['line_type'] ?? null, JournalLine::FUNCTIONAL_ADJUSTMENT_TYPES, true);
+
         $line = $journal->lines()->create([
             'account_id' => $lineData['account_id'],
             'description' => $lineData['description'] ?? null,
-            'debit' => $lineData['debit'] ?? 0,
-            'credit' => $lineData['credit'] ?? 0,
-            'currency_debit' => $lineData['currency_debit'] ?? $lineData['debit'] ?? 0,
-            'currency_credit' => $lineData['currency_credit'] ?? $lineData['credit'] ?? 0,
+            ...($isFunctionalAdjustment
+                ? $this->functionalAdjustmentAmounts($journal, $lineData['functional_amount'])
+                : $this->lineAmounts($journal, $lineData['debit'] ?? 0, $lineData['credit'] ?? 0)),
             'cost_center_id' => $lineData['cost_center_id'] ?? null,
             'department_id' => $lineData['department_id'] ?? null,
             'branch_id' => $lineData['branch_id'] ?? null,
@@ -111,10 +130,10 @@ class JournalService
             'project_id' => $lineData['project_id'] ?? null,
             'tax_id' => $lineData['tax_id'] ?? null,
             'reference' => $lineData['reference'] ?? null,
+            'line_type' => $isFunctionalAdjustment ? $lineData['line_type'] : JournalLine::TYPE_STANDARD,
         ]);
 
-        $journal->calculateTotals();
-        $journal->save();
+        $this->balanceFunctionalRounding($journal);
 
         return $line;
     }
@@ -131,10 +150,18 @@ class JournalService
             $this->ensureAccountCanReceivePosting($journal, (int) $data['account_id']);
         }
 
-        $line->update($data);
+        $attributes = collect($data)->only([
+            'account_id', 'description', 'cost_center_id', 'department_id', 'branch_id',
+            'business_unit_id', 'project_id', 'tax_id', 'reference',
+        ])->all();
 
-        $journal->calculateTotals();
-        $journal->save();
+        if (array_key_exists('debit', $data) || array_key_exists('credit', $data)) {
+            $attributes += $this->lineAmounts($journal, $data['debit'] ?? $line->currency_debit, $data['credit'] ?? $line->currency_credit);
+        }
+
+        $line->update($attributes);
+
+        $this->balanceFunctionalRounding($journal);
 
         return $line;
     }
@@ -149,8 +176,7 @@ class JournalService
 
         $line->delete();
 
-        $journal->calculateTotals();
-        $journal->save();
+        $this->balanceFunctionalRounding($journal);
     }
 
     public function validate(Journal $journal): void
@@ -161,7 +187,7 @@ class JournalService
             throw new InvalidAccountingTransactionException('Journal must have at least 2 lines');
         }
 
-        if (! $journal->isBalanced()) {
+        if (! $journal->isBalanced() || ! $this->isBalancedInTransactionCurrency($journal)) {
             throw new UnbalancedJournalException($journal->total_debit, $journal->total_credit);
         }
 
@@ -279,7 +305,23 @@ class JournalService
      */
     public function postFromSource(array $data): Journal
     {
-        $posted = DB::transaction(function () use ($data) {
+        $wasSystemPosting = $this->systemPosting;
+        $this->systemPosting = true;
+
+        try {
+            $posted = $this->createAndPostSystemJournal($data);
+        } finally {
+            $this->systemPosting = $wasSystemPosting;
+        }
+
+        ProcessIntegrationJob::dispatch(JournalPosted::class, ['journal' => $posted])->afterCommit();
+
+        return $posted->fresh();
+    }
+
+    protected function createAndPostSystemJournal(array $data): Journal
+    {
+        return DB::transaction(function () use ($data) {
             $journal = $this->create($data);
 
             $journal->update([
@@ -296,19 +338,15 @@ class JournalService
 
             return $journal;
         });
-
-        ProcessIntegrationJob::dispatch(JournalPosted::class, ['journal' => $posted])->afterCommit();
-
-        return $posted->fresh();
     }
 
     /**
      * Reverse a posted journal by posting a mirror journal dated $reversalDate (default today) in the same
      * transaction that marks the original as reversed, so the ledger never shows one without the other.
      */
-    public function reverse(Journal $journal, ?string $reason = null, ?string $reversalDate = null): Journal
+    public function reverse(Journal $journal, ?string $reason = null, ?string $reversalDate = null, bool $adjustmentPeriod = false): Journal
     {
-        return DB::transaction(function () use ($journal, $reason, $reversalDate) {
+        return DB::transaction(function () use ($journal, $reason, $reversalDate, $adjustmentPeriod) {
             $journal = Journal::whereKey($journal->id)->lockForUpdate()->firstOrFail();
 
             if (! $journal->canReverse()) {
@@ -320,6 +358,7 @@ class JournalService
                 'branch_id' => $journal->branch_id,
                 'journal_number' => 'DRAFT-'.uniqid(),
                 'journal_date' => $reversalDate ?? now()->toDateString(),
+                'adjustment_period' => $adjustmentPeriod,
                 'reference_type' => $journal->reference_type,
                 'reference_id' => $journal->reference_id,
                 'description' => "Reversal of {$journal->journal_number}".($reason ? ": {$reason}" : ''),
@@ -348,6 +387,7 @@ class JournalService
                     'project_id' => $line->project_id,
                     'tax_id' => $line->tax_id,
                     'reference' => $line->reference,
+                    'line_type' => $line->line_type,
                 ]);
             }
 
@@ -420,7 +460,7 @@ class JournalService
     protected function postLocked(Journal $journal): void
     {
         $journalDate = Carbon::parse($journal->journal_date);
-        $period = $this->periodService->validateDateForPosting($journal->company_id, $journalDate);
+        $period = $this->periodService->validateDateForPosting($journal->company_id, $journalDate, (bool) $journal->adjustment_period);
 
         $this->validate($journal);
         $this->validateBudget($journal);
@@ -442,6 +482,12 @@ class JournalService
 
         if ((int) $account->company_id !== (int) $journal->company_id) {
             throw new InvalidAccountingTransactionException('Journal lines must use accounts of the journal\'s company.');
+        }
+
+        if ($account->is_control_account && ! $this->systemPosting) {
+            throw new InvalidAccountingTransactionException(
+                "{$account->account_code} {$account->account_name} is a control account; post through its sub-ledger (invoices, payments, receipts)."
+            );
         }
 
         $this->ensureAccountIsPostable($account);
@@ -469,7 +515,7 @@ class JournalService
         $budgetService = app(BudgetService::class);
 
         foreach ($journal->lines as $line) {
-            if ($line->debit > 0 && $line->account->account_type === 'EXPENSE') {
+            if ($line->line_type === JournalLine::TYPE_STANDARD && $line->debit > 0 && $line->account->account_type === 'EXPENSE') {
                 $budgetLines = BudgetLine::where('account_id', $line->account_id)
                     ->whereHas('budget', function ($q) use ($journal) {
                         $q->where('company_id', $journal->company_id)
@@ -494,5 +540,118 @@ class JournalService
                 }
             }
         }
+    }
+
+    /**
+     * Rate of the journal's currency to the company's functional currency: 1 for the functional currency,
+     * the rate supplied by a source document, or otherwise the spot rate on the journal date.
+     */
+    protected function resolveExchangeRate(Company $company, ?int $currencyId, string $journalDate, string|int|float|null $givenRate): string
+    {
+        if ($currencyId === null || (int) $currencyId === (int) $company->base_currency_id) {
+            return '1';
+        }
+
+        if ($givenRate !== null) {
+            if (bccomp((string) $givenRate, '0', 8) !== 1) {
+                throw new InvalidAccountingTransactionException('The exchange rate must be greater than zero.');
+            }
+
+            return (string) $givenRate;
+        }
+
+        return $this->exchangeRates->rate($company, Currency::findOrFail($currencyId), Carbon::parse($journalDate));
+    }
+
+    /**
+     * Transaction-currency amounts as entered, and functional amounts converted at the journal rate.
+     *
+     * @return array{debit: string, credit: string, currency_debit: string, currency_credit: string}
+     */
+    protected function lineAmounts(Journal $journal, string|int|float|null $debit, string|int|float|null $credit): array
+    {
+        [$transactionCurrency, $functionalCurrency] = $this->currencyCodes($journal);
+        $transactionDebit = Money::of($debit ?? 0, $transactionCurrency);
+        $transactionCredit = Money::of($credit ?? 0, $transactionCurrency);
+
+        return [
+            'currency_debit' => $transactionDebit->amount,
+            'currency_credit' => $transactionCredit->amount,
+            'debit' => $transactionDebit->convertedTo($functionalCurrency, $journal->exchange_rate)->amount,
+            'credit' => $transactionCredit->convertedTo($functionalCurrency, $journal->exchange_rate)->amount,
+        ];
+    }
+
+    /**
+     * A system adjustment in the functional currency only (signed: positive debits, negative credits).
+     *
+     * @return array{debit: string, credit: string, currency_debit: string, currency_credit: string}
+     */
+    protected function functionalAdjustmentAmounts(Journal $journal, string|int|float $functionalAmount): array
+    {
+        $amount = Money::of($functionalAmount, $this->currencyCodes($journal)[1]);
+
+        return [
+            'currency_debit' => '0',
+            'currency_credit' => '0',
+            'debit' => $amount->isPositive() ? $amount->amount : '0',
+            'credit' => $amount->isNegative() ? $amount->abs()->amount : '0',
+        ];
+    }
+
+    /**
+     * When the journal balances in its transaction currency but converted amounts differ by rounding, post the
+     * difference to the company's FX rounding account so the functional currency balances too.
+     */
+    protected function balanceFunctionalRounding(Journal $journal): void
+    {
+        $journal->lines()->where('line_type', JournalLine::TYPE_FX_ROUNDING)->delete();
+
+        [$transactionCurrency, $functionalCurrency] = $this->currencyCodes($journal);
+        $lines = $journal->lines()->get();
+
+        $transactionDifference = $this->sum($lines, 'currency_debit', $transactionCurrency)->minus($this->sum($lines, 'currency_credit', $transactionCurrency));
+        $functionalDifference = $this->sum($lines, 'debit', $functionalCurrency)->minus($this->sum($lines, 'credit', $functionalCurrency));
+
+        if ($lines->count() >= 2 && $transactionDifference->isZero() && ! $functionalDifference->isZero()) {
+            $journal->lines()->create([
+                'account_id' => $this->defaultAccounts->forPurpose($journal->company_id, AccountPurpose::FxRounding),
+                'description' => 'Currency rounding difference',
+                'debit' => $functionalDifference->isNegative() ? $functionalDifference->abs()->amount : '0',
+                'credit' => $functionalDifference->isPositive() ? $functionalDifference->amount : '0',
+                'currency_debit' => '0',
+                'currency_credit' => '0',
+                'line_type' => JournalLine::TYPE_FX_ROUNDING,
+            ]);
+        }
+
+        $journal->calculateTotals();
+        $journal->save();
+    }
+
+    protected function isBalancedInTransactionCurrency(Journal $journal): bool
+    {
+        $currency = $this->currencyCodes($journal)[0];
+        $lines = $journal->lines()->get();
+
+        return $this->sum($lines, 'currency_debit', $currency)->equals($this->sum($lines, 'currency_credit', $currency));
+    }
+
+    /**
+     * @return array{0: string, 1: string} transaction and functional currency codes
+     */
+    protected function currencyCodes(Journal $journal): array
+    {
+        $functional = $journal->company()->withoutGlobalScopes()->first()?->baseCurrency?->code ?? 'XXX';
+
+        return [$journal->currency?->code ?? $functional, $functional];
+    }
+
+    /**
+     * @param  Collection<int, JournalLine>  $lines
+     */
+    protected function sum(Collection $lines, string $column, string $currency): Money
+    {
+        return $lines->reduce(fn (Money $total, JournalLine $line) => $total->plus(Money::of($line->{$column} ?? 0, $currency)), Money::zero($currency));
     }
 }

@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
 use Modules\Core\Services\AuditService;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Support\Money;
 use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
 use Modules\Finance\Events\SupplierInvoiceApproved;
@@ -34,7 +36,7 @@ class SupplierInvoiceService
                 'invoice_date' => $data['invoice_date'],
                 'due_date' => $data['due_date'],
                 'currency_id' => $data['currency_id'] ?? null,
-                'exchange_rate' => $data['exchange_rate'] ?? 1,
+                'exchange_rate' => $data['exchange_rate'] ?? app(ExchangeRateService::class)->rateForDocument(app(CompanyContextService::class)->getActiveCompanyId(), $data['currency_id'] ?? null, $data['invoice_date']),
                 'subtotal' => 0,
                 'tax_amount' => 0,
                 'discount_amount' => $data['discount_amount'] ?? 0,
@@ -45,34 +47,27 @@ class SupplierInvoiceService
                 'created_by' => Auth::id(),
             ]);
 
-            $totalSubtotal = 0;
-            $totalTax = 0;
 
             foreach ($data['lines'] ?? [] as $lineData) {
-                $line = $invoice->lines()->create([
+                $invoice->lines()->create([
                     'account_id' => $lineData['account_id'],
                     'description' => $lineData['description'],
                     'quantity' => $lineData['quantity'] ?? 1,
                     'unit_price' => $lineData['unit_price'] ?? 0,
                     'subtotal' => 0,
                     'tax_id' => $lineData['tax_id'] ?? null,
+                    'supply_type' => $lineData['supply_type'] ?? null,
+                    'is_reverse_charge' => (bool) ($lineData['is_reverse_charge'] ?? false),
+                'supply_type' => $lineData['supply_type'] ?? null,
+                'is_reverse_charge' => (bool) ($lineData['is_reverse_charge'] ?? false),
                     'tax_amount' => 0,
                     'discount_amount' => $lineData['discount_amount'] ?? 0,
                     'total_amount' => 0,
                 ]);
 
-                $line->calculateTotals();
-                $line->save();
-
-                $totalSubtotal = bcadd($totalSubtotal, $line->subtotal, 4);
-                $totalTax = bcadd($totalTax, $line->tax_amount ?? 0, 4);
             }
 
-            $invoice->subtotal = $totalSubtotal;
-            $invoice->tax_amount = $totalTax;
-            $invoice->total_amount = bcadd(bcadd($totalSubtotal, $totalTax, 4), $invoice->discount_amount, 4);
-            $invoice->outstanding_amount = $invoice->total_amount;
-            $invoice->save();
+            app(DocumentTaxService::class)->recalculate($invoice);
 
             $this->audit->logCreate('Finance', 'SupplierInvoice', $invoice->id, $invoice->toArray());
 
@@ -107,34 +102,51 @@ class SupplierInvoiceService
             $supplier = $invoice->supplier;
             $company = $invoice->company;
 
+            $documentTax = app(DocumentTaxService::class);
+            $calculations = $documentTax->calculations($invoice);
+            $currency = $invoice->currency?->code ?? $company->baseCurrency?->code ?? 'XXX';
+            $payable = Money::zero($currency);
             $journalLines = [];
 
             foreach ($invoice->lines as $line) {
+                $calculation = $calculations[$line->id];
+
+                // Cost: net amount plus tax that cannot be reclaimed.
                 $journalLines[] = [
                     'account_id' => $line->account_id,
                     'description' => $line->description,
-                    'debit' => $line->total_amount,
+                    'debit' => $calculation->net->plus($calculation->nonRecoverableTax())->amount,
                     'credit' => 0,
                 ];
 
-                if ($line->tax_id && $line->tax_amount > 0) {
-                    $tax = $line->tax;
-                    if ($tax && $tax->input_account_id) {
+                foreach ($calculation->components as $component) {
+                    if ($component->isRecoverable()) {
                         $journalLines[] = [
-                            'account_id' => $tax->input_account_id,
-                            'description' => "Input Tax on {$line->description}",
-                            'debit' => $line->tax_amount,
+                            'account_id' => $documentTax->requireAccount($component->tax->input_account_id, $component->tax->tax_code, 'input'),
+                            'description' => "Input {$component->tax->tax_code} on {$line->description}",
+                            'debit' => $component->amount->amount,
                             'credit' => 0,
                         ];
                     }
+
+                    if ($line->is_reverse_charge) {
+                        $journalLines[] = [
+                            'account_id' => $documentTax->requireAccount($component->tax->output_account_id, $component->tax->tax_code, 'output'),
+                            'description' => "Reverse charge {$component->tax->tax_code} on {$line->description}",
+                            'debit' => 0,
+                            'credit' => $component->amount->amount,
+                        ];
+                    }
                 }
+
+                $payable = $payable->plus($line->is_reverse_charge ? $calculation->net : $calculation->gross());
             }
 
             $journalLines[] = [
                 'account_id' => $supplier->payable_account_id ?? $this->defaultAccounts->getPayableAccount($company->id),
                 'description' => "Payable to {$supplier->name}",
                 'debit' => 0,
-                'credit' => $invoice->total_amount,
+                'credit' => $payable->amount,
             ];
 
             $journal = $this->journalService->postFromSource([
@@ -147,6 +159,8 @@ class SupplierInvoiceService
                 'exchange_rate' => $invoice->exchange_rate,
                 'lines' => $journalLines,
             ]);
+
+            $documentTax->recordTransactions($invoice, $journal->id);
 
             $invoice->update([
                 'status' => SupplierInvoice::STATUS_POSTED,
@@ -284,7 +298,7 @@ class SupplierInvoiceService
             'invoice_date' => $data['invoice_date'],
             'due_date' => $data['due_date'],
             'currency_id' => $data['currency_id'] ?? null,
-            'exchange_rate' => $data['exchange_rate'] ?? 1,
+            'exchange_rate' => $data['exchange_rate'] ?? app(ExchangeRateService::class)->rateForDocument(app(CompanyContextService::class)->getActiveCompanyId(), $data['currency_id'] ?? null, $data['invoice_date']),
             'discount_amount' => $data['discount_amount'] ?? 0,
             'description' => $data['description'] ?? null,
             'updated_by' => Auth::id(),
@@ -292,34 +306,25 @@ class SupplierInvoiceService
 
         $invoice->lines()->delete();
 
-        $totalSubtotal = 0;
-        $totalTax = 0;
 
         foreach ($data['lines'] ?? [] as $lineData) {
-            $line = $invoice->lines()->create([
+            $invoice->lines()->create([
                 'account_id' => $lineData['account_id'],
                 'description' => $lineData['description'],
                 'quantity' => $lineData['quantity'] ?? 1,
                 'unit_price' => $lineData['unit_price'] ?? 0,
                 'subtotal' => 0,
                 'tax_id' => $lineData['tax_id'] ?? null,
+                'supply_type' => $lineData['supply_type'] ?? null,
+                'is_reverse_charge' => (bool) ($lineData['is_reverse_charge'] ?? false),
                 'tax_amount' => 0,
                 'discount_amount' => $lineData['discount_amount'] ?? 0,
                 'total_amount' => 0,
             ]);
 
-            $line->calculateTotals();
-            $line->save();
-
-            $totalSubtotal = bcadd($totalSubtotal, $line->subtotal, 4);
-            $totalTax = bcadd($totalTax, $line->tax_amount ?? 0, 4);
         }
 
-        $invoice->subtotal = $totalSubtotal;
-        $invoice->tax_amount = $totalTax;
-        $invoice->total_amount = bcadd(bcadd($totalSubtotal, $totalTax, 4), $invoice->discount_amount, 4);
-        $invoice->outstanding_amount = $invoice->total_amount;
-        $invoice->save();
+        app(DocumentTaxService::class)->recalculate($invoice);
 
         return $invoice->fresh();
     }

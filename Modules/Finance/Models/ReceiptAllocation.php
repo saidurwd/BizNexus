@@ -19,11 +19,11 @@ class ReceiptAllocation extends Model
 
     public function receipt(): BelongsTo
     {
-        return $this->belongsTo(CustomerReceipt::class);
+        return $this->belongsTo(CustomerReceipt::class, 'customer_receipt_id');
     }
 
     public function invoice(): BelongsTo
     {
-        return $this->belongsTo(CustomerInvoice::class);
+        return $this->belongsTo(CustomerInvoice::class, 'customer_invoice_id');
     }
 }

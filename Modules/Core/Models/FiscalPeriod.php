@@ -2,6 +2,7 @@
 
 namespace Modules\Core\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -11,6 +12,7 @@ class FiscalPeriod extends Model
         'fiscal_year_id',
         'period_name',
         'period_number',
+        'is_adjustment',
         'start_date',
         'end_date',
         'status',
@@ -19,6 +21,7 @@ class FiscalPeriod extends Model
     ];
 
     protected $casts = [
+        'is_adjustment' => 'boolean',
         'start_date' => 'date',
         'end_date' => 'date',
         'closed_at' => 'datetime',
@@ -31,7 +34,7 @@ class FiscalPeriod extends Model
 
     public function closedBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'closed_by');
+        return $this->belongsTo(User::class, 'closed_by');
     }
 
     public function isOpen(): bool

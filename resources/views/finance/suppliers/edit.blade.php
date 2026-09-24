@@ -59,6 +59,7 @@
                             <label for="tax_number">Tax Number</label>
                             <input type="text" class="form-control" id="tax_number" name="tax_number" value="{{ old('tax_number', $supplier->tax_number) }}">
                         </div>
+                        <x-form.country-select :value="$supplier->country_code" label="Country (ISO 3166)" />
                     </div>
                 </div>
 

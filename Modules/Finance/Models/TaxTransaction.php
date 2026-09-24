@@ -17,6 +17,9 @@ class TaxTransaction extends Model
         'transaction_type',
         'journal_line_id',
         'invoice_id',
+        'customer_invoice_id',
+        'is_reverse_charge',
+        'is_recoverable',
         'payment_id',
         'taxable_amount',
         'tax_amount',
@@ -30,6 +33,8 @@ class TaxTransaction extends Model
     ];
 
     protected $casts = [
+        'is_reverse_charge' => 'boolean',
+        'is_recoverable' => 'boolean',
         'tax_date' => 'date',
         'taxable_amount' => 'decimal:4',
         'tax_amount' => 'decimal:4',

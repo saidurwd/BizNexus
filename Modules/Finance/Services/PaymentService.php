@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
 use Modules\Core\Services\AuditService;
+use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
 use Modules\Finance\Events\PaymentApproved;
@@ -35,7 +36,7 @@ class PaymentService
                 'payment_number' => $data['payment_number'] ?? $this->documentNumber->generateNumber($data['company_id'], 'PV'),
                 'payment_date' => $data['payment_date'],
                 'currency_id' => $data['currency_id'] ?? null,
-                'exchange_rate' => $data['exchange_rate'] ?? 1,
+                'exchange_rate' => $data['exchange_rate'] ?? app(ExchangeRateService::class)->rateForDocument(app(CompanyContextService::class)->getActiveCompanyId(), $data['currency_id'] ?? null, $data['payment_date']),
                 'amount' => $data['amount'],
                 'payment_method' => $data['payment_method'] ?? 'BANK_TRANSFER',
                 'bank_account_id' => $data['bank_account_id'] ?? null,
@@ -104,9 +105,10 @@ class PaymentService
             $company = $payment->company;
 
             $journalLines = [];
+            $payableAccountId = $supplier->payable_account_id ?? $this->defaultAccounts->getPayableAccount($company->id);
 
             $journalLines[] = [
-                'account_id' => $supplier->payable_account_id ?? $this->defaultAccounts->getPayableAccount($company->id),
+                'account_id' => $payableAccountId,
                 'description' => "Payment to {$supplier->name}",
                 'debit' => $payment->amount,
                 'credit' => 0,
@@ -128,6 +130,15 @@ class PaymentService
                     'credit' => $payment->amount,
                 ];
             }
+
+            $journalLines = [...$journalLines, ...app(RealizedExchangeDifferenceService::class)->settlementLines(
+                $company,
+                $payment->allocations()->with('invoice')->get(),
+                $payment->currency_id,
+                (string) $payment->exchange_rate,
+                $payableAccountId,
+                RealizedExchangeDifferenceService::SIDE_PAYABLE,
+            )];
 
             $journal = $this->journalService->postFromSource([
                 'company_id' => $payment->company_id,
@@ -377,7 +388,7 @@ class PaymentService
             'payment_number' => $data['payment_number'],
             'payment_date' => $data['payment_date'],
             'currency_id' => $data['currency_id'] ?? null,
-            'exchange_rate' => $data['exchange_rate'] ?? 1,
+            'exchange_rate' => $data['exchange_rate'] ?? app(ExchangeRateService::class)->rateForDocument(app(CompanyContextService::class)->getActiveCompanyId(), $data['currency_id'] ?? null, $data['payment_date']),
             'amount' => $data['amount'],
             'payment_method' => $data['payment_method'] ?? 'BANK_TRANSFER',
             'bank_account_id' => $data['bank_account_id'] ?? null,

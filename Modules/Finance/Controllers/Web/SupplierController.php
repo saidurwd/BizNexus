@@ -2,6 +2,8 @@
 
 namespace Modules\Finance\Controllers\Web;
 
+use Modules\Core\Support\Countries;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
@@ -45,6 +47,7 @@ class SupplierController extends Controller
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
             'tax_number' => 'nullable|string|max:100',
+            'country_code' => ['nullable', Rule::in(Countries::codes())],
             'status' => 'nullable|in:active,inactive',
         ]);
 
@@ -88,6 +91,7 @@ class SupplierController extends Controller
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
             'tax_number' => 'nullable|string|max:100',
+            'country_code' => ['nullable', Rule::in(Countries::codes())],
             'status' => 'nullable|in:active,inactive',
         ]);
 

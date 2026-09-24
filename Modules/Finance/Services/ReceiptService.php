@@ -6,9 +6,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
 use Modules\Core\Services\AuditService;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
 use Modules\Finance\Events\ReceiptApproved;
-use Modules\Finance\Models\Account;
 use Modules\Finance\Models\CustomerInvoice;
 use Modules\Finance\Models\CustomerReceipt;
 use Modules\Finance\Models\ReceiptAllocation;
@@ -34,7 +35,7 @@ class ReceiptService
                 'receipt_number' => $data['receipt_number'] ?? $this->documentNumber->generateNumber($data['company_id'], 'RV'),
                 'receipt_date' => $data['receipt_date'],
                 'currency_id' => $data['currency_id'] ?? null,
-                'exchange_rate' => $data['exchange_rate'] ?? 1,
+                'exchange_rate' => $data['exchange_rate'] ?? app(ExchangeRateService::class)->rateForDocument(app(CompanyContextService::class)->getActiveCompanyId(), $data['currency_id'] ?? null, $data['receipt_date']),
                 'amount' => $data['amount'],
                 'receipt_method' => $data['receipt_method'] ?? 'BANK_TRANSFER',
                 'bank_account_id' => $data['bank_account_id'] ?? null,
@@ -121,12 +122,23 @@ class ReceiptService
                 ];
             }
 
+            $receivableAccountId = $customer->receivable_account_id ?? $this->getDefaultReceivableAccount($company->id);
+
             $journalLines[] = [
-                'account_id' => $customer->receivable_account_id ?? $this->getDefaultReceivableAccount($company->id),
+                'account_id' => $receivableAccountId,
                 'description' => "Receipt from {$customer->name}",
                 'debit' => 0,
                 'credit' => $receipt->amount,
             ];
+
+            $journalLines = [...$journalLines, ...app(RealizedExchangeDifferenceService::class)->settlementLines(
+                $company,
+                $receipt->allocations()->with('invoice')->get(),
+                $receipt->currency_id,
+                (string) $receipt->exchange_rate,
+                $receivableAccountId,
+                RealizedExchangeDifferenceService::SIDE_RECEIVABLE,
+            )];
 
             $journal = $this->journalService->postFromSource([
                 'company_id' => $receipt->company_id,
@@ -367,22 +379,12 @@ class ReceiptService
 
     protected function getDefaultReceivableAccount(int $companyId): int
     {
-        $account = Account::where('company_id', $companyId)
-            ->where('account_code', 'like', '1100%')
-            ->where('is_postable', true)
-            ->first();
-
-        return $account?->id ?? throw new \Exception('No receivable account found');
+        return app(DefaultAccountService::class)->getReceivableAccount($companyId);
     }
 
     protected function getDefaultCashAccount(int $companyId): int
     {
-        $account = Account::where('company_id', $companyId)
-            ->where('account_code', 'like', '1110%')
-            ->where('is_postable', true)
-            ->first();
-
-        return $account?->id ?? throw new \Exception('No cash account found');
+        return app(DefaultAccountService::class)->getCashAccount($companyId);
     }
 
     public function updateReceipt(CustomerReceipt $receipt, array $data): CustomerReceipt
@@ -396,7 +398,7 @@ class ReceiptService
             'receipt_number' => $data['receipt_number'],
             'receipt_date' => $data['receipt_date'],
             'currency_id' => $data['currency_id'] ?? null,
-            'exchange_rate' => $data['exchange_rate'] ?? 1,
+            'exchange_rate' => $data['exchange_rate'] ?? app(ExchangeRateService::class)->rateForDocument(app(CompanyContextService::class)->getActiveCompanyId(), $data['currency_id'] ?? null, $data['receipt_date']),
             'amount' => $data['amount'],
             'receipt_method' => $data['receipt_method'] ?? 'BANK_TRANSFER',
             'bank_account_id' => $data['bank_account_id'] ?? null,

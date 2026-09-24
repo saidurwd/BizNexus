@@ -58,9 +58,10 @@ expect()->extend('toBeOne', function () {
  */
 function companyUser(array $permissions = [], ?Company $company = null): User
 {
-    $user = User::factory()->create();
+    $company ??= Company::factory()->create();
+    $user = User::factory()->create(['tenant_id' => $company->tenant_id]);
 
-    companyUserRole($user, $company ?? Company::factory()->create(), $permissions, isDefault: true);
+    companyUserRole($user, $company, $permissions, isDefault: true);
 
     return $user;
 }

@@ -6,9 +6,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
 use Modules\Core\Services\AuditService;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Support\Money;
+use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
 use Modules\Finance\Events\CustomerInvoiceApproved;
-use Modules\Finance\Models\Account;
 use Modules\Finance\Models\CustomerInvoice;
 use Modules\Finance\Services\Concerns\EnforcesSegregationOfDuties;
 use Modules\Workflow\Services\WorkflowService;
@@ -33,7 +35,7 @@ class CustomerInvoiceService
                 'invoice_date' => $data['invoice_date'],
                 'due_date' => $data['due_date'],
                 'currency_id' => $data['currency_id'] ?? null,
-                'exchange_rate' => $data['exchange_rate'] ?? 1,
+                'exchange_rate' => $data['exchange_rate'] ?? app(ExchangeRateService::class)->rateForDocument(app(CompanyContextService::class)->getActiveCompanyId(), $data['currency_id'] ?? null, $data['invoice_date']),
                 'subtotal' => 0,
                 'tax_amount' => 0,
                 'discount_amount' => $data['discount_amount'] ?? 0,
@@ -44,34 +46,27 @@ class CustomerInvoiceService
                 'created_by' => Auth::id(),
             ]);
 
-            $totalSubtotal = 0;
-            $totalTax = 0;
 
             foreach ($data['lines'] ?? [] as $lineData) {
-                $line = $invoice->lines()->create([
+                $invoice->lines()->create([
                     'account_id' => $lineData['account_id'],
                     'description' => $lineData['description'],
                     'quantity' => $lineData['quantity'] ?? 1,
                     'unit_price' => $lineData['unit_price'] ?? 0,
                     'subtotal' => 0,
                     'tax_id' => $lineData['tax_id'] ?? null,
+                    'supply_type' => $lineData['supply_type'] ?? null,
+                    'is_reverse_charge' => (bool) ($lineData['is_reverse_charge'] ?? false),
+                'supply_type' => $lineData['supply_type'] ?? null,
+                'is_reverse_charge' => (bool) ($lineData['is_reverse_charge'] ?? false),
                     'tax_amount' => 0,
                     'discount_amount' => $lineData['discount_amount'] ?? 0,
                     'total_amount' => 0,
                 ]);
 
-                $line->calculateTotals();
-                $line->save();
-
-                $totalSubtotal = bcadd($totalSubtotal, $line->subtotal, 4);
-                $totalTax = bcadd($totalTax, $line->tax_amount ?? 0, 4);
             }
 
-            $invoice->subtotal = $totalSubtotal;
-            $invoice->tax_amount = $totalTax;
-            $invoice->total_amount = bcadd(bcadd($totalSubtotal, $totalTax, 4), $invoice->discount_amount, 4);
-            $invoice->outstanding_amount = $invoice->total_amount;
-            $invoice->save();
+            app(DocumentTaxService::class)->recalculate($invoice);
 
             $this->audit->logCreate('Finance', 'CustomerInvoice', $invoice->id, $invoice->toArray());
 
@@ -106,35 +101,42 @@ class CustomerInvoiceService
             $customer = $invoice->customer;
             $company = $invoice->company;
 
+            $documentTax = app(DocumentTaxService::class);
+            $calculations = $documentTax->calculations($invoice);
+            $currency = $invoice->currency?->code ?? $company->baseCurrency?->code ?? 'XXX';
+            $receivable = Money::zero($currency);
             $journalLines = [];
 
             foreach ($invoice->lines as $line) {
-                $journalLines[] = [
-                    'account_id' => $customer->receivable_account_id ?? $this->getDefaultReceivableAccount($company->id),
-                    'description' => $line->description,
-                    'debit' => $line->total_amount,
-                    'credit' => 0,
-                ];
+                $calculation = $calculations[$line->id];
 
                 $journalLines[] = [
                     'account_id' => $line->account_id,
                     'description' => $line->description,
                     'debit' => 0,
-                    'credit' => $line->subtotal,
+                    'credit' => $calculation->net->amount,
                 ];
 
-                if ($line->tax_id && $line->tax_amount > 0) {
-                    $tax = $line->tax;
-                    if ($tax && $tax->output_account_id) {
+                if (! $line->is_reverse_charge) {
+                    foreach ($calculation->components as $component) {
                         $journalLines[] = [
-                            'account_id' => $tax->output_account_id,
-                            'description' => "Output Tax on {$line->description}",
+                            'account_id' => $documentTax->requireAccount($component->tax->output_account_id, $component->tax->tax_code, 'output'),
+                            'description' => "Output {$component->tax->tax_code} on {$line->description}",
                             'debit' => 0,
-                            'credit' => $line->tax_amount,
+                            'credit' => $component->amount->amount,
                         ];
                     }
                 }
+
+                $receivable = $receivable->plus($line->is_reverse_charge ? $calculation->net : $calculation->gross());
             }
+
+            array_unshift($journalLines, [
+                'account_id' => $customer->receivable_account_id ?? $this->getDefaultReceivableAccount($company->id),
+                'description' => "Invoice {$invoice->invoice_number} to {$customer->name}",
+                'debit' => $receivable->amount,
+                'credit' => 0,
+            ]);
 
             $journal = $this->journalService->postFromSource([
                 'company_id' => $invoice->company_id,
@@ -146,6 +148,8 @@ class CustomerInvoiceService
                 'exchange_rate' => $invoice->exchange_rate,
                 'lines' => $journalLines,
             ]);
+
+            $documentTax->recordTransactions($invoice, $journal->id);
 
             $invoice->update([
                 'status' => CustomerInvoice::STATUS_POSTED,
@@ -253,12 +257,7 @@ class CustomerInvoiceService
 
     protected function getDefaultReceivableAccount(int $companyId): int
     {
-        $account = Account::where('company_id', $companyId)
-            ->where('account_code', 'like', '1100%')
-            ->where('is_postable', true)
-            ->first();
-
-        return $account?->id ?? throw new \Exception('No receivable account found');
+        return app(DefaultAccountService::class)->getReceivableAccount($companyId);
     }
 
     public function cancelInvoice(CustomerInvoice $invoice): CustomerInvoice
@@ -293,41 +292,32 @@ class CustomerInvoiceService
             'invoice_date' => $data['invoice_date'],
             'due_date' => $data['due_date'],
             'currency_id' => $data['currency_id'] ?? null,
-            'exchange_rate' => $data['exchange_rate'] ?? 1,
+            'exchange_rate' => $data['exchange_rate'] ?? app(ExchangeRateService::class)->rateForDocument(app(CompanyContextService::class)->getActiveCompanyId(), $data['currency_id'] ?? null, $data['invoice_date']),
             'discount_amount' => $data['discount_amount'] ?? 0,
             'description' => $data['description'] ?? null,
         ]);
 
         $invoice->lines()->delete();
 
-        $totalSubtotal = 0;
-        $totalTax = 0;
 
         foreach ($data['lines'] ?? [] as $lineData) {
-            $line = $invoice->lines()->create([
+            $invoice->lines()->create([
                 'account_id' => $lineData['account_id'],
                 'description' => $lineData['description'],
                 'quantity' => $lineData['quantity'] ?? 1,
                 'unit_price' => $lineData['unit_price'] ?? 0,
                 'subtotal' => 0,
                 'tax_id' => $lineData['tax_id'] ?? null,
+                'supply_type' => $lineData['supply_type'] ?? null,
+                'is_reverse_charge' => (bool) ($lineData['is_reverse_charge'] ?? false),
                 'tax_amount' => 0,
                 'discount_amount' => $lineData['discount_amount'] ?? 0,
                 'total_amount' => 0,
             ]);
 
-            $line->calculateTotals();
-            $line->save();
-
-            $totalSubtotal = bcadd($totalSubtotal, $line->subtotal, 4);
-            $totalTax = bcadd($totalTax, $line->tax_amount ?? 0, 4);
         }
 
-        $invoice->subtotal = $totalSubtotal;
-        $invoice->tax_amount = $totalTax;
-        $invoice->total_amount = bcadd(bcadd($totalSubtotal, $totalTax, 4), $invoice->discount_amount, 4);
-        $invoice->outstanding_amount = $invoice->total_amount;
-        $invoice->save();
+        app(DocumentTaxService::class)->recalculate($invoice);
 
         return $invoice->fresh();
     }

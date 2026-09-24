@@ -65,7 +65,7 @@ class TwoFactorChallengeController extends Controller
     {
         $user = User::find($request->session()->get('login.id'));
 
-        return $user?->isActive() && $user->hasEnabledTwoFactorAuthentication() ? $user : null;
+        return $user?->canSignIn() && $user->hasEnabledTwoFactorAuthentication() ? $user : null;
     }
 
     protected function passesChallenge(Request $request, User $user, TwoFactorAuthenticationProvider $provider): bool
