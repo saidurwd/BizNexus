@@ -55,7 +55,7 @@ class ExchangeRateController extends Controller
 
     public function edit(int $id)
     {
-        $rate = ExchangeRate::findOrFail($id);
+        $rate = ExchangeRate::where('company_id', $this->companyContext->getActiveCompanyId())->findOrFail($id);
         $currencies = Currency::active()->get();
 
         return view('core.exchange-rates.edit', compact('rate', 'currencies'));
@@ -63,7 +63,7 @@ class ExchangeRateController extends Controller
 
     public function update(Request $request, int $id)
     {
-        $rate = ExchangeRate::findOrFail($id);
+        $rate = ExchangeRate::where('company_id', $this->companyContext->getActiveCompanyId())->findOrFail($id);
 
         $validated = $request->validate([
             'currency_id' => 'required|exists:currencies,id',
@@ -81,7 +81,7 @@ class ExchangeRateController extends Controller
 
     public function destroy(int $id)
     {
-        $rate = ExchangeRate::findOrFail($id);
+        $rate = ExchangeRate::where('company_id', $this->companyContext->getActiveCompanyId())->findOrFail($id);
         $rate->delete();
 
         return redirect()->route('core.exchange-rates.index')

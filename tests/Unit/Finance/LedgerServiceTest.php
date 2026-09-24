@@ -2,12 +2,14 @@
 
 namespace Tests\Unit\Finance;
 
-use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Core\Models\Company;
+use Modules\Core\Services\CompanyContextService;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\Journal;
 use Modules\Finance\Models\JournalLine;
 use Modules\Finance\Services\LedgerService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class LedgerServiceTest extends TestCase
 {
@@ -18,12 +20,13 @@ class LedgerServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->ledgerService = new LedgerService();
+        $this->ledgerService = new LedgerService;
     }
 
     public function test_trial_balance_must_balance(): void
     {
-        $company = \Modules\Core\Models\Company::factory()->create();
+        $company = Company::factory()->create();
+        app(CompanyContextService::class)->pinCompany($company->id);
 
         $cashAccount = Account::factory()->asset()->create(['company_id' => $company->id, 'account_code' => '1110']);
         $revenueAccount = Account::factory()->revenue()->create(['company_id' => $company->id, 'account_code' => '4110']);
@@ -57,7 +60,8 @@ class LedgerServiceTest extends TestCase
 
     public function test_account_statement_shows_correct_balance(): void
     {
-        $company = \Modules\Core\Models\Company::factory()->create();
+        $company = Company::factory()->create();
+        app(CompanyContextService::class)->pinCompany($company->id);
         $cashAccount = Account::factory()->asset()->create(['company_id' => $company->id]);
         $revenueAccount = Account::factory()->revenue()->create(['company_id' => $company->id]);
 
@@ -90,7 +94,8 @@ class LedgerServiceTest extends TestCase
 
     public function test_general_ledger_groups_by_account(): void
     {
-        $company = \Modules\Core\Models\Company::factory()->create();
+        $company = Company::factory()->create();
+        app(CompanyContextService::class)->pinCompany($company->id);
         $cashAccount = Account::factory()->asset()->create(['company_id' => $company->id]);
         $revenueAccount = Account::factory()->revenue()->create(['company_id' => $company->id]);
 

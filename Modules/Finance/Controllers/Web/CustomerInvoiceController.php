@@ -2,15 +2,15 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\Customer;
-use Modules\Finance\Models\Tax;
-use Modules\Finance\Models\CustomerInvoice;
-use Modules\Finance\Services\CustomerInvoiceService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\Customer;
+use Modules\Finance\Models\CustomerInvoice;
+use Modules\Finance\Models\Tax;
+use Modules\Finance\Services\CustomerInvoiceService;
 
 class CustomerInvoiceController extends Controller
 {
@@ -24,7 +24,6 @@ class CustomerInvoiceController extends Controller
 
     public function index(Request $request)
     {
-        $this->checkPermission('finance.customers.view');
 
         $invoices = CustomerInvoice::with('customer')
             ->orderBy('invoice_date', 'desc')
@@ -35,7 +34,6 @@ class CustomerInvoiceController extends Controller
 
     public function create()
     {
-        $this->checkPermission('finance.customers.create');
 
         $customers = Customer::where('status', 'active')->get();
         $taxes = Tax::where('status', 'active')->get();
@@ -45,7 +43,6 @@ class CustomerInvoiceController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $this->checkPermission('finance.customers.create');
 
         $validated = $request->validate([
             'invoice_number' => 'required|string|max:50|unique:customer_invoices,invoice_number',
@@ -69,7 +66,6 @@ class CustomerInvoiceController extends Controller
 
     public function show(string $id)
     {
-        $this->checkPermission('finance.customers.view');
 
         $invoice = CustomerInvoice::with('customer')->findOrFail($id);
 
@@ -78,11 +74,10 @@ class CustomerInvoiceController extends Controller
 
     public function edit(string $id)
     {
-        $this->checkPermission('finance.customers.update');
 
         $invoice = CustomerInvoice::findOrFail($id);
 
-        if (!$invoice->isDraft()) {
+        if (! $invoice->isDraft()) {
             return redirect()->route('finance.customer-invoices.show', $id)
                 ->with('error', 'Only draft invoices can be edited.');
         }
@@ -95,17 +90,16 @@ class CustomerInvoiceController extends Controller
 
     public function update(Request $request, string $id): RedirectResponse
     {
-        $this->checkPermission('finance.customers.update');
 
         $invoice = CustomerInvoice::findOrFail($id);
 
-        if (!$invoice->isDraft()) {
+        if (! $invoice->isDraft()) {
             return redirect()->route('finance.customer-invoices.show', $id)
                 ->with('error', 'Only draft invoices can be edited.');
         }
 
         $validated = $request->validate([
-            'invoice_number' => 'required|string|max:50|unique:customer_invoices,invoice_number,' . $id,
+            'invoice_number' => 'required|string|max:50|unique:customer_invoices,invoice_number,'.$id,
             'invoice_date' => 'required|date',
             'due_date' => 'nullable|date',
             'customer_id' => 'nullable|exists:customers,id',
@@ -122,11 +116,10 @@ class CustomerInvoiceController extends Controller
 
     public function destroy(string $id): RedirectResponse
     {
-        $this->checkPermission('finance.customers.delete');
 
         $invoice = CustomerInvoice::findOrFail($id);
 
-        if (!$invoice->isDraft()) {
+        if (! $invoice->isDraft()) {
             return redirect()->route('finance.customer-invoices.index')
                 ->with('error', 'Only draft invoices can be deleted.');
         }
@@ -139,11 +132,10 @@ class CustomerInvoiceController extends Controller
 
     public function submit(string $id)
     {
-        $this->checkPermission('finance.customers.approve');
 
         $invoice = CustomerInvoice::findOrFail($id);
 
-        if (!$invoice->isDraft()) {
+        if (! $invoice->isDraft()) {
             return back()->with('error', 'Only draft invoices can be submitted.');
         }
 
@@ -154,11 +146,10 @@ class CustomerInvoiceController extends Controller
 
     public function approve(string $id)
     {
-        $this->checkPermission('finance.customers.approve');
 
         $invoice = CustomerInvoice::findOrFail($id);
 
-        if (!$invoice->isSubmitted()) {
+        if (! $invoice->isSubmitted()) {
             return back()->with('error', 'Only submitted invoices can be approved.');
         }
 
@@ -169,11 +160,10 @@ class CustomerInvoiceController extends Controller
 
     public function reject(Request $request, string $id)
     {
-        $this->checkPermission('finance.customers.approve');
 
         $invoice = CustomerInvoice::findOrFail($id);
 
-        if (!$invoice->isSubmitted()) {
+        if (! $invoice->isSubmitted()) {
             return back()->with('error', 'Only submitted invoices can be rejected.');
         }
 
@@ -184,18 +174,17 @@ class CustomerInvoiceController extends Controller
 
     public function post(string $id): RedirectResponse
     {
-        $this->checkPermission('finance.customers.post');
 
         $invoice = CustomerInvoice::findOrFail($id);
 
-        if (!$invoice->isDraft() && !$invoice->isSubmitted() && !$invoice->isApproved()) {
+        if (! $invoice->isDraft() && ! $invoice->isSubmitted() && ! $invoice->isApproved()) {
             return back()->with('error', 'Only draft, submitted, or approved invoices can be posted.');
         }
 
         try {
             $this->invoiceService->postInvoice($invoice);
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to post invoice: ' . $e->getMessage());
+            return back()->with('error', 'Failed to post invoice: '.$e->getMessage());
         }
 
         return back()->with('success', 'Invoice posted successfully.');
@@ -203,7 +192,6 @@ class CustomerInvoiceController extends Controller
 
     public function cancel(string $id): RedirectResponse
     {
-        $this->checkPermission('finance.customers.cancel');
 
         $invoice = CustomerInvoice::findOrFail($id);
 
@@ -214,7 +202,7 @@ class CustomerInvoiceController extends Controller
         try {
             $this->invoiceService->cancelInvoice($invoice);
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to cancel invoice: ' . $e->getMessage());
+            return back()->with('error', 'Failed to cancel invoice: '.$e->getMessage());
         }
 
         return back()->with('success', 'Invoice cancelled successfully.');

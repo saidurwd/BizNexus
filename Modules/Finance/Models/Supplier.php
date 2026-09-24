@@ -1,28 +1,27 @@
 <?php
 
-
 namespace Modules\Finance\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use Database\Factories\SupplierFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Finance\Scopes\CompanyScope;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Core\Models\Company;
+use Modules\Core\Models\Currency;
 
 class Supplier extends Model
 {
-    use HasFactory, SoftDeletes;
+    use BelongsToCompany, HasFactory, SoftDeletes;
 
     protected static function newFactory()
     {
-        return \Database\Factories\SupplierFactory::new();
+        return SupplierFactory::new();
     }
 
-    protected static function booted()
-    {
-        static::addGlobalScope(new CompanyScope);
-    }
     protected $fillable = [
         'company_id',
         'supplier_code',
@@ -39,15 +38,14 @@ class Supplier extends Model
         'updated_by',
     ];
 
-
     public function company(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Company::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function currency(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Currency::class);
+        return $this->belongsTo(Currency::class);
     }
 
     public function payableAccount(): BelongsTo
@@ -67,12 +65,12 @@ class Supplier extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function isActive(): bool

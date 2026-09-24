@@ -16,7 +16,7 @@ class CustomerInvoiceController extends Controller
 
     public function index(Request $request)
     {
-        $companyId = $request->get('company_id') ?? $this->companyContext->getCompanyId();
+        $companyId = $this->companyContext->getActiveCompanyId();
 
         $invoices = CustomerInvoice::with(['customer', 'currency'])
             ->where('company_id', $companyId)
@@ -41,7 +41,6 @@ class CustomerInvoiceController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
             'customer_id' => 'required|exists:customers,id',
             'invoice_number' => 'nullable|string|max:50',
             'invoice_date' => 'required|date',
@@ -58,6 +57,8 @@ class CustomerInvoiceController extends Controller
             'lines.*.tax_id' => 'nullable|exists:taxes,id',
             'lines.*.discount_amount' => 'nullable|numeric|min:0',
         ]);
+
+        $validated['company_id'] = $this->companyContext->getActiveCompanyId();
 
         try {
             $invoice = $this->customerInvoiceService->createInvoice($validated);

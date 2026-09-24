@@ -2,15 +2,14 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Modules\Finance\Models\Budget;
-use Modules\Finance\Models\BudgetLine;
-use Modules\Finance\Models\Account;
 use Modules\Core\Models\CostCenter;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\Account;
+use Modules\Finance\Models\Budget;
+use Modules\Finance\Models\BudgetLine;
 
 class BudgetLineController extends Controller
 {
@@ -23,11 +22,10 @@ class BudgetLineController extends Controller
 
     public function store(Request $request, string $budgetId)
     {
-        $this->checkPermission('finance.budgets.update');
 
         $budget = Budget::findOrFail($budgetId);
 
-        if (!$budget->isDraft()) {
+        if (! $budget->isDraft()) {
             return redirect()->route('finance.budgets.show', $budgetId)
                 ->with('error', 'Budget lines can only be modified in draft status.');
         }
@@ -49,11 +47,10 @@ class BudgetLineController extends Controller
 
     public function update(Request $request, string $budgetId, string $lineId)
     {
-        $this->checkPermission('finance.budgets.update');
 
         $budget = Budget::findOrFail($budgetId);
 
-        if (!$budget->isDraft()) {
+        if (! $budget->isDraft()) {
             return redirect()->route('finance.budgets.show', $budgetId)
                 ->with('error', 'Budget lines can only be modified in draft status.');
         }
@@ -75,11 +72,10 @@ class BudgetLineController extends Controller
 
     public function destroy(string $budgetId, string $lineId)
     {
-        $this->checkPermission('finance.budgets.update');
 
         $budget = Budget::findOrFail($budgetId);
 
-        if (!$budget->isDraft()) {
+        if (! $budget->isDraft()) {
             return redirect()->route('finance.budgets.show', $budgetId)
                 ->with('error', 'Budget lines can only be modified in draft status.');
         }
@@ -93,14 +89,13 @@ class BudgetLineController extends Controller
 
     public function accounts(Request $request)
     {
-        $this->checkPermission('finance.budgets.view');
 
         $search = $request->get('q', '');
 
         $accounts = Account::where('company_id', $this->getActiveCompanyId())
             ->where(function ($query) use ($search) {
                 $query->where('account_code', 'like', "%{$search}%")
-                      ->orWhere('account_name', 'like', "%{$search}%");
+                    ->orWhere('account_name', 'like', "%{$search}%");
             })
             ->limit(20)
             ->get(['id', 'account_code', 'account_name']);
@@ -110,14 +105,13 @@ class BudgetLineController extends Controller
 
     public function costCenters(Request $request)
     {
-        $this->checkPermission('finance.budgets.view');
 
         $search = $request->get('q', '');
 
         $costCenters = CostCenter::where('company_id', $this->getActiveCompanyId())
             ->where(function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%")
-                      ->orWhere('code', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%");
             })
             ->limit(20)
             ->get(['id', 'code', 'name']);

@@ -3,14 +3,18 @@
 namespace Modules\Core\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Modules\Core\Models\AuditLog;
+use Modules\Core\Services\CompanyContextService;
 
 class AuditController extends Controller
 {
+    public function __construct(protected CompanyContextService $companyContext) {}
+
     public function index(Request $request)
     {
-        $query = AuditLog::with('user', 'company');
+        $query = AuditLog::with('user', 'company')->where('company_id', $this->companyContext->getActiveCompanyId());
 
         if ($request->filled('module')) {
             $query->byModule($request->get('module'));
@@ -29,36 +33,40 @@ class AuditController extends Controller
         }
 
         if ($request->filled('date_from')) {
-            $query->where('created_at', '>=', $request->get('date_from') . ' 00:00:00');
+            $query->where('created_at', '>=', $request->get('date_from').' 00:00:00');
         }
 
         if ($request->filled('date_to')) {
-            $query->where('created_at', '<=', $request->get('date_to') . ' 23:59:59');
+            $query->where('created_at', '<=', $request->get('date_to').' 23:59:59');
         }
 
         if ($request->filled('search')) {
             $search = $request->get('search');
             $query->where(function ($q) use ($search) {
                 $q->where('entity_type', 'like', "%{$search}%")
-                  ->orWhere('action', 'like', "%{$search}%")
-                  ->orWhere('ip_address', 'like', "%{$search}%")
-                  ->orWhereHas('user', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+                    ->orWhere('action', 'like', "%{$search}%")
+                    ->orWhere('ip_address', 'like', "%{$search}%")
+                    ->orWhereHas('user', fn ($q2) => $q2->where('name', 'like', "%{$search}%"));
             });
         }
 
         $auditLogs = $query->orderByDesc('created_at')->paginate(25);
 
-        $modules = AuditLog::select('module')->distinct()->orderBy('module')->pluck('module');
-        $entityTypes = AuditLog::select('entity_type')->distinct()->orderBy('entity_type')->pluck('entity_type');
-        $actions = AuditLog::select('action')->distinct()->orderBy('action')->pluck('action');
-        $users = \App\Models\User::orderBy('name')->get(['id', 'name', 'email']);
+        $modules = AuditLog::where('company_id', $this->companyContext->getActiveCompanyId())->select('module')->distinct()->orderBy('module')->pluck('module');
+        $entityTypes = AuditLog::where('company_id', $this->companyContext->getActiveCompanyId())->select('entity_type')->distinct()->orderBy('entity_type')->pluck('entity_type');
+        $actions = AuditLog::where('company_id', $this->companyContext->getActiveCompanyId())->select('action')->distinct()->orderBy('action')->pluck('action');
+        $users = User::whereHas('userCompanies', fn ($query) => $query->where('company_id', $this->companyContext->getActiveCompanyId()))
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
 
         return view('core.audit.index', compact('auditLogs', 'modules', 'entityTypes', 'actions', 'users'));
     }
 
     public function show(int $id)
     {
-        $auditLog = AuditLog::with('user', 'company')->findOrFail($id);
+        $auditLog = AuditLog::with('user', 'company')
+            ->where('company_id', $this->companyContext->getActiveCompanyId())
+            ->findOrFail($id);
 
         $changes = [];
 
@@ -176,7 +184,7 @@ class AuditController extends Controller
         }
 
         if (is_array($value)) {
-            return '<pre class="mb-0">' . e(json_encode($value, JSON_PRETTY_PRINT)) . '</pre>';
+            return '<pre class="mb-0">'.e(json_encode($value, JSON_PRETTY_PRINT)).'</pre>';
         }
 
         if (is_numeric($value) && strval($value) === strval(number_format($value, 2))) {

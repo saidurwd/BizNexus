@@ -1,25 +1,23 @@
 <?php
 
-
 namespace Modules\Finance\Models;
 
+use App\Models\Company;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Finance\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Core\Concerns\BelongsToCompany;
 
 class CostCenter extends Model
 {
+    use BelongsToCompany;
 
-    protected static function booted()
-    {
-        static::addGlobalScope(new CompanyScope);
-    }
     protected $fillable = ['company_id', 'parent_id', 'code', 'name', 'manager_id', 'status'];
 
     public function company(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Company::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function parent(): BelongsTo
@@ -34,6 +32,6 @@ class CostCenter extends Model
 
     public function manager(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class, 'manager_id');
+        return $this->belongsTo(User::class, 'manager_id');
     }
 }

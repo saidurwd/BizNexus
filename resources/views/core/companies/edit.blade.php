@@ -95,6 +95,14 @@
                     </select>
                 </div>
 
+                <div class="form-group">
+                    <input type="hidden" name="require_mfa" value="0">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" name="require_mfa" value="1" id="require_mfa" @checked(old('require_mfa', $company->require_mfa))>
+                        <label class="custom-control-label" for="require_mfa">Require two-factor authentication for everyone working in this company</label>
+                    </div>
+                </div>
+
                 <div class="form-group mt-3">
                     <button type="submit" class="btn btn-primary">Update Company</button>
                     <a href="{{ route('core.companies.index') }}" class="btn btn-secondary">Cancel</a>

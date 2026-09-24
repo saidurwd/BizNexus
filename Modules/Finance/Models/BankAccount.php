@@ -1,20 +1,21 @@
 <?php
 
-
 namespace Modules\Finance\Models;
 
+use App\Models\User;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Finance\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Gate;
+use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Core\Models\Company;
+use Modules\Core\Models\Currency;
 
 class BankAccount extends Model
 {
+    use BelongsToCompany;
 
-    protected static function booted()
-    {
-        static::addGlobalScope(new CompanyScope);
-    }
     protected $fillable = [
         'company_id',
         'bank_name',
@@ -30,20 +31,47 @@ class BankAccount extends Model
         'updated_by',
     ];
 
+    /**
+     * The full number never leaves the model in arrays or JSON; serialised output carries the masked value.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = ['account_number'];
+
+    /**
+     * @var array<int, string>
+     */
+    protected $appends = ['display_account_number'];
 
     protected $casts = [
         'opening_balance' => 'decimal:4',
         'current_balance' => 'decimal:4',
     ];
 
+    /**
+     * The account number for display: in full only with finance.bank-accounts.view-sensitive, otherwise the last four digits.
+     */
+    protected function displayAccountNumber(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            $number = $this->account_number;
+
+            if ($number === null || Gate::allows('finance.bank-accounts.view-sensitive')) {
+                return $number;
+            }
+
+            return '••••'.substr($number, -4);
+        });
+    }
+
     public function company(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Company::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function currency(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Currency::class);
+        return $this->belongsTo(Currency::class);
     }
 
     public function glAccount(): BelongsTo
@@ -63,12 +91,12 @@ class BankAccount extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function isActive(): bool

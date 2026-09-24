@@ -1,31 +1,36 @@
 <?php
 
-
 namespace Modules\Finance\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use Database\Factories\JournalFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Modules\Finance\Scopes\CompanyScope;
-use Modules\Finance\Scopes\BranchScope;
-use Modules\Finance\Scopes\DepartmentScope;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Core\Models\Branch;
+use Modules\Core\Models\Company;
+use Modules\Core\Models\Currency;
+use Modules\Core\Models\FiscalPeriod;
+use Modules\Core\Scopes\CompanyScope;
+use Modules\Finance\Scopes\BranchScope;
 
 class Journal extends Model
 {
-    use HasFactory;
+    use BelongsToCompany, HasFactory;
 
     public static function factory()
     {
-        return \Database\Factories\JournalFactory::new();
+        return JournalFactory::new();
     }
 
     protected static function booted()
     {
-        static::addGlobalScope(new CompanyScope);
         static::addGlobalScope(new BranchScope);
     }
+
     protected $fillable = [
         'company_id',
         'branch_id',
@@ -47,6 +52,10 @@ class Journal extends Model
         'reversal_reason',
         'reversed_at',
         'reversed_by',
+        'submitted_by',
+        'submitted_at',
+        'approved_by',
+        'approved_at',
         'created_by',
         'updated_by',
     ];
@@ -58,64 +67,75 @@ class Journal extends Model
         'total_debit' => 'decimal:4',
         'total_credit' => 'decimal:4',
         'posted_at' => 'datetime',
+        'submitted_at' => 'datetime',
+        'approved_at' => 'datetime',
         'reversed_at' => 'datetime',
     ];
 
-
     public const STATUS_DRAFT = 'DRAFT';
+
     public const STATUS_SUBMITTED = 'SUBMITTED';
+
     public const STATUS_APPROVED = 'APPROVED';
+
     public const STATUS_POSTED = 'POSTED';
+
     public const STATUS_REJECTED = 'REJECTED';
+
     public const STATUS_CANCELLED = 'CANCELLED';
+
     public const STATUS_REVERSED = 'REVERSED';
 
     public function company(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Company::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function branch(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Branch::class);
+        return $this->belongsTo(Branch::class);
     }
 
     public function fiscalPeriod(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\FiscalPeriod::class);
+        return $this->belongsTo(FiscalPeriod::class);
     }
 
     public function currency(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Currency::class);
+        return $this->belongsTo(Currency::class);
     }
 
     public function lines(): HasMany
     {
         return $this->hasMany(JournalLine::class)
             ->withoutGlobalScope(CompanyScope::class)
-            ->withoutGlobalScope(BranchScope::class)
-            ->withoutGlobalScope(DepartmentScope::class);
+            ->withoutGlobalScope(BranchScope::class);
     }
 
     public function postedBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'posted_by');
+        return $this->belongsTo(User::class, 'posted_by');
+    }
+
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     public function reversedBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'reversed_by');
+        return $this->belongsTo(User::class, 'reversed_by');
     }
 
     public function createdBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function originalJournal(): BelongsTo
@@ -160,7 +180,7 @@ class Journal extends Model
 
     public function canSubmit(): bool
     {
-        if (!$this->isDraft() || !$this->isBalanced()) {
+        if (! $this->isDraft() || ! $this->isBalanced()) {
             return false;
         }
 
@@ -178,7 +198,7 @@ class Journal extends Model
             }
 
             $account = $line->account;
-            if (!$account || !$account->canReceivePosting()) {
+            if (! $account || ! $account->canReceivePosting()) {
                 return false;
             }
         }
@@ -198,7 +218,7 @@ class Journal extends Model
 
     public function canReverse(): bool
     {
-        return $this->isPosted() && !$this->isReversed();
+        return $this->isPosted() && ! $this->isReversed();
     }
 
     public function canCancel(): bool

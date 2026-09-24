@@ -16,7 +16,7 @@ class PaymentController extends Controller
 
     public function index(Request $request)
     {
-        $companyId = $request->get('company_id') ?? $this->companyContext->getCompanyId();
+        $companyId = $this->companyContext->getActiveCompanyId();
 
         $payments = SupplierPayment::with(['supplier', 'bankAccount', 'currency'])
             ->where('company_id', $companyId)
@@ -41,7 +41,6 @@ class PaymentController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
             'supplier_id' => 'required|exists:suppliers,id',
             'payment_number' => 'nullable|string|max:50',
             'payment_date' => 'required|date',
@@ -56,6 +55,8 @@ class PaymentController extends Controller
             'allocations.*.invoice_id' => 'required|exists:supplier_invoices,id',
             'allocations.*.amount' => 'required|numeric|min:0',
         ]);
+
+        $validated['company_id'] = $this->companyContext->getActiveCompanyId();
 
         try {
             $payment = $this->paymentService->createPayment($validated);
@@ -165,7 +166,7 @@ class PaymentController extends Controller
 
     public function aging(Request $request)
     {
-        $companyId = $request->get('company_id') ?? $this->companyContext->getCompanyId();
+        $companyId = $this->companyContext->getActiveCompanyId();
 
         $aging = $this->paymentService->getAPAging($companyId);
 

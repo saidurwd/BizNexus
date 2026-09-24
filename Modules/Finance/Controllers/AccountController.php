@@ -2,10 +2,12 @@
 
 namespace Modules\Finance\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Modules\Core\Services\CompanyContextService;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Services\ChartOfAccountsService;
-use Modules\Core\Services\CompanyContextService;
+use Modules\Finance\Services\LedgerService;
 
 class AccountController extends Controller
 {
@@ -16,11 +18,11 @@ class AccountController extends Controller
 
     public function index(Request $request)
     {
-        $companyId = $request->get('company_id') ?? $this->companyContext->getCompanyId();
+        $companyId = $this->companyContext->getActiveCompanyId();
 
         $accounts = Account::where('company_id', $companyId)
-            ->when($request->get('type'), fn($q, $type) => $q->where('account_type', $type))
-            ->when($request->get('status'), fn($q, $status) => $q->where('status', $status))
+            ->when($request->get('type'), fn ($q, $type) => $q->where('account_type', $type))
+            ->when($request->get('status'), fn ($q, $status) => $q->where('status', $status))
             ->orderBy('account_code')
             ->get();
 
@@ -29,7 +31,7 @@ class AccountController extends Controller
 
     public function tree(Request $request)
     {
-        $companyId = $request->get('company_id') ?? $this->companyContext->getCompanyId();
+        $companyId = $this->companyContext->getActiveCompanyId();
 
         $tree = $this->chartOfAccounts->getAccountTree($companyId);
 
@@ -48,9 +50,8 @@ class AccountController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
             'parent_id' => 'nullable|exists:accounts,id',
-            'account_code' => 'required|string|max:50|unique:accounts,account_code,NULL,id,company_id,' . $request->company_id,
+            'account_code' => 'required|string|max:50|unique:accounts,account_code,NULL,id,company_id,'.$this->companyContext->getActiveCompanyId(),
             'account_name' => 'required|string|max:255',
             'account_type' => 'required|in:ASSET,LIABILITY,EQUITY,REVENUE,EXPENSE',
             'account_category_id' => 'nullable|exists:account_categories,id',
@@ -59,6 +60,8 @@ class AccountController extends Controller
             'status' => 'nullable|in:active,inactive',
             'description' => 'nullable|string',
         ]);
+
+        $validated['company_id'] = $this->companyContext->getActiveCompanyId();
 
         $account = $this->chartOfAccounts->create($validated);
 
@@ -88,6 +91,7 @@ class AccountController extends Controller
 
         try {
             $this->chartOfAccounts->delete($account);
+
             return $this->successResponse(null, 'Account deleted successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -98,10 +102,10 @@ class AccountController extends Controller
     {
         $account = Account::findOrFail($id);
 
-        $startDate = $request->get('start_date') ? \Carbon\Carbon::parse($request->get('start_date')) : null;
-        $endDate = $request->get('end_date') ? \Carbon\Carbon::parse($request->get('end_date')) : null;
+        $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : null;
+        $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : null;
 
-        $statement = app(\Modules\Finance\Services\LedgerService::class)
+        $statement = app(LedgerService::class)
             ->getAccountStatement($id, $startDate, $endDate, $request->get('fiscal_period_id'));
 
         return $this->successResponse($statement);

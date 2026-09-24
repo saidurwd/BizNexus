@@ -2,9 +2,9 @@
 
 namespace Modules\Core\Models;
 
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Str;
 
 class NumberSequence extends Model
 {
@@ -30,26 +30,32 @@ class NumberSequence extends Model
 
     public function fiscalYear(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\FiscalYear::class);
+        return $this->belongsTo(FiscalYear::class);
     }
 
-    public function getNextNumber(): string
+    /**
+     * Advance the sequence. Callers must hold a row lock on this sequence (see DocumentNumberService).
+     */
+    public function getNextNumber(?CarbonInterface $documentDate = null): string
     {
         $this->last_number++;
         $this->save();
 
-        return $this->generateNumber();
+        return $this->generateNumber($documentDate);
     }
 
-    public function generateNumber(): string
+    /**
+     * Format the current number; date tokens come from the document date rather than today.
+     */
+    public function generateNumber(?CarbonInterface $documentDate = null): string
     {
+        $documentDate ??= now();
         $number = $this->format;
-        $year = date('Y');
 
         $number = str_replace('{PREFIX}', $this->prefix, $number);
-        $number = str_replace('{YEAR}', $year, $number);
-        $number = str_replace('{MONTH}', date('m'), $number);
-        $number = str_replace('{DAY}', date('d'), $number);
+        $number = str_replace('{YEAR}', $documentDate->format('Y'), $number);
+        $number = str_replace('{MONTH}', $documentDate->format('m'), $number);
+        $number = str_replace('{DAY}', $documentDate->format('d'), $number);
 
         if (preg_match('/\{SEQUENCE:(\d+)\}/', $number, $matches)) {
             $padding = (int) $matches[1];

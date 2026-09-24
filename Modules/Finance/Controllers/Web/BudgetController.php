@@ -2,17 +2,15 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Finance\Requests\StoreBudgetRequest;
-use Modules\Finance\Requests\UpdateBudgetRequest;
-use Modules\Finance\Models\Budget;
-use Modules\Finance\Models\BudgetLine;
-use Modules\Finance\Models\Account;
-use Modules\Finance\Services\BudgetService;
 use Modules\Core\Models\FiscalYear;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\Budget;
+use Modules\Finance\Requests\StoreBudgetRequest;
+use Modules\Finance\Requests\UpdateBudgetRequest;
+use Modules\Finance\Services\BudgetService;
 
 class BudgetController extends Controller
 {
@@ -26,10 +24,9 @@ class BudgetController extends Controller
 
     public function index(Request $request)
     {
-        $this->checkPermission('finance.budgets.view');
 
         $budgets = Budget::with('fiscalYear')
-            ->when($request->get('status'), fn($q, $status) => $q->where('status', $status))
+            ->when($request->get('status'), fn ($q, $status) => $q->where('status', $status))
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
@@ -38,7 +35,6 @@ class BudgetController extends Controller
 
     public function create()
     {
-        $this->checkPermission('finance.budgets.create');
 
         $fiscalYears = FiscalYear::orderBy('start_date')->get();
 
@@ -47,7 +43,6 @@ class BudgetController extends Controller
 
     public function store(StoreBudgetRequest $request)
     {
-        $this->checkPermission('finance.budgets.create');
 
         $validated = $request->validated();
 
@@ -75,7 +70,6 @@ class BudgetController extends Controller
 
     public function show(string $id)
     {
-        $this->checkPermission('finance.budgets.view');
 
         $budget = $this->budgetService->getBudgetById($id) ?? Budget::with(['fiscalYear', 'lines.account', 'lines.costCenter'])->findOrFail($id);
 
@@ -84,11 +78,10 @@ class BudgetController extends Controller
 
     public function edit(string $id)
     {
-        $this->checkPermission('finance.budgets.update');
 
         $budget = Budget::findOrFail($id);
 
-        if (!$budget->isDraft()) {
+        if (! $budget->isDraft()) {
             return redirect()->route('finance.budgets.show', $budget->id)
                 ->with('error', 'Only draft budgets can be edited.');
         }
@@ -100,11 +93,10 @@ class BudgetController extends Controller
 
     public function update(UpdateBudgetRequest $request, string $id)
     {
-        $this->checkPermission('finance.budgets.update');
 
         $budget = Budget::findOrFail($id);
 
-        if (!$budget->isDraft()) {
+        if (! $budget->isDraft()) {
             return redirect()->route('finance.budgets.show', $budget->id)
                 ->with('error', 'Only draft budgets can be edited.');
         }
@@ -122,11 +114,10 @@ class BudgetController extends Controller
 
     public function destroy(string $id)
     {
-        $this->checkPermission('finance.budgets.delete');
 
         $budget = Budget::findOrFail($id);
 
-        if (!$budget->isDraft()) {
+        if (! $budget->isDraft()) {
             return redirect()->route('finance.budgets.index')
                 ->with('error', 'Only draft budgets can be deleted.');
         }
@@ -140,11 +131,10 @@ class BudgetController extends Controller
 
     public function submit(string $id)
     {
-        $this->checkPermission('finance.budgets.approve');
 
         $budget = Budget::findOrFail($id);
 
-        if (!$budget->isDraft()) {
+        if (! $budget->isDraft()) {
             return redirect()->route('finance.budgets.show', $budget->id)
                 ->with('error', 'Only draft budgets can be submitted.');
         }
@@ -160,7 +150,6 @@ class BudgetController extends Controller
 
     public function approve(string $id)
     {
-        $this->checkPermission('finance.budgets.approve');
 
         $budget = Budget::with('lines')->findOrFail($id);
 
@@ -185,7 +174,6 @@ class BudgetController extends Controller
 
     public function reject(Request $request, string $id)
     {
-        $this->checkPermission('finance.budgets.approve');
 
         $budget = Budget::findOrFail($id);
 

@@ -3,11 +3,11 @@
 namespace Modules\Finance\Controllers;
 
 use Illuminate\Http\Request;
+use Modules\Core\Services\CompanyContextService;
 use Modules\Finance\Models\Supplier;
 use Modules\Finance\Models\SupplierInvoice;
-use Modules\Finance\Services\SupplierInvoiceService;
 use Modules\Finance\Services\PaymentService;
-use Modules\Core\Services\CompanyContextService;
+use Modules\Finance\Services\SupplierInvoiceService;
 
 class SupplierController extends Controller
 {
@@ -19,10 +19,10 @@ class SupplierController extends Controller
 
     public function index(Request $request)
     {
-        $companyId = $request->get('company_id') ?? $this->companyContext->getCompanyId();
+        $companyId = $this->companyContext->getActiveCompanyId();
 
         $suppliers = Supplier::where('company_id', $companyId)
-            ->when($request->get('status'), fn($q, $status) => $q->where('status', $status))
+            ->when($request->get('status'), fn ($q, $status) => $q->where('status', $status))
             ->orderBy('name')
             ->get();
 
@@ -40,7 +40,6 @@ class SupplierController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
             'supplier_code' => 'required|string|max:50',
             'name' => 'required|string|max:255',
             'contact_person' => 'nullable|string|max:255',
@@ -52,6 +51,8 @@ class SupplierController extends Controller
             'payable_account_id' => 'nullable|exists:accounts,id',
             'status' => 'nullable|in:active,inactive',
         ]);
+
+        $validated['company_id'] = $this->companyContext->getActiveCompanyId();
 
         $supplier = Supplier::create($validated);
 
@@ -84,7 +85,7 @@ class SupplierController extends Controller
         $supplier = Supplier::findOrFail($id);
 
         $invoices = SupplierInvoice::where('supplier_id', $id)
-            ->when($request->get('status'), fn($q, $status) => $q->where('status', $status))
+            ->when($request->get('status'), fn ($q, $status) => $q->where('status', $status))
             ->orderBy('invoice_date', 'desc')
             ->get();
 

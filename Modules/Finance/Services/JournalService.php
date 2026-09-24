@@ -3,25 +3,31 @@
 namespace Modules\Finance\Services;
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Modules\Core\Exceptions\DuplicatePostingException;
+use Modules\Core\Exceptions\InactiveAccountException;
+use Modules\Core\Exceptions\InvalidAccountingTransactionException;
+use Modules\Core\Exceptions\NonPostableAccountException;
+use Modules\Core\Exceptions\UnauthorizedCompanyAccessException;
+use Modules\Core\Exceptions\UnbalancedJournalException;
+use Modules\Core\Scopes\CompanyScope;
+use Modules\Core\Services\AccountingPeriodService;
+use Modules\Core\Services\AuditService;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\DocumentNumberService;
+use Modules\Finance\Events\JournalPosted;
+use Modules\Finance\Jobs\ProcessIntegrationJob;
+use Modules\Finance\Models\Account;
+use Modules\Finance\Models\BudgetLine;
 use Modules\Finance\Models\Journal;
 use Modules\Finance\Models\JournalLine;
-use Modules\Finance\Models\Account;
-use Modules\Core\Services\CompanyContextService;
-use Modules\Core\Services\AccountingPeriodService;
-use Modules\Core\Services\DocumentNumberService;
-use Modules\Core\Services\AuditService;
-use Modules\Core\Exceptions\UnbalancedJournalException;
-use Modules\Core\Exceptions\ClosedPeriodException;
-use Modules\Core\Exceptions\InactiveAccountException;
-use Modules\Core\Exceptions\NonPostableAccountException;
-use Modules\Core\Exceptions\DuplicatePostingException;
-use Modules\Core\Exceptions\InvalidAccountingTransactionException;
-use Modules\Finance\Jobs\ProcessIntegrationJob;
+use Modules\Finance\Services\Concerns\EnforcesSegregationOfDuties;
 
 class JournalService
 {
+    use EnforcesSegregationOfDuties;
+
     public function __construct(
         protected CompanyContextService $companyContext,
         protected AccountingPeriodService $periodService,
@@ -29,17 +35,32 @@ class JournalService
         protected AuditService $audit
     ) {}
 
+    /**
+     * Create a draft journal in the active company. It receives a draft reference; the official
+     * gapless number is only issued when the journal is posted.
+     */
     public function create(array $data): Journal
     {
         return DB::transaction(function () use ($data) {
-            $companyId = $data['company_id'] ?? $this->companyContext->getCompanyId();
+            $companyId = $this->companyContext->getActiveCompanyId();
+
+            if ($companyId === null) {
+                throw new InvalidAccountingTransactionException('A journal can only be created within an active company.');
+            }
+
+            if (isset($data['company_id']) && (int) $data['company_id'] !== $companyId) {
+                throw new UnauthorizedCompanyAccessException((int) $data['company_id'], Auth::id());
+            }
+
+            if (count($data['lines']) < 2) {
+                throw new InvalidAccountingTransactionException('Journal must have at least two lines.');
+            }
 
             $journal = Journal::create([
                 'company_id' => $companyId,
                 'branch_id' => $data['branch_id'] ?? null,
-                'journal_number' => $this->documentNumber->generateNumber($companyId, 'JV', $data['fiscal_year_id'] ?? null),
+                'journal_number' => 'DRAFT-'.uniqid(),
                 'journal_date' => $data['journal_date'],
-                'fiscal_period_id' => $data['fiscal_period_id'] ?? null,
                 'reference_type' => $data['reference_type'] ?? null,
                 'reference_id' => $data['reference_id'] ?? null,
                 'description' => $data['description'] ?? null,
@@ -49,18 +70,16 @@ class JournalService
                 'created_by' => Auth::id(),
             ]);
 
+            $journal->update(['journal_number' => $this->documentNumber->draftReference($journal->id)]);
+
             foreach ($data['lines'] as $lineData) {
                 $this->addLine($journal, $lineData);
-            }
-
-            if (count($data['lines']) < 2) {
-                throw new InvalidAccountingTransactionException('Journal must have at least two lines.');
             }
 
             $journal->calculateTotals();
             $journal->save();
 
-            if (!$journal->isBalanced()) {
+            if (! $journal->isBalanced()) {
                 throw new UnbalancedJournalException((float) $journal->total_debit, (float) $journal->total_credit);
             }
 
@@ -72,18 +91,11 @@ class JournalService
 
     public function addLine(Journal $journal, array $lineData): JournalLine
     {
-        if (!$journal->isDraft()) {
+        if (! $journal->isDraft()) {
             throw new InvalidAccountingTransactionException('Can only add lines to draft journals.');
         }
 
-        $account = Account::findOrFail($lineData['account_id']);
-
-        if (!$account->canReceivePosting()) {
-            if (!$account->isActive()) {
-                throw new InactiveAccountException($account);
-            }
-            throw new NonPostableAccountException($account);
-        }
+        $this->ensureAccountCanReceivePosting($journal, (int) $lineData['account_id']);
 
         $line = $journal->lines()->create([
             'account_id' => $lineData['account_id'],
@@ -111,18 +123,12 @@ class JournalService
     {
         $journal = $line->journal;
 
-        if (!$journal->isDraft()) {
+        if (! $journal->isDraft()) {
             throw new InvalidAccountingTransactionException('Can only update lines in draft journals');
         }
 
         if (isset($data['account_id'])) {
-            $account = Account::findOrFail($data['account_id']);
-            if (!$account->canReceivePosting()) {
-                if (!$account->isActive()) {
-                    throw new InactiveAccountException($account);
-                }
-                throw new NonPostableAccountException($account);
-            }
+            $this->ensureAccountCanReceivePosting($journal, (int) $data['account_id']);
         }
 
         $line->update($data);
@@ -137,7 +143,7 @@ class JournalService
     {
         $journal = $line->journal;
 
-        if (!$journal->isDraft()) {
+        if (! $journal->isDraft()) {
             throw new InvalidAccountingTransactionException('Can only remove lines from draft journals');
         }
 
@@ -149,15 +155,17 @@ class JournalService
 
     public function validate(Journal $journal): void
     {
-        if ($journal->lines()->count() < 2) {
+        $lines = $journal->lines()->with(['account' => fn ($query) => $query->withoutGlobalScope(CompanyScope::class)])->get();
+
+        if ($lines->count() < 2) {
             throw new InvalidAccountingTransactionException('Journal must have at least 2 lines');
         }
 
-        if (!$journal->isBalanced()) {
+        if (! $journal->isBalanced()) {
             throw new UnbalancedJournalException($journal->total_debit, $journal->total_credit);
         }
 
-        foreach ($journal->lines as $line) {
+        foreach ($lines as $line) {
             if ($line->debit > 0 && $line->credit > 0) {
                 throw new InvalidAccountingTransactionException('A line cannot have both debit and credit');
             }
@@ -166,19 +174,17 @@ class JournalService
                 throw new InvalidAccountingTransactionException('A line must have either debit or credit');
             }
 
-            $account = $line->account;
-            if (!$account->canReceivePosting()) {
-                if (!$account->isActive()) {
-                    throw new InactiveAccountException($account);
-                }
-                throw new NonPostableAccountException($account);
+            if ($line->account === null || (int) $line->account->company_id !== (int) $journal->company_id) {
+                throw new InvalidAccountingTransactionException('Journal lines must use existing accounts of the journal\'s company.');
             }
+
+            $this->ensureAccountIsPostable($line->account);
         }
     }
 
     public function submit(Journal $journal): Journal
     {
-        if (!$journal->canSubmit()) {
+        if (! $journal->canSubmit()) {
             throw new InvalidAccountingTransactionException('Journal cannot be submitted');
         }
 
@@ -186,6 +192,8 @@ class JournalService
 
         $journal->update([
             'status' => Journal::STATUS_SUBMITTED,
+            'submitted_by' => Auth::id(),
+            'submitted_at' => now(),
             'updated_by' => Auth::id(),
         ]);
 
@@ -196,12 +204,16 @@ class JournalService
 
     public function approve(Journal $journal): Journal
     {
-        if (!$journal->canApprove()) {
+        if (! $journal->canApprove()) {
             throw new InvalidAccountingTransactionException('Journal cannot be approved');
         }
 
+        $this->ensureApproverIsNotCreator($journal, 'journal');
+
         $journal->update([
             'status' => Journal::STATUS_APPROVED,
+            'approved_by' => Auth::id(),
+            'approved_at' => now(),
             'updated_by' => Auth::id(),
         ]);
 
@@ -212,13 +224,13 @@ class JournalService
 
     public function reject(Journal $journal, ?string $reason = null): Journal
     {
-        if (!$journal->canApprove()) {
+        if (! $journal->canApprove()) {
             throw new InvalidAccountingTransactionException('Journal cannot be rejected');
         }
 
         $journal->update([
             'status' => Journal::STATUS_REJECTED,
-            'description' => $journal->description . "\n\nRejected: " . ($reason ?? 'No reason provided'),
+            'description' => $journal->description."\n\nRejected: ".($reason ?? 'No reason provided'),
             'updated_by' => Auth::id(),
         ]);
 
@@ -227,64 +239,99 @@ class JournalService
         return $journal->fresh();
     }
 
+    /**
+     * Post an approved journal. The journal row is locked and re-read inside the transaction, so two
+     * concurrent posts cannot both succeed, and the official number is issued only when posting commits.
+     */
     public function post(Journal $journal): Journal
     {
-        if (!$journal->canPost()) {
-            throw new InvalidAccountingTransactionException('Journal cannot be posted');
-        }
+        $posted = DB::transaction(function () use ($journal) {
+            $journal = Journal::whereKey($journal->id)->lockForUpdate()->firstOrFail();
 
-        if ($journal->isPosted()) {
-            throw new DuplicatePostingException($journal);
-        }
+            if ($journal->isPosted() || $journal->isReversed()) {
+                throw new DuplicatePostingException($journal);
+            }
 
-        return DB::transaction(function () use ($journal) {
-            $journalDate = Carbon::parse($journal->journal_date);
-            $period = $this->periodService->validateDateForPosting($journal->company_id, $journalDate);
+            if (! $journal->canPost()) {
+                throw new InvalidAccountingTransactionException('Journal cannot be posted');
+            }
 
-            $this->validate($journal);
-            $this->validateBudget($journal);
+            if (config('finance.controls.approver_cannot_post') && $journal->approved_by !== null && (int) $journal->approved_by === (int) Auth::id()) {
+                throw new InvalidAccountingTransactionException('You cannot post a journal you approved.');
+            }
 
-            $journal->update([
-                'fiscal_period_id' => $period->id,
-                'posting_date' => now()->toDateString(),
-                'status' => Journal::STATUS_POSTED,
-                'posted_at' => now(),
-                'posted_by' => Auth::id(),
-                'updated_by' => Auth::id(),
-            ]);
+            $this->postLocked($journal);
 
             $this->audit->logCustom('Finance', 'Journal', $journal->id, 'POST', $journal->toArray());
 
-            ProcessIntegrationJob::dispatch(
-                \Modules\Finance\Events\JournalPosted::class,
-                ['journal' => $journal]
-            );
-
-            return $journal->fresh();
+            return $journal;
         });
+
+        ProcessIntegrationJob::dispatch(JournalPosted::class, ['journal' => $posted])->afterCommit();
+
+        return $posted->fresh();
     }
 
-    public function reverse(Journal $journal, ?string $reason = null): Journal
+    /**
+     * Create and post the journal of a source document (invoice, payment, receipt) that went through its own
+     * approval. The journal is recorded as approved by the posting user; segregation of duties is enforced
+     * on the source document, not on this system-generated journal.
+     */
+    public function postFromSource(array $data): Journal
     {
-        if (!$journal->canReverse()) {
-            throw new InvalidAccountingTransactionException('Journal cannot be reversed');
-        }
+        $posted = DB::transaction(function () use ($data) {
+            $journal = $this->create($data);
 
-        return DB::transaction(function () use ($journal, $reason) {
-            $reversal = $journal->replicate();
-            $reversal->journal_number = $this->documentNumber->generateNumber($journal->company_id, 'JV', $journal->fiscal_period_id ? \Modules\Core\Models\FiscalPeriod::find($journal->fiscal_period_id)?->fiscal_year_id : null);
-            $reversal->journal_date = now()->toDateString();
-            $reversal->posting_date = null;
-            $reversal->fiscal_period_id = null;
-            $reversal->status = Journal::STATUS_DRAFT;
-            $reversal->posted_at = null;
-            $reversal->posted_by = null;
-            $reversal->reversal_of_journal_id = $journal->id;
-            $reversal->reversal_reason = $reason;
-            $reversal->reversed_at = now();
-            $reversal->reversed_by = Auth::id();
-            $reversal->description = "Reversal of {$journal->journal_number}" . ($reason ? ": {$reason}" : '');
-            $reversal->save();
+            $journal->update([
+                'status' => Journal::STATUS_APPROVED,
+                'submitted_by' => Auth::id(),
+                'submitted_at' => now(),
+                'approved_by' => Auth::id(),
+                'approved_at' => now(),
+            ]);
+
+            $this->postLocked($journal);
+
+            $this->audit->logCustom('Finance', 'Journal', $journal->id, 'POST', $journal->toArray());
+
+            return $journal;
+        });
+
+        ProcessIntegrationJob::dispatch(JournalPosted::class, ['journal' => $posted])->afterCommit();
+
+        return $posted->fresh();
+    }
+
+    /**
+     * Reverse a posted journal by posting a mirror journal dated $reversalDate (default today) in the same
+     * transaction that marks the original as reversed, so the ledger never shows one without the other.
+     */
+    public function reverse(Journal $journal, ?string $reason = null, ?string $reversalDate = null): Journal
+    {
+        return DB::transaction(function () use ($journal, $reason, $reversalDate) {
+            $journal = Journal::whereKey($journal->id)->lockForUpdate()->firstOrFail();
+
+            if (! $journal->canReverse()) {
+                throw new InvalidAccountingTransactionException('Journal cannot be reversed');
+            }
+
+            $reversal = Journal::create([
+                'company_id' => $journal->company_id,
+                'branch_id' => $journal->branch_id,
+                'journal_number' => 'DRAFT-'.uniqid(),
+                'journal_date' => $reversalDate ?? now()->toDateString(),
+                'reference_type' => $journal->reference_type,
+                'reference_id' => $journal->reference_id,
+                'description' => "Reversal of {$journal->journal_number}".($reason ? ": {$reason}" : ''),
+                'currency_id' => $journal->currency_id,
+                'exchange_rate' => $journal->exchange_rate,
+                'status' => Journal::STATUS_APPROVED,
+                'reversal_of_journal_id' => $journal->id,
+                'reversal_reason' => $reason,
+                'created_by' => Auth::id(),
+                'approved_by' => Auth::id(),
+                'approved_at' => now(),
+            ]);
 
             foreach ($journal->lines as $line) {
                 $reversal->lines()->create([
@@ -307,8 +354,13 @@ class JournalService
             $reversal->calculateTotals();
             $reversal->save();
 
+            $this->postLocked($reversal);
+
             $journal->update([
                 'status' => Journal::STATUS_REVERSED,
+                'reversal_reason' => $reason,
+                'reversed_at' => now(),
+                'reversed_by' => Auth::id(),
                 'updated_by' => Auth::id(),
             ]);
 
@@ -317,13 +369,13 @@ class JournalService
                 'reason' => $reason,
             ]);
 
-            return $reversal;
+            return $reversal->fresh();
         });
     }
 
     public function cancel(Journal $journal): Journal
     {
-        if (!$journal->canCancel()) {
+        if (! $journal->canCancel()) {
             throw new InvalidAccountingTransactionException('Journal cannot be cancelled');
         }
 
@@ -339,7 +391,7 @@ class JournalService
 
     public function update(Journal $journal, array $data): Journal
     {
-        if (!$journal->isDraft()) {
+        if (! $journal->isDraft()) {
             throw new InvalidAccountingTransactionException('Can only update draft journals');
         }
 
@@ -352,7 +404,7 @@ class JournalService
 
     public function delete(Journal $journal): void
     {
-        if (!$journal->isDraft() && $journal->status !== Journal::STATUS_CANCELLED) {
+        if (! $journal->isDraft() && $journal->status !== Journal::STATUS_CANCELLED) {
             throw new InvalidAccountingTransactionException('Posted journals cannot be deleted');
         }
 
@@ -362,16 +414,66 @@ class JournalService
         $this->audit->logDelete('Finance', 'Journal', $journal->id, $journal->toArray());
     }
 
+    /**
+     * Validate and post a journal whose row the caller has locked: assign its period and official number.
+     */
+    protected function postLocked(Journal $journal): void
+    {
+        $journalDate = Carbon::parse($journal->journal_date);
+        $period = $this->periodService->validateDateForPosting($journal->company_id, $journalDate);
+
+        $this->validate($journal);
+        $this->validateBudget($journal);
+
+        $journal->update([
+            'journal_number' => $this->documentNumber->generateNumber($journal->company_id, 'JV', $period->fiscal_year_id, $journalDate),
+            'fiscal_period_id' => $period->id,
+            'posting_date' => now()->toDateString(),
+            'status' => Journal::STATUS_POSTED,
+            'posted_at' => now(),
+            'posted_by' => Auth::id(),
+            'updated_by' => Auth::id(),
+        ]);
+    }
+
+    protected function ensureAccountCanReceivePosting(Journal $journal, int $accountId): void
+    {
+        $account = Account::withoutGlobalScope(CompanyScope::class)->findOrFail($accountId);
+
+        if ((int) $account->company_id !== (int) $journal->company_id) {
+            throw new InvalidAccountingTransactionException('Journal lines must use accounts of the journal\'s company.');
+        }
+
+        $this->ensureAccountIsPostable($account);
+    }
+
+    protected function ensureAccountIsPostable(Account $account): void
+    {
+        if ($account->canReceivePosting()) {
+            return;
+        }
+
+        if (! $account->isActive()) {
+            throw new InactiveAccountException($account);
+        }
+
+        throw new NonPostableAccountException($account);
+    }
+
     protected function validateBudget(Journal $journal): void
     {
-        $budgetService = app(\Modules\Finance\Services\BudgetService::class);
-        
+        if (config('finance.controls.budget_control') === 'off') {
+            return;
+        }
+
+        $budgetService = app(BudgetService::class);
+
         foreach ($journal->lines as $line) {
             if ($line->debit > 0 && $line->account->account_type === 'EXPENSE') {
-                $budgetLines = \Modules\Finance\Models\BudgetLine::where('account_id', $line->account_id)
+                $budgetLines = BudgetLine::where('account_id', $line->account_id)
                     ->whereHas('budget', function ($q) use ($journal) {
                         $q->where('company_id', $journal->company_id)
-                          ->where('status', 'active');
+                            ->where('status', 'active');
                     })
                     ->get();
 
@@ -382,10 +484,10 @@ class JournalService
                         $budgetLine->cost_center_id,
                         $budgetLine->budget->fiscal_year_id
                     );
-                    
-                    if ($actualSpending + $line->debit > $budgetAmount) {
+
+                    if (bccomp(bcadd((string) $actualSpending, (string) $line->debit, 4), (string) $budgetAmount, 4) === 1) {
                         throw new InvalidAccountingTransactionException(
-                            "Budget exceeded for account {$line->account->account_name}. " .
+                            "Budget exceeded for account {$line->account->account_name}. ".
                             "Budget: {$budgetAmount}, Actual: {$actualSpending}, Attempted: {$line->debit}"
                         );
                     }

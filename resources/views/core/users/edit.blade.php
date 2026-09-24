@@ -33,6 +33,18 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
+                            <label for="status">Status</label>
+                            <select class="form-control" name="status" id="status">
+                                <option value="active" @selected(old('status', $user->status) === 'active')>Active</option>
+                                <option value="inactive" @selected(old('status', $user->status) === 'inactive')>Inactive (cannot sign in)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
                             <label for="password">Password</label>
                             <input type="password" class="form-control" name="password" placeholder="Leave blank to keep current">
                         </div>
@@ -73,6 +85,10 @@
                                     <label class="custom-control-label" for="company_{{ $company->id }}">
                                         <strong>{{ $company->code }}</strong> — {{ $company->name }}
                                     </label>
+                                </div>
+                                <div class="custom-control custom-checkbox ml-4">
+                                    <input type="checkbox" class="custom-control-input" name="all_branches[]" value="{{ $company->id }}" id="all_branches_{{ $company->id }}" {{ in_array($company->id, old('all_branches', $userAllBranches)) ? 'checked' : '' }}>
+                                    <label class="custom-control-label small text-muted" for="all_branches_{{ $company->id }}">All branches, including future ones</label>
                                 </div>
                             </div>
                         @endforeach

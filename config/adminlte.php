@@ -1,5 +1,13 @@
 <?php
 
+use JeroenNoten\LaravelAdminLte\Menu\Filters\ActiveFilter;
+use JeroenNoten\LaravelAdminLte\Menu\Filters\ClassesFilter;
+use JeroenNoten\LaravelAdminLte\Menu\Filters\DataFilter;
+use JeroenNoten\LaravelAdminLte\Menu\Filters\GateFilter;
+use JeroenNoten\LaravelAdminLte\Menu\Filters\HrefFilter;
+use JeroenNoten\LaravelAdminLte\Menu\Filters\LangFilter;
+use JeroenNoten\LaravelAdminLte\Menu\Filters\SearchFilter;
+
 /*
 |--------------------------------------------------------------------------
 | Laravel AdminLTE Configuration
@@ -198,7 +206,7 @@ return [
 
     'logout_method' => null,
     'login_url' => 'login',
-    'register_url' => 'register',
+    'register_url' => false,
     'password_reset_url' => 'password/reset',
     'password_email_url' => 'password/email',
     'profile_url' => false,
@@ -797,24 +805,24 @@ return [
             'text' => 'User Management',
             'icon' => 'bi bi-people',
             'submenu' => [
-                ['text' => 'Users', 'url' => 'users', 'icon' => 'bi bi-person', 'permission' => 'core.users.view'],
+                ['text' => 'Users', 'url' => 'users', 'icon' => 'bi bi-person', 'can' => 'core.users.view'],
             ],
         ],
         [
             'text' => 'Authorization',
             'icon' => 'bi bi-shield-lock',
             'submenu' => [
-                ['text' => 'Roles', 'url' => 'roles', 'icon' => 'bi bi-shield-check', 'permission' => 'core.roles.view'],
-                ['text' => 'Permissions', 'url' => 'permissions', 'icon' => 'bi bi-key', 'permission' => 'core.permissions.view'],
+                ['text' => 'Roles', 'url' => 'roles', 'icon' => 'bi bi-shield-check', 'can' => 'core.roles.view'],
+                ['text' => 'Permissions', 'url' => 'permissions', 'icon' => 'bi bi-key', 'can' => 'core.permissions.view'],
             ],
         ],
         [
             'text' => 'Company Context',
             'icon' => 'bi bi-building',
             'submenu' => [
-                ['text' => 'Companies', 'url' => 'companies', 'icon' => 'bi bi-building', 'permission' => 'core.companies.view'],
-                ['text' => 'Branches', 'url' => 'branches', 'icon' => 'bi bi-shop', 'permission' => 'core.branches.view'],
-                ['text' => 'Departments', 'url' => 'departments', 'icon' => 'bi bi-diagram-3', 'permission' => 'core.departments.view'],
+                ['text' => 'Companies', 'url' => 'companies', 'icon' => 'bi bi-building', 'can' => 'core.companies.view'],
+                ['text' => 'Branches', 'url' => 'branches', 'icon' => 'bi bi-shop', 'can' => 'core.branches.view'],
+                ['text' => 'Departments', 'url' => 'departments', 'icon' => 'bi bi-diagram-3', 'can' => 'core.departments.view'],
             ],
         ],
         [
@@ -822,12 +830,12 @@ return [
             'icon' => 'bi bi-gear',
             'submenu' => [
                 ['header' => 'Financial Setup'],
-                ['text' => 'Exchange Rates', 'url' => 'exchange-rates', 'icon' => 'bi bi-currency-exchange', 'permission' => 'core.exchange-rates.view'],
-                ['text' => 'Accounting Periods', 'url' => 'periods', 'icon' => 'bi bi-calendar-range', 'permission' => 'core.periods.view'],
-                ['text' => 'Workflow', 'url' => 'workflows', 'icon' => 'bi bi-diagram-3', 'permission' => 'core.workflow.view'],
+                ['text' => 'Exchange Rates', 'url' => 'exchange-rates', 'icon' => 'bi bi-currency-exchange', 'can' => 'core.exchange-rates.view'],
+                ['text' => 'Accounting Periods', 'url' => 'periods', 'icon' => 'bi bi-calendar-range', 'can' => 'core.periods.view'],
+                ['text' => 'Workflow', 'url' => 'workflows', 'icon' => 'bi bi-diagram-3', 'can' => 'core.workflow.view'],
                 ['header' => 'Audit & Compliance'],
-                ['text' => 'Audit Logs', 'url' => 'audit', 'icon' => 'bi bi-journal-text', 'permission' => 'core.audit.view'],
-                ['text' => 'Notifications', 'icon' => 'bi bi-bell', 'url' => 'notifications', 'permission' => 'core.notifications.view'],
+                ['text' => 'Audit Logs', 'url' => 'audit', 'icon' => 'bi bi-journal-text', 'can' => 'core.audit.view'],
+                ['text' => 'Notifications', 'icon' => 'bi bi-bell', 'url' => 'notifications', 'can' => 'core.notifications.view'],
             ],
         ],
         // ============================================================
@@ -908,13 +916,13 @@ return [
                 // Dashboard Menu
                 [
                     'text' => 'Dashboard',
-                    'url' => 'finance/dashboard',
+                    'url' => 'finance/dashboard', 'can' => 'finance.dashboard.view',
                     'icon' => 'bi bi-speedometer',
                 ],
                 // Chart of Accounts
                 [
                     'text' => 'Chart of Accounts',
-                    'url' => 'finance/accounts',
+                    'url' => 'finance/accounts', 'can' => 'finance.accounts.view',
                     'icon' => 'bi bi-diagram-3',
                 ],
                 // Journals
@@ -924,17 +932,17 @@ return [
                     'submenu' => [
                         [
                             'text' => 'Journal Entry',
-                            'url' => 'finance/journals/create',
+                            'url' => 'finance/journals/create', 'can' => 'finance.journals.create',
                             'icon' => 'bi bi-plus-circle',
                         ],
                         [
                             'text' => 'Journal Register',
-                            'url' => 'finance/journals',
+                            'url' => 'finance/journals', 'can' => 'finance.journals.view',
                             'icon' => 'bi bi-list-ul',
                         ],
                         [
                             'text' => 'Recurring Journals',
-                            'url' => 'finance/recurring-journals',
+                            'url' => 'finance/recurring-journals', 'can' => 'finance.recurring-journals.view',
                             'icon' => 'bi bi-arrow-repeat',
                         ],
                     ],
@@ -943,7 +951,7 @@ return [
                 // General Ledger
                 [
                     'text' => 'General Ledger',
-                    'url' => 'finance/general-ledger',
+                    'url' => 'finance/general-ledger', 'can' => 'finance.ledger.view',
                     'icon' => 'bi bi-book',
                 ],
 
@@ -954,34 +962,34 @@ return [
                     'submenu' => [
                         [
                             'text' => 'Suppliers',
-                            'url' => 'finance/suppliers',
+                            'url' => 'finance/suppliers', 'can' => 'finance.suppliers.view',
                             'icon' => 'bi bi-people',
                         ],
                         [
                             'text' => 'Supplier Invoices',
-                            'url' => 'finance/supplier-invoices',
+                            'url' => 'finance/supplier-invoices', 'can' => 'finance.supplier-invoices.view',
                             'icon' => 'bi bi-file-text',
                         ],
                         [
                             'text' => 'Supplier Credit Notes',
                             'url' => 'finance/supplier-credit-notes',
                             'icon' => 'bi bi-file-earmark-minus',
-                            'permission' => 'finance.suppliers.view',
+                            'can' => 'finance.suppliers.view',
                         ],
                         [
                             'text' => 'Supplier Debit Notes',
                             'url' => 'finance/supplier-debit-notes',
                             'icon' => 'bi bi-file-earmark-plus',
-                            'permission' => 'finance.suppliers.view',
+                            'can' => 'finance.suppliers.view',
                         ],
                         [
                             'text' => 'Payments',
-                            'url' => 'finance/payments',
+                            'url' => 'finance/payments', 'can' => 'finance.payments.view',
                             'icon' => 'bi bi-cash-stack',
                         ],
                         [
                             'text' => 'AP Aging',
-                            'url' => 'finance/ap-aging',
+                            'url' => 'finance/ap-aging', 'can' => 'finance.reports.view',
                             'icon' => 'bi bi-clock-history',
                         ],
                     ],
@@ -994,22 +1002,22 @@ return [
                     'submenu' => [
                         [
                             'text' => 'Customers',
-                            'url' => 'finance/customers',
+                            'url' => 'finance/customers', 'can' => 'finance.customers.view',
                             'icon' => 'bi bi-people',
                         ],
                         [
                             'text' => 'Customer Invoices',
-                            'url' => 'finance/customer-invoices',
+                            'url' => 'finance/customer-invoices', 'can' => 'finance.customer-invoices.view',
                             'icon' => 'bi bi-file-text',
                         ],
                         [
                             'text' => 'Receipts',
-                            'url' => 'finance/receipts',
+                            'url' => 'finance/receipts', 'can' => 'finance.receipts.view',
                             'icon' => 'bi bi-cash-stack',
                         ],
                         [
                             'text' => 'AR Aging',
-                            'url' => 'finance/ar-aging',
+                            'url' => 'finance/ar-aging', 'can' => 'finance.reports.view',
                             'icon' => 'bi bi-clock-history',
                         ],
                     ],
@@ -1022,27 +1030,27 @@ return [
                     'submenu' => [
                         [
                             'text' => 'Cash Accounts',
-                            'url' => 'finance/cash-accounts',
+                            'url' => 'finance/cash-accounts', 'can' => 'finance.cash-accounts.view',
                             'icon' => 'bi bi-wallet2',
                         ],
                         [
                             'text' => 'Bank Accounts',
-                            'url' => 'finance/bank-accounts',
+                            'url' => 'finance/bank-accounts', 'can' => 'finance.bank-accounts.view',
                             'icon' => 'bi bi-building',
                         ],
                         [
                             'text' => 'Bank Receipts',
-                            'url' => 'finance/bank-receipts',
+                            'url' => 'finance/bank-receipts', 'can' => 'finance.bank-transactions.view',
                             'icon' => 'bi bi-arrow-down-circle',
                         ],
                         [
                             'text' => 'Bank Payments',
-                            'url' => 'finance/bank-payments',
+                            'url' => 'finance/bank-payments', 'can' => 'finance.bank-transactions.view',
                             'icon' => 'bi bi-arrow-up-circle',
                         ],
                         [
                             'text' => 'Reconciliation',
-                            'url' => 'finance/bank-reconciliation',
+                            'url' => 'finance/bank-reconciliation', 'can' => 'finance.bank-reconciliation.view',
                             'icon' => 'bi bi-check2-square',
                         ],
                     ],
@@ -1057,13 +1065,13 @@ return [
                             'text' => 'Budgets',
                             'url' => 'finance/budgets',
                             'icon' => 'bi bi-list-check',
-                            'permission' => 'finance.budgets.view',
+                            'can' => 'finance.budgets.view',
                         ],
                         [
                             'text' => 'Budget vs Actual',
                             'url' => 'finance/budget-vs-actual',
                             'icon' => 'bi bi-bar-chart',
-                            'permission' => 'finance.budgets.view',
+                            'can' => 'finance.budgets.view',
                         ],
                     ],
                 ],
@@ -1071,14 +1079,14 @@ return [
                 // Tax
                 [
                     'text' => 'Tax',
-                    'url' => 'finance/taxes',
+                    'url' => 'finance/taxes', 'can' => 'finance.taxes.view',
                     'icon' => 'bi bi-percent',
                 ],
 
                 // Cost Centers
                 [
                     'text' => 'Cost Centers',
-                    'url' => 'finance/cost-centers',
+                    'url' => 'finance/cost-centers', 'can' => 'finance.costcenters.view',
                     'icon' => 'bi bi-pie-chart',
                 ],
 
@@ -1089,62 +1097,62 @@ return [
                     'submenu' => [
                         [
                             'text' => 'General Ledger',
-                            'url' => 'finance/reports/general-ledger',
+                            'url' => 'finance/reports/general-ledger', 'can' => 'finance.ledger.view',
                             'icon' => 'bi bi-book',
                         ],
                         [
                             'text' => 'Trial Balance',
-                            'url' => 'finance/reports/trial-balance',
+                            'url' => 'finance/reports/trial-balance', 'can' => 'finance.reports.view',
                             'icon' => 'bi bi-bar-chart-fill',
                         ],
                         [
                             'text' => 'Profit & Loss',
-                            'url' => 'finance/reports/profit-loss',
+                            'url' => 'finance/reports/profit-loss', 'can' => 'finance.reports.view',
                             'icon' => 'bi bi-graph-up',
                         ],
                         [
                             'text' => 'Balance Sheet',
-                            'url' => 'finance/reports/balance-sheet',
+                            'url' => 'finance/reports/balance-sheet', 'can' => 'finance.reports.view',
                             'icon' => 'bi bi-card-checklist',
                         ],
                         [
                             'text' => 'Cash Flow',
-                            'url' => 'finance/reports/cash-flow',
+                            'url' => 'finance/reports/cash-flow', 'can' => 'finance.reports.view',
                             'icon' => 'bi bi-water',
                         ],
                         [
                             'text' => 'AP Reports',
-                            'url' => 'finance/reports/ap',
+                            'url' => 'finance/reports/ap', 'can' => 'finance.reports.view',
                             'icon' => 'bi bi-cart-dash',
                         ],
                         [
                             'text' => 'AR Reports',
-                            'url' => 'finance/reports/ar',
+                            'url' => 'finance/reports/ar', 'can' => 'finance.reports.view',
                             'icon' => 'bi bi-cart-plus',
                         ],
                         [
                             'text' => 'Payment Register',
-                            'url' => 'finance/reports/payment-register',
+                            'url' => 'finance/reports/payment-register', 'can' => 'finance.reports.view',
                             'icon' => 'bi bi-cash-stack',
                         ],
                         [
                             'text' => 'Receipt Register',
-                            'url' => 'finance/reports/receipt-register',
+                            'url' => 'finance/reports/receipt-register', 'can' => 'finance.reports.view',
                             'icon' => 'bi bi-wallet2',
                         ],
                         [
                             'text' => 'Cash Book',
-                            'url' => 'finance/reports/cash-book',
+                            'url' => 'finance/reports/cash-book', 'can' => 'finance.reports.view',
                             'icon' => 'bi bi-book',
                         ],
                         [
                             'text' => 'Bank Book',
-                            'url' => 'finance/reports/bank-book',
+                            'url' => 'finance/reports/bank-book', 'can' => 'finance.reports.view',
                             'icon' => 'bi bi-bank',
                         ],
                         [
                             'text' => 'Management Reports',
-                            'url' => 'finance/reports/management',
+                            'url' => 'finance/reports/management', 'can' => 'finance.reports.view',
                             'icon' => 'bi bi-clipboard-data',
                         ],
                     ],
@@ -1173,13 +1181,13 @@ return [
     */
 
     'filters' => [
-        JeroenNoten\LaravelAdminLte\Menu\Filters\GateFilter::class,
-        JeroenNoten\LaravelAdminLte\Menu\Filters\HrefFilter::class,
-        JeroenNoten\LaravelAdminLte\Menu\Filters\SearchFilter::class,
-        JeroenNoten\LaravelAdminLte\Menu\Filters\ActiveFilter::class,
-        JeroenNoten\LaravelAdminLte\Menu\Filters\ClassesFilter::class,
-        JeroenNoten\LaravelAdminLte\Menu\Filters\LangFilter::class,
-        JeroenNoten\LaravelAdminLte\Menu\Filters\DataFilter::class,
+        GateFilter::class,
+        HrefFilter::class,
+        SearchFilter::class,
+        ActiveFilter::class,
+        ClassesFilter::class,
+        LangFilter::class,
+        DataFilter::class,
     ],
 
     /*

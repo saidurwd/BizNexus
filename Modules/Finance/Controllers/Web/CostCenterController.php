@@ -2,12 +2,12 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\CostCenter;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\CostCenter;
 
 class CostCenterController extends Controller
 {
@@ -20,7 +20,6 @@ class CostCenterController extends Controller
 
     public function index()
     {
-        $this->checkPermission('finance.costcenters.view');
 
         $costCenters = CostCenter::with(['parent', 'manager'])
             ->orderBy('code')
@@ -31,7 +30,6 @@ class CostCenterController extends Controller
 
     public function create()
     {
-        $this->checkPermission('finance.costcenters.create');
 
         $parentOptions = CostCenter::where('status', 'active')
             ->orderBy('code')
@@ -42,7 +40,6 @@ class CostCenterController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $this->checkPermission('finance.costcenters.create');
 
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:cost_centers,code',
@@ -59,7 +56,6 @@ class CostCenterController extends Controller
 
     public function edit(int $id)
     {
-        $this->checkPermission('finance.costcenters.update');
 
         $costCenter = CostCenter::findOrFail($id);
         $parentOptions = CostCenter::where('status', 'active')
@@ -72,12 +68,11 @@ class CostCenterController extends Controller
 
     public function update(Request $request, int $id): RedirectResponse
     {
-        $this->checkPermission('finance.costcenters.update');
 
         $costCenter = CostCenter::findOrFail($id);
 
         $validated = $request->validate([
-            'code' => 'required|string|max:50|unique:cost_centers,code,' . $id,
+            'code' => 'required|string|max:50|unique:cost_centers,code,'.$id,
             'name' => 'required|string|max:255',
             'parent_id' => 'nullable|integer|exists:cost_centers,id',
             'status' => 'required|in:active,inactive',
@@ -91,7 +86,6 @@ class CostCenterController extends Controller
 
     public function destroy(int $id): RedirectResponse
     {
-        $this->checkPermission('finance.costcenters.delete');
 
         $costCenter = CostCenter::findOrFail($id);
         $costCenter->delete();

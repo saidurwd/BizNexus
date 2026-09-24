@@ -2,6 +2,7 @@
 
 namespace Modules\Core\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -11,16 +12,18 @@ class UserCompany extends Model
         'user_id',
         'company_id',
         'is_default',
+        'all_branches',
         'status',
     ];
 
     protected $casts = [
         'is_default' => 'boolean',
+        'all_branches' => 'boolean',
     ];
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class);
+        return $this->belongsTo(User::class);
     }
 
     public function company(): BelongsTo

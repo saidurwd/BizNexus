@@ -2,15 +2,15 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\Supplier;
-use Modules\Finance\Models\Tax;
-use Modules\Finance\Models\SupplierInvoice;
-use Modules\Finance\Services\SupplierInvoiceService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\Supplier;
+use Modules\Finance\Models\SupplierInvoice;
+use Modules\Finance\Models\Tax;
+use Modules\Finance\Services\SupplierInvoiceService;
 
 class SupplierInvoiceController extends Controller
 {
@@ -24,7 +24,6 @@ class SupplierInvoiceController extends Controller
 
     public function index()
     {
-        $this->checkPermission('finance.suppliers.view');
 
         $invoices = SupplierInvoice::with(['supplier', 'tax'])
             ->orderByDesc('invoice_date')
@@ -35,7 +34,6 @@ class SupplierInvoiceController extends Controller
 
     public function create()
     {
-        $this->checkPermission('finance.suppliers.create');
 
         $suppliers = Supplier::where('status', 'active')->get();
         $taxes = Tax::where('status', 'active')->get();
@@ -45,7 +43,6 @@ class SupplierInvoiceController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.create');
 
         $validated = $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
@@ -73,7 +70,6 @@ class SupplierInvoiceController extends Controller
 
     public function show(int $id)
     {
-        $this->checkPermission('finance.suppliers.view');
 
         $invoice = SupplierInvoice::with(['supplier', 'tax', 'lines.account', 'lines.tax'])
             ->findOrFail($id);
@@ -83,11 +79,10 @@ class SupplierInvoiceController extends Controller
 
     public function edit(int $id)
     {
-        $this->checkPermission('finance.suppliers.update');
 
         $invoice = SupplierInvoice::findOrFail($id);
 
-        if (!$invoice->isDraft()) {
+        if (! $invoice->isDraft()) {
             return redirect()->route('finance.supplier-invoices.show', $id)
                 ->with('error', 'Only draft invoices can be edited.');
         }
@@ -100,18 +95,17 @@ class SupplierInvoiceController extends Controller
 
     public function update(Request $request, int $id): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.update');
 
         $invoice = SupplierInvoice::findOrFail($id);
 
-        if (!$invoice->isDraft()) {
+        if (! $invoice->isDraft()) {
             return redirect()->route('finance.supplier-invoices.show', $id)
                 ->with('error', 'Only draft invoices can be edited.');
         }
 
         $validated = $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
-            'invoice_number' => 'required|string|max:50|unique:supplier_invoices,invoice_number,' . $id,
+            'invoice_number' => 'required|string|max:50|unique:supplier_invoices,invoice_number,'.$id,
             'invoice_date' => 'required|date',
             'due_date' => 'nullable|date',
             'tax_id' => 'nullable|exists:taxes,id',
@@ -131,11 +125,10 @@ class SupplierInvoiceController extends Controller
 
     public function destroy(int $id): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.delete');
 
         $invoice = SupplierInvoice::findOrFail($id);
 
-        if (!$invoice->isDraft()) {
+        if (! $invoice->isDraft()) {
             return redirect()->route('finance.supplier-invoices.index')
                 ->with('error', 'Only draft invoices can be deleted.');
         }
@@ -148,18 +141,17 @@ class SupplierInvoiceController extends Controller
 
     public function post(int $id): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.post');
 
         $invoice = SupplierInvoice::findOrFail($id);
 
-        if (!$invoice->isApproved()) {
+        if (! $invoice->isApproved()) {
             return back()->with('error', 'Only approved invoices can be posted.');
         }
 
         try {
             $this->supplierInvoiceService->postInvoice($invoice);
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to post invoice: ' . $e->getMessage());
+            return back()->with('error', 'Failed to post invoice: '.$e->getMessage());
         }
 
         return back()->with('success', 'Invoice posted successfully.');
@@ -167,7 +159,6 @@ class SupplierInvoiceController extends Controller
 
     public function cancel(int $id): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.cancel');
 
         $invoice = SupplierInvoice::findOrFail($id);
 
@@ -178,7 +169,7 @@ class SupplierInvoiceController extends Controller
         try {
             $this->supplierInvoiceService->cancelInvoice($invoice);
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to cancel invoice: ' . $e->getMessage());
+            return back()->with('error', 'Failed to cancel invoice: '.$e->getMessage());
         }
 
         return back()->with('success', 'Invoice cancelled successfully.');
@@ -186,11 +177,10 @@ class SupplierInvoiceController extends Controller
 
     public function submit(int $id)
     {
-        $this->checkPermission('finance.suppliers.approve');
 
         $invoice = SupplierInvoice::findOrFail($id);
 
-        if (!$invoice->isDraft()) {
+        if (! $invoice->isDraft()) {
             return back()->with('error', 'Only draft invoices can be submitted.');
         }
 
@@ -201,11 +191,10 @@ class SupplierInvoiceController extends Controller
 
     public function approve(int $id)
     {
-        $this->checkPermission('finance.suppliers.approve');
 
         $invoice = SupplierInvoice::findOrFail($id);
 
-        if (!$invoice->isSubmitted()) {
+        if (! $invoice->isSubmitted()) {
             return back()->with('error', 'Only submitted invoices can be approved.');
         }
 
@@ -216,11 +205,10 @@ class SupplierInvoiceController extends Controller
 
     public function reject(Request $request, int $id)
     {
-        $this->checkPermission('finance.suppliers.approve');
 
         $invoice = SupplierInvoice::findOrFail($id);
 
-        if (!$invoice->isSubmitted()) {
+        if (! $invoice->isSubmitted()) {
             return back()->with('error', 'Only submitted invoices can be rejected.');
         }
 

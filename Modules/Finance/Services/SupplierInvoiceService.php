@@ -10,10 +10,13 @@ use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
 use Modules\Finance\Events\SupplierInvoiceApproved;
 use Modules\Finance\Models\SupplierInvoice;
+use Modules\Finance\Services\Concerns\EnforcesSegregationOfDuties;
 use Modules\Workflow\Services\WorkflowService;
 
 class SupplierInvoiceService
 {
+    use EnforcesSegregationOfDuties;
+
     public function __construct(
         protected DocumentNumberService $documentNumber,
         protected AuditService $audit,
@@ -90,15 +93,17 @@ class SupplierInvoiceService
 
     public function postInvoice(SupplierInvoice $invoice): SupplierInvoice
     {
-        if (! $invoice->isApproved()) {
-            throw new InvalidAccountingTransactionException('Only approved invoices can be posted');
-        }
-
-        if ($invoice->lines->isEmpty()) {
-            throw new InvalidAccountingTransactionException('Invoice must have at least one line item to post.');
-        }
-
         return DB::transaction(function () use ($invoice) {
+            $invoice = SupplierInvoice::whereKey($invoice->id)->lockForUpdate()->firstOrFail();
+
+            if (! $invoice->isApproved()) {
+                throw new InvalidAccountingTransactionException('Only approved invoices can be posted');
+            }
+
+            if ($invoice->lines->isEmpty()) {
+                throw new InvalidAccountingTransactionException('Invoice must have at least one line item to post.');
+            }
+
             $supplier = $invoice->supplier;
             $company = $invoice->company;
 
@@ -132,7 +137,7 @@ class SupplierInvoiceService
                 'credit' => $invoice->total_amount,
             ];
 
-            $journal = $this->journalService->create([
+            $journal = $this->journalService->postFromSource([
                 'company_id' => $invoice->company_id,
                 'journal_date' => $invoice->invoice_date->toDateString(),
                 'reference_type' => 'supplier_invoice',
@@ -142,10 +147,6 @@ class SupplierInvoiceService
                 'exchange_rate' => $invoice->exchange_rate,
                 'lines' => $journalLines,
             ]);
-
-            $this->journalService->submit($journal);
-            $this->journalService->approve($journal);
-            $this->journalService->post($journal);
 
             $invoice->update([
                 'status' => SupplierInvoice::STATUS_POSTED,
@@ -200,6 +201,8 @@ class SupplierInvoiceService
         if (! $invoice->isSubmitted()) {
             throw new InvalidAccountingTransactionException('Only submitted invoices can be approved');
         }
+
+        $this->ensureApproverIsNotCreator($invoice, 'supplier invoice');
 
         $invoice->update(['status' => SupplierInvoice::STATUS_APPROVED]);
 

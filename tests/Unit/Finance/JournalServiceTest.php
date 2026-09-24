@@ -2,17 +2,20 @@
 
 namespace Tests\Unit\Finance;
 
-use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Core\Exceptions\DuplicatePostingException;
+use Modules\Core\Exceptions\InvalidAccountingTransactionException;
+use Modules\Core\Exceptions\UnbalancedJournalException;
+use Modules\Core\Models\BusinessUnit;
+use Modules\Core\Models\Company;
+use Modules\Core\Models\FiscalPeriod;
+use Modules\Core\Models\FiscalYear;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Finance\Models\Account;
 use Modules\Finance\Models\Journal;
 use Modules\Finance\Models\JournalLine;
-use Modules\Finance\Models\Account;
 use Modules\Finance\Services\JournalService;
-use Modules\Core\Services\CompanyContextService;
-use Modules\Core\Services\AccountingPeriodService;
-use Modules\Core\Services\DocumentNumberService;
-use Modules\Core\Services\AuditService;
-use Modules\Core\Exceptions\UnbalancedJournalException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class JournalServiceTest extends TestCase
 {
@@ -24,17 +27,13 @@ class JournalServiceTest extends TestCase
     {
         parent::setUp();
 
-        $this->journalService = new JournalService(
-            new CompanyContextService(),
-            new AccountingPeriodService(),
-            new DocumentNumberService(),
-            new AuditService()
-        );
+        $this->journalService = app(JournalService::class);
     }
 
     public function test_can_create_journal(): void
     {
-        $company = \Modules\Core\Models\Company::factory()->create();
+        $company = Company::factory()->create();
+        app(CompanyContextService::class)->pinCompany($company->id);
         $cashAccount = Account::factory()->asset()->create(['company_id' => $company->id, 'account_code' => '1110']);
         $revenueAccount = Account::factory()->revenue()->create(['company_id' => $company->id, 'account_code' => '4110']);
 
@@ -59,7 +58,8 @@ class JournalServiceTest extends TestCase
 
     public function test_journal_must_be_balanced(): void
     {
-        $company = \Modules\Core\Models\Company::factory()->create();
+        $company = Company::factory()->create();
+        app(CompanyContextService::class)->pinCompany($company->id);
         $cashAccount = Account::factory()->asset()->create(['company_id' => $company->id]);
         $revenueAccount = Account::factory()->revenue()->create(['company_id' => $company->id]);
 
@@ -80,7 +80,8 @@ class JournalServiceTest extends TestCase
 
     public function test_journal_must_have_at_least_two_lines(): void
     {
-        $company = \Modules\Core\Models\Company::factory()->create();
+        $company = Company::factory()->create();
+        app(CompanyContextService::class)->pinCompany($company->id);
         $cashAccount = Account::factory()->asset()->create(['company_id' => $company->id]);
 
         $journalData = [
@@ -92,14 +93,15 @@ class JournalServiceTest extends TestCase
             ],
         ];
 
-        $this->expectException(\Modules\Core\Exceptions\InvalidAccountingTransactionException::class);
+        $this->expectException(InvalidAccountingTransactionException::class);
 
         $this->journalService->create($journalData);
     }
 
     public function test_can_add_line_to_draft_journal(): void
     {
-        $company = \Modules\Core\Models\Company::factory()->create();
+        $company = Company::factory()->create();
+        app(CompanyContextService::class)->pinCompany($company->id);
         $cashAccount = Account::factory()->asset()->create(['company_id' => $company->id]);
         $revenueAccount = Account::factory()->revenue()->create(['company_id' => $company->id]);
         $expenseAccount = Account::factory()->expense()->create(['company_id' => $company->id]);
@@ -141,7 +143,7 @@ class JournalServiceTest extends TestCase
 
         $expenseAccount = Account::factory()->expense()->create(['company_id' => $journal->company_id]);
 
-        $this->expectException(\Modules\Core\Exceptions\InvalidAccountingTransactionException::class);
+        $this->expectException(InvalidAccountingTransactionException::class);
 
         $this->journalService->addLine($journal, [
             'account_id' => $expenseAccount->id,
@@ -153,7 +155,8 @@ class JournalServiceTest extends TestCase
 
     public function test_can_submit_draft_journal(): void
     {
-        $company = \Modules\Core\Models\Company::factory()->create();
+        $company = Company::factory()->create();
+        app(CompanyContextService::class)->pinCompany($company->id);
         $cashAccount = Account::factory()->asset()->create(['company_id' => $company->id]);
         $revenueAccount = Account::factory()->revenue()->create(['company_id' => $company->id]);
 
@@ -196,7 +199,7 @@ class JournalServiceTest extends TestCase
     {
         $journal = Journal::factory()->draft()->create();
 
-        $this->expectException(\Modules\Core\Exceptions\InvalidAccountingTransactionException::class);
+        $this->expectException(InvalidAccountingTransactionException::class);
 
         $this->journalService->approve($journal);
     }
@@ -204,15 +207,17 @@ class JournalServiceTest extends TestCase
     public function test_cannot_post_journal_twice(): void
     {
         $journal = Journal::factory()->posted()->create();
+        app(CompanyContextService::class)->pinCompany($journal->company_id);
 
-        $this->expectException(\Modules\Core\Exceptions\InvalidAccountingTransactionException::class);
+        $this->expectException(DuplicatePostingException::class);
 
         $this->journalService->post($journal);
     }
 
     public function test_can_reverse_posted_journal(): void
     {
-        $company = \Modules\Core\Models\Company::factory()->create();
+        $company = Company::factory()->create();
+        app(CompanyContextService::class)->pinCompany($company->id);
         $cashAccount = Account::factory()->asset()->create(['company_id' => $company->id]);
         $revenueAccount = Account::factory()->revenue()->create(['company_id' => $company->id]);
 
@@ -237,10 +242,12 @@ class JournalServiceTest extends TestCase
             'credit' => 1000,
         ]);
 
+        $this->openCurrentPeriod($company);
+
         $reversal = $this->journalService->reverse($journal, 'Correction');
 
         $this->assertEquals(Journal::STATUS_REVERSED, $journal->fresh()->status);
-        $this->assertNotNull($reversal);
+        $this->assertEquals(Journal::STATUS_POSTED, $reversal->status);
         $this->assertEquals($journal->id, $reversal->reversal_of_journal_id);
     }
 
@@ -251,18 +258,20 @@ class JournalServiceTest extends TestCase
             'total_debit' => 1000,
             'total_credit' => 1000,
         ]);
+        app(CompanyContextService::class)->pinCompany($journal->company_id);
 
-        $this->expectException(\Modules\Core\Exceptions\InvalidAccountingTransactionException::class);
+        $this->expectException(InvalidAccountingTransactionException::class);
 
         $this->journalService->reverse($journal);
     }
 
     public function test_journal_line_includes_business_unit_id(): void
     {
-        $company = \Modules\Core\Models\Company::factory()->create();
+        $company = Company::factory()->create();
+        app(CompanyContextService::class)->pinCompany($company->id);
         $cashAccount = Account::factory()->asset()->create(['company_id' => $company->id]);
         $revenueAccount = Account::factory()->revenue()->create(['company_id' => $company->id]);
-        $businessUnit = \Modules\Core\Models\BusinessUnit::factory()->create(['company_id' => $company->id]);
+        $businessUnit = BusinessUnit::factory()->create(['company_id' => $company->id]);
 
         $journalData = [
             'company_id' => $company->id,
@@ -288,7 +297,8 @@ class JournalServiceTest extends TestCase
 
     public function test_can_update_line_in_draft_journal(): void
     {
-        $company = \Modules\Core\Models\Company::factory()->create();
+        $company = Company::factory()->create();
+        app(CompanyContextService::class)->pinCompany($company->id);
         $cashAccount = Account::factory()->asset()->create(['company_id' => $company->id]);
         $revenueAccount = Account::factory()->revenue()->create(['company_id' => $company->id]);
 
@@ -316,7 +326,8 @@ class JournalServiceTest extends TestCase
 
     public function test_can_remove_line_from_draft_journal(): void
     {
-        $company = \Modules\Core\Models\Company::factory()->create();
+        $company = Company::factory()->create();
+        app(CompanyContextService::class)->pinCompany($company->id);
         $cashAccount = Account::factory()->asset()->create(['company_id' => $company->id]);
         $revenueAccount = Account::factory()->revenue()->create(['company_id' => $company->id]);
 
@@ -342,5 +353,25 @@ class JournalServiceTest extends TestCase
         $this->journalService->removeLine($line1);
 
         $this->assertEquals(1, $journal->fresh()->lines()->count());
+    }
+
+    protected function openCurrentPeriod(Company $company): FiscalPeriod
+    {
+        $fiscalYear = FiscalYear::create([
+            'company_id' => $company->id,
+            'name' => 'FY'.now()->year,
+            'start_date' => now()->startOfYear(),
+            'end_date' => now()->endOfYear(),
+            'status' => 'OPEN',
+        ]);
+
+        return FiscalPeriod::create([
+            'fiscal_year_id' => $fiscalYear->id,
+            'period_name' => now()->format('F'),
+            'period_number' => now()->month,
+            'start_date' => now()->startOfMonth(),
+            'end_date' => now()->endOfMonth(),
+            'status' => 'OPEN',
+        ]);
     }
 }

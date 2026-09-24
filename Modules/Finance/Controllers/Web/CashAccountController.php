@@ -2,12 +2,13 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\CashAccount;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\Account;
+use Modules\Finance\Models\CashAccount;
 
 class CashAccountController extends Controller
 {
@@ -20,7 +21,6 @@ class CashAccountController extends Controller
 
     public function index()
     {
-        $this->checkPermission('finance.accounts.view');
 
         $cashAccounts = CashAccount::with('glAccount')
             ->orderBy('code')
@@ -31,10 +31,9 @@ class CashAccountController extends Controller
 
     public function create()
     {
-        $this->checkPermission('finance.accounts.create');
 
         $companyId = $this->getActiveCompanyId();
-        $glOptions = \Modules\Finance\Models\Account::where('is_postable', true)
+        $glOptions = Account::where('is_postable', true)
             ->where('company_id', $companyId)
             ->whereIn('account_code', ['1110', '1120'])
             ->orderBy('account_code')
@@ -45,7 +44,6 @@ class CashAccountController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $this->checkPermission('finance.accounts.create');
 
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:cash_accounts,code',
@@ -70,11 +68,10 @@ class CashAccountController extends Controller
 
     public function edit(int $id)
     {
-        $this->checkPermission('finance.accounts.update');
 
         $cashAccount = CashAccount::findOrFail($id);
         $companyId = $this->getActiveCompanyId();
-        $glOptions = \Modules\Finance\Models\Account::where('is_postable', true)
+        $glOptions = Account::where('is_postable', true)
             ->where('company_id', $companyId)
             ->whereIn('account_code', ['1110', '1120'])
             ->orderBy('account_code')
@@ -85,12 +82,11 @@ class CashAccountController extends Controller
 
     public function update(Request $request, int $id): RedirectResponse
     {
-        $this->checkPermission('finance.accounts.update');
 
         $cashAccount = CashAccount::findOrFail($id);
 
         $validated = $request->validate([
-            'code' => 'required|string|max:50|unique:cash_accounts,code,' . $id,
+            'code' => 'required|string|max:50|unique:cash_accounts,code,'.$id,
             'name' => 'required|string|max:255',
             'gl_account_id' => 'required|exists:accounts,id',
             'account_type' => 'required|in:CASH,PETTY_CASH,BANK',
@@ -110,7 +106,6 @@ class CashAccountController extends Controller
 
     public function destroy(int $id): RedirectResponse
     {
-        $this->checkPermission('finance.accounts.delete');
 
         $cashAccount = CashAccount::findOrFail($id);
         $cashAccount->delete();

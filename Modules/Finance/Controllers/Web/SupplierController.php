@@ -2,11 +2,11 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\Supplier;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\Supplier;
 
 class SupplierController extends Controller
 {
@@ -19,9 +19,8 @@ class SupplierController extends Controller
 
     public function index(Request $request)
     {
-        $this->checkPermission('finance.suppliers.view');
 
-        $suppliers = Supplier::when($request->get('status'), fn($q, $status) => $q->where('status', $status))
+        $suppliers = Supplier::when($request->get('status'), fn ($q, $status) => $q->where('status', $status))
             ->orderBy('name')
             ->get();
 
@@ -32,16 +31,14 @@ class SupplierController extends Controller
 
     public function create()
     {
-        $this->checkPermission('finance.suppliers.create');
 
         return view('finance.suppliers.create');
     }
 
     public function store(Request $request)
     {
-        $this->checkPermission('finance.suppliers.create');
 
-        $validated = $request->validate([            'supplier_code' => 'required|string|max:50',
+        $validated = $request->validate(['supplier_code' => 'required|string|max:50',
             'name' => 'required|string|max:255',
             'contact_person' => 'nullable|string|max:255',
             'address' => 'nullable|string',
@@ -60,7 +57,6 @@ class SupplierController extends Controller
 
     public function show(int $id)
     {
-        $this->checkPermission('finance.suppliers.view');
 
         $supplier = Supplier::with(['invoices', 'payments'])
             ->findOrFail($id);
@@ -72,7 +68,6 @@ class SupplierController extends Controller
 
     public function edit(int $id)
     {
-        $this->checkPermission('finance.suppliers.update');
 
         $supplier = Supplier::findOrFail($id);
 
@@ -83,11 +78,10 @@ class SupplierController extends Controller
 
     public function update(Request $request, int $id)
     {
-        $this->checkPermission('finance.suppliers.update');
 
         $supplier = Supplier::findOrFail($id);
 
-        $validated = $request->validate([            'supplier_code' => 'required|string|max:50|unique:suppliers,supplier_code,' . $supplier->id,
+        $validated = $request->validate(['supplier_code' => 'required|string|max:50|unique:suppliers,supplier_code,'.$supplier->id,
             'name' => 'required|string|max:255',
             'contact_person' => 'nullable|string|max:255',
             'address' => 'nullable|string',
@@ -106,7 +100,6 @@ class SupplierController extends Controller
 
     public function destroy(int $id)
     {
-        $this->checkPermission('finance.suppliers.delete');
 
         $supplier = Supplier::findOrFail($id);
         $supplier->delete();

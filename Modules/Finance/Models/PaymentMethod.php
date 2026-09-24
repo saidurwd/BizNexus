@@ -3,16 +3,14 @@
 namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Modules\Finance\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Core\Models\Company;
 
 class PaymentMethod extends Model
 {
+    use BelongsToCompany;
 
-    protected static function booted()
-    {
-        static::addGlobalScope(new CompanyScope);
-    }
     protected $fillable = [
         'company_id',
         'name',
@@ -32,7 +30,7 @@ class PaymentMethod extends Model
 
     public function company(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Company::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function isActive(): bool

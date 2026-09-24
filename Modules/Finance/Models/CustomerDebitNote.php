@@ -2,12 +2,16 @@
 
 namespace Modules\Finance\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Finance\Scopes\CompanyScope;
+use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Core\Models\Company;
 
 class CustomerDebitNote extends Model
 {
+    use BelongsToCompany;
+
     protected $fillable = [
         'company_id',
         'customer_id',
@@ -33,11 +37,6 @@ class CustomerDebitNote extends Model
         'total_amount' => 'decimal:4',
     ];
 
-    protected static function booted()
-    {
-        static::addGlobalScope(new CompanyScope);
-    }
-
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
@@ -50,12 +49,12 @@ class CustomerDebitNote extends Model
 
     public function postedBy(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class, 'posted_by');
+        return $this->belongsTo(User::class, 'posted_by');
     }
 
     public function company(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Company::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function isPosted(): bool

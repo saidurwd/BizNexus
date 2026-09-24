@@ -2,13 +2,13 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\AccountCategory;
 use Modules\Finance\Services\ChartOfAccountsService;
-use Modules\Core\Services\CompanyContextService;
-use Modules\Core\Services\PermissionService;
 
 class AccountController extends Controller
 {
@@ -22,7 +22,6 @@ class AccountController extends Controller
 
     public function index(Request $request)
     {
-        $this->checkPermission('finance.accounts.view');
 
         $companyId = $this->getActiveCompanyId();
         $tree = $this->chartOfAccounts->getAccountTree($companyId);
@@ -36,7 +35,6 @@ class AccountController extends Controller
 
     public function create()
     {
-        $this->checkPermission('finance.accounts.create');
 
         $companyId = $this->getActiveCompanyId();
         $tree = $this->chartOfAccounts->getAccountTree($companyId);
@@ -52,7 +50,6 @@ class AccountController extends Controller
 
     public function store(Request $request)
     {
-        $this->checkPermission('finance.accounts.create');
 
         $validated = $request->validate([
             'parent_id' => 'nullable|exists:accounts,id',
@@ -81,7 +78,6 @@ class AccountController extends Controller
 
     public function show(int $id)
     {
-        $this->checkPermission('finance.accounts.view');
 
         $account = Account::findOrFail($id);
 
@@ -90,7 +86,6 @@ class AccountController extends Controller
 
     public function edit(int $id)
     {
-        $this->checkPermission('finance.accounts.update');
 
         $account = Account::findOrFail($id);
 
@@ -113,7 +108,6 @@ class AccountController extends Controller
 
     public function update(Request $request, int $id)
     {
-        $this->checkPermission('finance.accounts.update');
 
         $account = Account::findOrFail($id);
 
@@ -124,7 +118,7 @@ class AccountController extends Controller
 
         $validated = $request->validate([
             'parent_id' => 'nullable|exists:accounts,id',
-            'account_code' => 'required|string|max:50|unique:accounts,account_code,' . $id,
+            'account_code' => 'required|string|max:50|unique:accounts,account_code,'.$id,
             'account_name' => 'required|string|max:255',
             'account_type' => 'required|string',
             'account_category_id' => 'nullable|exists:account_categories,id',
@@ -147,7 +141,6 @@ class AccountController extends Controller
 
     public function destroy(int $id)
     {
-        $this->checkPermission('finance.accounts.delete');
 
         $account = Account::findOrFail($id);
 
@@ -171,7 +164,7 @@ class AccountController extends Controller
             $node['indent'] = str_repeat('&nbsp;&nbsp;&nbsp;', $level);
             $flat[] = $node;
 
-            if (!empty($node['children'])) {
+            if (! empty($node['children'])) {
                 $flat = array_merge($flat, $this->flattenTree($node['children'], $level + 1, $node['id']));
             }
         }
@@ -182,7 +175,7 @@ class AccountController extends Controller
     protected function accountHasPostedJournals(Account $account): bool
     {
         return $account->journalLines()
-            ->whereHas('journal', fn($q) => $q->where('status', 'POSTED'))
+            ->whereHas('journal', fn ($q) => $q->where('status', 'POSTED'))
             ->exists();
     }
 }

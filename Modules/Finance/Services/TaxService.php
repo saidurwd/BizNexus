@@ -2,26 +2,22 @@
 
 namespace Modules\Finance\Services;
 
-use Modules\Finance\Models\Tax;
-use Modules\Finance\Models\JournalLine;
 use InvalidArgumentException;
+use Modules\Finance\Models\Tax;
 
 class TaxService
 {
     public function calculateTaxAmount(float $baseAmount, Tax $tax): array
     {
-        if ($tax->is_inclusive) {
-            $taxAmount = $baseAmount - ($baseAmount / (1 + $tax->rate / 100));
-            $netAmount = $baseAmount / (1 + $tax->rate / 100);
-        } else {
-            $taxAmount = $baseAmount * ($tax->rate / 100);
-            $netAmount = $baseAmount;
-        }
+        $taxAmount = (string) $tax->calculateTax($baseAmount);
+        $netAmount = $tax->is_inclusive
+            ? bcsub((string) $baseAmount, $taxAmount, 4)
+            : (string) $baseAmount;
 
         return [
-            'tax_amount' => round($taxAmount, 4),
-            'net_amount' => round($netAmount, 4),
-            'gross_amount' => round($netAmount + $taxAmount, 4),
+            'tax_amount' => (float) $taxAmount,
+            'net_amount' => (float) $netAmount,
+            'gross_amount' => (float) bcadd($netAmount, $taxAmount, 4),
         ];
     }
 

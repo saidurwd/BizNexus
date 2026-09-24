@@ -3,12 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Modules\Core\Models\ApprovalDelegation;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\PermissionService;
 
 class ProfileController extends Controller
 {
@@ -17,8 +21,18 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $user = $request->user();
+        $companyId = app(CompanyContextService::class)->getActiveCompanyId();
+
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $user,
+            'canDelegateApprovals' => $companyId && PermissionService::delegablePermissions(app(PermissionService::class)->getRolePermissions($user->id, $companyId)) !== [],
+            'delegationsGiven' => ApprovalDelegation::with('delegate')->where('delegator_id', $user->id)->whereNull('revoked_at')->whereDate('ends_on', '>=', now()->toDateString())->orderBy('starts_on')->get(),
+            'delegationsReceived' => ApprovalDelegation::with('delegator')->where('delegate_id', $user->id)->inForce()->get(),
+            'colleagues' => User::whereKeyNot($user->id)
+                ->whereHas('userCompanies', fn ($query) => $query->where('company_id', $companyId)->where('status', 'active'))
+                ->orderBy('name')
+                ->get(['id', 'name', 'email']),
         ]);
     }
 

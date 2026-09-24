@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class WorkflowApproval extends Model
 {
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_REJECTED = 'rejected';
 
     protected $fillable = [
@@ -27,7 +29,7 @@ class WorkflowApproval extends Model
 
     public function instance(): BelongsTo
     {
-        return $this->belongsTo(WorkflowInstance::class);
+        return $this->belongsTo(WorkflowInstance::class, 'workflow_instance_id');
     }
 
     public function isPending(): bool

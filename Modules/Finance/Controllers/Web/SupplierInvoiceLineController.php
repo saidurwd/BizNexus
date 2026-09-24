@@ -2,15 +2,13 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\SupplierInvoice;
-use Modules\Finance\Models\SupplierInvoiceLine;
-use Modules\Finance\Models\Account;
-use Modules\Finance\Models\Tax;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\SupplierInvoice;
+use Modules\Finance\Models\SupplierInvoiceLine;
 
 class SupplierInvoiceLineController extends Controller
 {
@@ -23,11 +21,10 @@ class SupplierInvoiceLineController extends Controller
 
     public function store(Request $request, int $invoiceId): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.update');
 
         $invoice = SupplierInvoice::findOrFail($invoiceId);
 
-        if (!$invoice->isDraft()) {
+        if (! $invoice->isDraft()) {
             return back()->with('error', 'Only draft invoices can have lines added.');
         }
 
@@ -52,11 +49,10 @@ class SupplierInvoiceLineController extends Controller
 
     public function update(Request $request, int $invoiceId, int $lineId): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.update');
 
         $invoice = SupplierInvoice::findOrFail($invoiceId);
 
-        if (!$invoice->isDraft()) {
+        if (! $invoice->isDraft()) {
             return back()->with('error', 'Only draft invoices can have lines edited.');
         }
 
@@ -82,11 +78,10 @@ class SupplierInvoiceLineController extends Controller
 
     public function destroy(int $invoiceId, int $lineId): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.update');
 
         $invoice = SupplierInvoice::findOrFail($invoiceId);
 
-        if (!$invoice->isDraft()) {
+        if (! $invoice->isDraft()) {
             return back()->with('error', 'Only draft invoices can have lines removed.');
         }
 

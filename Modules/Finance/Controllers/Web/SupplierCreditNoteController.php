@@ -2,15 +2,15 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\Supplier;
-use Modules\Finance\Models\SupplierInvoice;
-use Modules\Finance\Models\SupplierCreditNote;
-use Modules\Finance\Services\SupplierCreditNoteService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\Supplier;
+use Modules\Finance\Models\SupplierCreditNote;
+use Modules\Finance\Models\SupplierInvoice;
+use Modules\Finance\Services\SupplierCreditNoteService;
 
 class SupplierCreditNoteController extends Controller
 {
@@ -24,7 +24,6 @@ class SupplierCreditNoteController extends Controller
 
     public function index()
     {
-        $this->checkPermission('finance.suppliers.view');
 
         $creditNotes = SupplierCreditNote::with(['supplier', 'invoice'])
             ->orderByDesc('credit_note_date')
@@ -35,7 +34,6 @@ class SupplierCreditNoteController extends Controller
 
     public function create()
     {
-        $this->checkPermission('finance.suppliers.create');
 
         $suppliers = Supplier::where('status', 'active')->get();
         $invoices = SupplierInvoice::whereIn('status', ['POSTED', 'PARTIALLY_PAID', 'PAID'])
@@ -46,7 +44,6 @@ class SupplierCreditNoteController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.create');
 
         $validated = $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
@@ -72,7 +69,6 @@ class SupplierCreditNoteController extends Controller
 
     public function show(int $id)
     {
-        $this->checkPermission('finance.suppliers.view');
 
         $creditNote = SupplierCreditNote::with(['supplier', 'invoice'])->findOrFail($id);
 
@@ -81,11 +77,10 @@ class SupplierCreditNoteController extends Controller
 
     public function edit(int $id)
     {
-        $this->checkPermission('finance.suppliers.update');
 
         $creditNote = SupplierCreditNote::findOrFail($id);
 
-        if (!$creditNote->isDraft()) {
+        if (! $creditNote->isDraft()) {
             return redirect()->route('finance.supplier-credit-notes.show', $id)
                 ->with('error', 'Only draft credit notes can be edited.');
         }
@@ -99,11 +94,10 @@ class SupplierCreditNoteController extends Controller
 
     public function update(Request $request, int $id): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.update');
 
         $creditNote = SupplierCreditNote::findOrFail($id);
 
-        if (!$creditNote->isDraft()) {
+        if (! $creditNote->isDraft()) {
             return redirect()->route('finance.supplier-credit-notes.show', $id)
                 ->with('error', 'Only draft credit notes can be edited.');
         }
@@ -111,7 +105,7 @@ class SupplierCreditNoteController extends Controller
         $validated = $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
             'supplier_invoice_id' => 'nullable|exists:supplier_invoices,id',
-            'credit_note_number' => 'required|string|max:50|unique:supplier_credit_notes,credit_note_number,' . $id,
+            'credit_note_number' => 'required|string|max:50|unique:supplier_credit_notes,credit_note_number,'.$id,
             'credit_note_date' => 'required|date',
             'subtotal' => 'required|numeric|min:0',
             'tax_amount' => 'required|numeric|min:0',
@@ -129,11 +123,10 @@ class SupplierCreditNoteController extends Controller
 
     public function destroy(int $id): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.delete');
 
         $creditNote = SupplierCreditNote::findOrFail($id);
 
-        if (!$creditNote->isDraft()) {
+        if (! $creditNote->isDraft()) {
             return redirect()->route('finance.supplier-credit-notes.index')
                 ->with('error', 'Only draft credit notes can be deleted.');
         }
@@ -146,11 +139,10 @@ class SupplierCreditNoteController extends Controller
 
     public function submit(int $id): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.approve');
 
         $creditNote = SupplierCreditNote::findOrFail($id);
 
-        if (!$creditNote->isDraft()) {
+        if (! $creditNote->isDraft()) {
             return back()->with('error', 'Only draft credit notes can be submitted.');
         }
 
@@ -161,7 +153,6 @@ class SupplierCreditNoteController extends Controller
 
     public function approve(int $id): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.approve');
 
         $creditNote = SupplierCreditNote::findOrFail($id);
 
@@ -176,7 +167,6 @@ class SupplierCreditNoteController extends Controller
 
     public function post(int $id): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.post');
 
         $creditNote = SupplierCreditNote::findOrFail($id);
 
@@ -187,7 +177,7 @@ class SupplierCreditNoteController extends Controller
         try {
             $this->creditNoteService->postCreditNote($creditNote);
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to post credit note: ' . $e->getMessage());
+            return back()->with('error', 'Failed to post credit note: '.$e->getMessage());
         }
 
         return back()->with('success', 'Credit note posted successfully.');
@@ -195,7 +185,6 @@ class SupplierCreditNoteController extends Controller
 
     public function cancel(int $id): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.cancel');
 
         $creditNote = SupplierCreditNote::findOrFail($id);
 

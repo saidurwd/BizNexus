@@ -1,29 +1,27 @@
 <?php
 
-
 namespace Modules\Finance\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use Database\Factories\AccountFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Finance\Scopes\CompanyScope;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Core\Models\Company;
+use Modules\Core\Models\Currency;
 
 class Account extends Model
 {
-    use HasFactory, SoftDeletes;
+    use BelongsToCompany, HasFactory, SoftDeletes;
 
     protected static function newFactory()
     {
-        return \Database\Factories\AccountFactory::new();
+        return AccountFactory::new();
     }
 
-    protected static function booted()
-    {
-        static::addGlobalScope(new CompanyScope);
-    }
     protected $fillable = [
         'company_id',
         'parent_id',
@@ -48,10 +46,9 @@ class Account extends Model
         'level' => 'integer',
     ];
 
-
     public function company(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Company::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function parent(): BelongsTo
@@ -66,7 +63,7 @@ class Account extends Model
 
     public function currency(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Currency::class);
+        return $this->belongsTo(Currency::class);
     }
 
     public function category(): BelongsTo
@@ -81,12 +78,12 @@ class Account extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function isActive(): bool
@@ -106,7 +103,7 @@ class Account extends Model
 
     public function canReceivePosting(): bool
     {
-        return $this->isPostable() && !$this->isGroup();
+        return $this->isPostable() && ! $this->isGroup();
     }
 
     public function isDebitNormal(): bool
@@ -138,18 +135,18 @@ class Account extends Model
     public function isLocked(): bool
     {
         return $this->journalLines()
-            ->whereHas('journal', fn($q) => $q->where('status', 'POSTED'))
+            ->whereHas('journal', fn ($q) => $q->where('status', 'POSTED'))
             ->exists();
     }
 
     public function getBalanceAttribute(): float
     {
         $totalDebit = $this->journalLines()
-            ->whereHas('journal', fn($q) => $q->posted())
+            ->whereHas('journal', fn ($q) => $q->posted())
             ->sum('debit');
 
         $totalCredit = $this->journalLines()
-            ->whereHas('journal', fn($q) => $q->posted())
+            ->whereHas('journal', fn ($q) => $q->posted())
             ->sum('credit');
 
         if ($this->isDebitNormal()) {

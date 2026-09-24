@@ -2,6 +2,7 @@
 
 namespace Modules\Workflow\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -25,11 +26,11 @@ class WorkflowAction extends Model
 
     public function instance(): BelongsTo
     {
-        return $this->belongsTo(WorkflowInstance::class);
+        return $this->belongsTo(WorkflowInstance::class, 'workflow_instance_id');
     }
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class);
+        return $this->belongsTo(User::class);
     }
 }

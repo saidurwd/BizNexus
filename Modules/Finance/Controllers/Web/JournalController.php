@@ -2,16 +2,24 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\Journal;
-use Modules\Finance\Models\JournalLine;
-use Modules\Finance\Services\JournalService;
-use Modules\Finance\Services\LedgerService;
-use Modules\Finance\Services\FinancialReportService;
+use Modules\Core\Models\Branch;
+use Modules\Core\Models\BusinessUnit;
+use Modules\Core\Models\Company;
+use Modules\Core\Models\CostCenter;
+use Modules\Core\Models\Department;
+use Modules\Core\Models\FiscalPeriod;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
-use Modules\Finance\Scopes\CompanyScope;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\Account;
+use Modules\Finance\Models\Journal;
+use Modules\Finance\Models\JournalLine;
+use Modules\Finance\Models\Tax;
+use Modules\Finance\Services\FinancialReportService;
+use Modules\Finance\Services\JournalService;
+use Modules\Finance\Services\LedgerService;
 
 class JournalController extends Controller
 {
@@ -27,13 +35,12 @@ class JournalController extends Controller
 
     public function index(Request $request)
     {
-        $this->checkPermission('finance.journals.view');
 
         $companyId = $this->getActiveCompanyId();
-        $company = $companyId ? \Modules\Core\Models\Company::find($companyId) : null;
+        $company = $companyId ? Company::find($companyId) : null;
 
         $journals = Journal::with(['lines.account', 'fiscalPeriod'])
-            ->when($request->get('status'), fn($q, $status) => $q->where('status', $status))
+            ->when($request->get('status'), fn ($q, $status) => $q->where('status', $status))
             ->orderBy('journal_date', 'desc')
             ->paginate(20);
 
@@ -45,44 +52,41 @@ class JournalController extends Controller
 
     public function create()
     {
-        $this->checkPermission('finance.journals.create');
 
         $companyId = $this->getActiveCompanyId();
-        $accounts = \Modules\Finance\Models\Account::postable()
+        $accounts = Account::postable()
             ->where('company_id', $companyId)
-            ->orderByRaw("CAST(account_code AS UNSIGNED)")
+            ->orderByRaw('CAST(account_code AS UNSIGNED)')
             ->get(['id', 'account_code', 'account_name']);
 
-        $fiscalPeriods = \Modules\Core\Models\FiscalPeriod::whereHas('fiscalYear', function ($q) use ($companyId) {
+        $fiscalPeriods = FiscalPeriod::whereHas('fiscalYear', function ($q) use ($companyId) {
             $q->where('company_id', $companyId);
         })->where('status', 'OPEN')->orderBy('period_number')->get();
 
-        $costCenters = \Modules\Core\Models\CostCenter::where('company_id', $companyId)->where('status', 'active')->get();
-        $departments = \Modules\Core\Models\Department::where('company_id', $companyId)->where('status', 'active')->get();
-        $branches = \Modules\Core\Models\Branch::where('company_id', $companyId)->where('status', 'active')->get();
-        $businessUnits = \Modules\Core\Models\BusinessUnit::where('company_id', $companyId)->where('status', 'active')->get();
-        $taxes = \Modules\Finance\Models\Tax::where('company_id', $companyId)->where('status', 'active')->get();
+        $costCenters = CostCenter::where('company_id', $companyId)->where('status', 'active')->get();
+        $departments = Department::where('company_id', $companyId)->where('status', 'active')->get();
+        $branches = Branch::where('company_id', $companyId)->where('status', 'active')->get();
+        $businessUnits = BusinessUnit::where('company_id', $companyId)->where('status', 'active')->get();
+        $taxes = Tax::where('company_id', $companyId)->where('status', 'active')->get();
 
         return view('finance.journals.create', compact('accounts', 'companyId', 'fiscalPeriods', 'costCenters', 'departments', 'branches', 'businessUnits', 'taxes'));
     }
 
     public function edit(int $id)
     {
-        $this->checkPermission('finance.journals.update');
 
-        $journal = Journal::withoutGlobalScope(CompanyScope::class)
-            ->with('lines.account')
+        $journal = Journal::with('lines.account')
             ->findOrFail($id);
 
-        if (!$journal->isDraft()) {
+        if (! $journal->isDraft()) {
             return redirect()->route('finance.journals.show', $journal->id)
                 ->with('error', 'Only draft journals can be edited.');
         }
 
         $companyId = $this->getActiveCompanyId();
-        $accounts = \Modules\Finance\Models\Account::postable()
+        $accounts = Account::postable()
             ->where('company_id', $companyId)
-            ->orderByRaw("CAST(account_code AS UNSIGNED)")
+            ->orderByRaw('CAST(account_code AS UNSIGNED)')
             ->get(['id', 'account_code', 'account_name']);
 
         return view('finance.journals.edit', compact('journal', 'accounts', 'companyId'));
@@ -90,9 +94,8 @@ class JournalController extends Controller
 
     public function store(Request $request)
     {
-        $this->checkPermission('finance.journals.create');
 
-        $validated = $request->validate([            'journal_date' => 'required|date',
+        $validated = $request->validate(['journal_date' => 'required|date',
             'description' => 'nullable|string',
             'lines' => 'required|array|min:2',
             'lines.*.account_id' => 'required|exists:accounts,id',
@@ -106,6 +109,7 @@ class JournalController extends Controller
 
         try {
             $journal = $this->journalService->create($validated);
+
             return redirect()->route('finance.journals.show', $journal->id)->with('success', 'Journal created successfully.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
@@ -114,11 +118,10 @@ class JournalController extends Controller
 
     public function update(Request $request, int $id)
     {
-        $this->checkPermission('finance.journals.update');
 
-        $journal = Journal::withoutGlobalScope(CompanyScope::class)->findOrFail($id);
+        $journal = Journal::findOrFail($id);
 
-        if (!$journal->isDraft()) {
+        if (! $journal->isDraft()) {
             return redirect()->route('finance.journals.show', $journal->id)
                 ->with('error', 'Only draft journals can be updated.');
         }
@@ -135,6 +138,7 @@ class JournalController extends Controller
 
         try {
             $this->journalService->update($journal, $validated);
+
             return redirect()->route('finance.journals.show', $journal->id)->with('success', 'Journal updated successfully.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
@@ -143,10 +147,8 @@ class JournalController extends Controller
 
     public function show(int $id)
     {
-        $this->checkPermission('finance.journals.view');
 
         $journal = Journal::with(['lines.account', 'fiscalPeriod', 'postedBy', 'createdBy', 'branch'])
-            ->withoutGlobalScope(CompanyScope::class)
             ->findOrFail($id);
 
         return view('finance.journals.show', [
@@ -156,12 +158,11 @@ class JournalController extends Controller
 
     public function generalLedger(Request $request)
     {
-        $this->checkPermission('finance.journals.view');
 
         $ledger = $this->ledgerService->getGeneralLedger(
             $this->getActiveCompanyId(),
-            $request->get('start_date') ? \Carbon\Carbon::parse($request->get('start_date')) : null,
-            $request->get('end_date') ? \Carbon\Carbon::parse($request->get('end_date')) : null
+            $request->get('start_date') ? Carbon::parse($request->get('start_date')) : null,
+            $request->get('end_date') ? Carbon::parse($request->get('end_date')) : null
         );
 
         return view('finance.reports.general-ledger', [
@@ -171,9 +172,8 @@ class JournalController extends Controller
 
     public function destroy(int $id)
     {
-        $this->checkPermission('finance.journals.delete');
 
-        $journal = Journal::withoutGlobalScope(CompanyScope::class)->findOrFail($id);
+        $journal = Journal::findOrFail($id);
 
         if ($journal->status !== 'DRAFT') {
             return redirect()->route('finance.journals.show', $journal->id)
@@ -188,12 +188,12 @@ class JournalController extends Controller
 
     public function submit(int $id)
     {
-        $this->checkPermission('finance.journals.approve');
 
-        $journal = Journal::withoutGlobalScope(CompanyScope::class)->findOrFail($id);
+        $journal = Journal::findOrFail($id);
 
         try {
             $this->journalService->submit($journal);
+
             return redirect()->route('finance.journals.show', $journal->id)
                 ->with('success', 'Journal submitted for approval.');
         } catch (\Exception $e) {
@@ -204,12 +204,12 @@ class JournalController extends Controller
 
     public function approve(int $id)
     {
-        $this->checkPermission('finance.journals.approve');
 
-        $journal = Journal::withoutGlobalScope(CompanyScope::class)->findOrFail($id);
+        $journal = Journal::findOrFail($id);
 
         try {
             $this->journalService->approve($journal);
+
             return redirect()->route('finance.journals.show', $journal->id)
                 ->with('success', 'Journal approved successfully.');
         } catch (\Exception $e) {
@@ -220,12 +220,12 @@ class JournalController extends Controller
 
     public function reject(int $id)
     {
-        $this->checkPermission('finance.journals.approve');
 
-        $journal = Journal::withoutGlobalScope(CompanyScope::class)->findOrFail($id);
+        $journal = Journal::findOrFail($id);
 
         try {
             $this->journalService->reject($journal);
+
             return redirect()->route('finance.journals.show', $journal->id)
                 ->with('success', 'Journal rejected.');
         } catch (\Exception $e) {
@@ -236,12 +236,12 @@ class JournalController extends Controller
 
     public function post(int $id)
     {
-        $this->checkPermission('finance.journals.post');
 
-        $journal = Journal::withoutGlobalScope(CompanyScope::class)->findOrFail($id);
+        $journal = Journal::findOrFail($id);
 
         try {
             $this->journalService->post($journal);
+
             return redirect()->route('finance.journals.show', $journal->id)
                 ->with('success', 'Journal posted successfully.');
         } catch (\Exception $e) {
@@ -252,12 +252,12 @@ class JournalController extends Controller
 
     public function reverse(int $id)
     {
-        $this->checkPermission('finance.journals.post');
 
-        $journal = Journal::withoutGlobalScope(CompanyScope::class)->findOrFail($id);
+        $journal = Journal::findOrFail($id);
 
         try {
             $this->journalService->reverse($journal);
+
             return redirect()->route('finance.journals.show', $journal->id)
                 ->with('success', 'Journal reversed successfully.');
         } catch (\Exception $e) {
@@ -268,12 +268,12 @@ class JournalController extends Controller
 
     public function cancel(int $id)
     {
-        $this->checkPermission('finance.journals.delete');
 
-        $journal = Journal::withoutGlobalScope(CompanyScope::class)->findOrFail($id);
+        $journal = Journal::findOrFail($id);
 
         try {
             $this->journalService->cancel($journal);
+
             return redirect()->route('finance.journals.show', $journal->id)
                 ->with('success', 'Journal cancelled.');
         } catch (\Exception $e) {
@@ -284,11 +284,10 @@ class JournalController extends Controller
 
     public function addLine(Request $request, int $id)
     {
-        $this->checkPermission('finance.journals.update');
 
-        $journal = Journal::withoutGlobalScope(CompanyScope::class)->findOrFail($id);
+        $journal = Journal::findOrFail($id);
 
-        if (!$journal->isDraft()) {
+        if (! $journal->isDraft()) {
             return redirect()->route('finance.journals.show', $journal->id)
                 ->with('error', 'Can only add lines to draft journals.');
         }
@@ -309,6 +308,7 @@ class JournalController extends Controller
 
         try {
             $this->journalService->addLine($journal, $validated);
+
             return redirect()->route('finance.journals.show', $journal->id)
                 ->with('success', 'Line added successfully.');
         } catch (\Exception $e) {
@@ -319,13 +319,11 @@ class JournalController extends Controller
 
     public function updateLine(Request $request, int $lineId)
     {
-        $this->checkPermission('finance.journals.update');
 
-        $line = \Modules\Finance\Models\JournalLine::withoutGlobalScope(CompanyScope::class)
-            ->findOrFail($lineId);
+        $line = JournalLine::findOrFail($lineId);
         $journal = $line->journal;
 
-        if (!$journal->isDraft()) {
+        if (! $journal->isDraft()) {
             return redirect()->route('finance.journals.show', $journal->id)
                 ->with('error', 'Can only update lines in draft journals.');
         }
@@ -346,6 +344,7 @@ class JournalController extends Controller
 
         try {
             $this->journalService->updateLine($line, $validated);
+
             return redirect()->route('finance.journals.show', $journal->id)
                 ->with('success', 'Line updated successfully.');
         } catch (\Exception $e) {
@@ -356,19 +355,18 @@ class JournalController extends Controller
 
     public function removeLine(int $lineId)
     {
-        $this->checkPermission('finance.journals.update');
 
-        $line = \Modules\Finance\Models\JournalLine::withoutGlobalScope(CompanyScope::class)
-            ->findOrFail($lineId);
+        $line = JournalLine::findOrFail($lineId);
         $journal = $line->journal;
 
-        if (!$journal->isDraft()) {
+        if (! $journal->isDraft()) {
             return redirect()->route('finance.journals.show', $journal->id)
                 ->with('error', 'Can only remove lines from draft journals.');
         }
 
         try {
             $this->journalService->removeLine($line);
+
             return redirect()->route('finance.journals.show', $journal->id)
                 ->with('success', 'Line removed successfully.');
         } catch (\Exception $e) {

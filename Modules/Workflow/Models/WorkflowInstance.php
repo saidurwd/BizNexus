@@ -5,10 +5,14 @@ namespace Modules\Workflow\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Core\Concerns\BelongsToCompany;
 
 class WorkflowInstance extends Model
 {
+    use BelongsToCompany;
+
     protected $fillable = [
+        'company_id',
         'workflow_definition_id',
         'entity_type',
         'entity_id',
@@ -41,7 +45,7 @@ class WorkflowInstance extends Model
 
     public function isCompleted(): bool
     {
-        return !is_null($this->completed_at);
+        return ! is_null($this->completed_at);
     }
 
     public function getAvailableTransitions(): array

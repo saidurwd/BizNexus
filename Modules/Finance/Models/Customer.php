@@ -1,22 +1,20 @@
 <?php
 
-
 namespace Modules\Finance\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Finance\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Core\Models\Company;
+use Modules\Core\Models\Currency;
 
 class Customer extends Model
 {
-    use SoftDeletes;
+    use BelongsToCompany, SoftDeletes;
 
-    protected static function booted()
-    {
-        static::addGlobalScope(new CompanyScope);
-    }
     protected $fillable = [
         'company_id',
         'customer_code',
@@ -33,15 +31,14 @@ class Customer extends Model
         'updated_by',
     ];
 
-
     public function company(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Company::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function currency(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Currency::class);
+        return $this->belongsTo(Currency::class);
     }
 
     public function receivableAccount(): BelongsTo
@@ -61,12 +58,12 @@ class Customer extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function isActive(): bool

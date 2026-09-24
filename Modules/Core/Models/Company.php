@@ -2,11 +2,18 @@
 
 namespace Modules\Core\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Database\Factories\CompanyFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Modules\Core\Models\UserCompany;
+use Modules\Finance\Models\Account;
+use Modules\Finance\Models\BankAccount;
+use Modules\Finance\Models\Budget;
+use Modules\Finance\Models\Customer;
+use Modules\Finance\Models\Journal;
+use Modules\Finance\Models\Supplier;
+use Modules\Finance\Models\Tax;
 
 class Company extends Model
 {
@@ -14,8 +21,9 @@ class Company extends Model
 
     protected static function newFactory()
     {
-        return \Database\Factories\CompanyFactory::new();
+        return CompanyFactory::new();
     }
+
     protected $fillable = [
         'code',
         'name',
@@ -29,12 +37,14 @@ class Company extends Model
         'timezone',
         'fiscal_year_start',
         'status',
+        'require_mfa',
         'created_by',
         'updated_by',
     ];
 
     protected $casts = [
         'fiscal_year_start' => 'date',
+        'require_mfa' => 'boolean',
     ];
 
     public function baseCurrency(): BelongsTo
@@ -49,27 +59,27 @@ class Company extends Model
 
     public function accounts(): HasMany
     {
-        return $this->hasMany(\Modules\Finance\Models\Account::class);
+        return $this->hasMany(Account::class);
     }
 
     public function journals(): HasMany
     {
-        return $this->hasMany(\Modules\Finance\Models\Journal::class);
+        return $this->hasMany(Journal::class);
     }
 
     public function suppliers(): HasMany
     {
-        return $this->hasMany(\Modules\Finance\Models\Supplier::class);
+        return $this->hasMany(Supplier::class);
     }
 
     public function customers(): HasMany
     {
-        return $this->hasMany(\Modules\Finance\Models\Customer::class);
+        return $this->hasMany(Customer::class);
     }
 
     public function bankAccounts(): HasMany
     {
-        return $this->hasMany(\Modules\Finance\Models\BankAccount::class);
+        return $this->hasMany(BankAccount::class);
     }
 
     public function branches(): HasMany
@@ -89,12 +99,12 @@ class Company extends Model
 
     public function taxes(): HasMany
     {
-        return $this->hasMany(\Modules\Finance\Models\Tax::class);
+        return $this->hasMany(Tax::class);
     }
 
     public function budgets(): HasMany
     {
-        return $this->hasMany(\Modules\Finance\Models\Budget::class);
+        return $this->hasMany(Budget::class);
     }
 
     public function userCompanies(): HasMany

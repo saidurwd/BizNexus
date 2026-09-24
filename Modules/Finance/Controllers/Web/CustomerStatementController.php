@@ -2,11 +2,12 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\Customer;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\Customer;
 
 class CustomerStatementController extends Controller
 {
@@ -19,7 +20,6 @@ class CustomerStatementController extends Controller
 
     public function index(Request $request)
     {
-        $this->checkPermission('finance.customers.view');
 
         $customers = Customer::where('status', 'active')
             ->orderBy('name')
@@ -30,22 +30,21 @@ class CustomerStatementController extends Controller
 
     public function show(Request $request, int $id)
     {
-        $this->checkPermission('finance.customers.view');
 
         $customer = Customer::with(['invoices', 'receipts'])->findOrFail($id);
 
-        $startDate = $request->get('start_date') ? \Carbon\Carbon::parse($request->get('start_date')) : null;
-        $endDate = $request->get('end_date') ? \Carbon\Carbon::parse($request->get('end_date')) : null;
+        $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : null;
+        $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : null;
 
         $invoices = $customer->invoices()
-            ->when($startDate, fn($q) => $q->where('invoice_date', '>=', $startDate))
-            ->when($endDate, fn($q) => $q->where('invoice_date', '<=', $endDate))
+            ->when($startDate, fn ($q) => $q->where('invoice_date', '>=', $startDate))
+            ->when($endDate, fn ($q) => $q->where('invoice_date', '<=', $endDate))
             ->orderBy('invoice_date')
             ->get();
 
         $receipts = $customer->receipts()
-            ->when($startDate, fn($q) => $q->where('receipt_date', '>=', $startDate))
-            ->when($endDate, fn($q) => $q->where('receipt_date', '<=', $endDate))
+            ->when($startDate, fn ($q) => $q->where('receipt_date', '>=', $startDate))
+            ->when($endDate, fn ($q) => $q->where('receipt_date', '<=', $endDate))
             ->orderBy('receipt_date')
             ->get();
 
@@ -61,9 +60,9 @@ class CustomerStatementController extends Controller
         ]);
     }
 
-    protected function calculateOpeningBalance(Customer $customer, ?\Carbon\Carbon $startDate): float
+    protected function calculateOpeningBalance(Customer $customer, ?Carbon $startDate): float
     {
-        if (!$startDate) {
+        if (! $startDate) {
             return 0;
         }
 
@@ -111,7 +110,7 @@ class CustomerStatementController extends Controller
             ];
         }
 
-        usort($entries, fn($a, $b) => $a['date'] <=> $b['date']);
+        usort($entries, fn ($a, $b) => $a['date'] <=> $b['date']);
 
         return [
             'opening_balance' => $openingBalance,

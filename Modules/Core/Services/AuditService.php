@@ -3,6 +3,7 @@
 namespace Modules\Core\Services;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Modules\Core\Models\AuditLog;
 
 class AuditService
@@ -18,7 +19,7 @@ class AuditService
     ): AuditLog {
         $user = Auth::user();
 
-        return AuditLog::create([
+        return DB::transaction(fn () => AuditLog::create([
             'company_id' => $companyId ?? $this->getCompanyId(),
             'user_id' => $user?->id,
             'module' => $module,
@@ -30,7 +31,7 @@ class AuditService
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
             'created_at' => now(),
-        ]);
+        ]));
     }
 
     public function logCreate(string $module, string $entityType, int $entityId, array $data, ?int $companyId = null): AuditLog

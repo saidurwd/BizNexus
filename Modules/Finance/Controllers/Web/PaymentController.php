@@ -2,12 +2,12 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\SupplierPayment;
-use Modules\Finance\Services\PaymentService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\SupplierPayment;
+use Modules\Finance\Services\PaymentService;
 
 class PaymentController extends Controller
 {
@@ -21,7 +21,6 @@ class PaymentController extends Controller
 
     public function index(Request $request)
     {
-        $this->checkPermission('finance.suppliers.view');
 
         $payments = SupplierPayment::with('bankAccount')
             ->orderBy('payment_date', 'desc')
@@ -32,14 +31,12 @@ class PaymentController extends Controller
 
     public function create()
     {
-        $this->checkPermission('finance.suppliers.create');
 
         return view('finance.payments.create');
     }
 
     public function store(Request $request)
     {
-        $this->checkPermission('finance.suppliers.create');
 
         $validated = $request->validate([
             'payment_date' => 'required|date',
@@ -70,7 +67,7 @@ class PaymentController extends Controller
     {
         $payment = SupplierPayment::findOrFail($id);
 
-        if (!$payment->isDraft()) {
+        if (! $payment->isDraft()) {
             return back()->with('error', 'Only draft payments can be submitted.');
         }
 
@@ -83,7 +80,7 @@ class PaymentController extends Controller
     {
         $payment = SupplierPayment::findOrFail($id);
 
-        if (!$payment->isSubmitted()) {
+        if (! $payment->isSubmitted()) {
             return back()->with('error', 'Only submitted payments can be approved.');
         }
 
@@ -96,12 +93,13 @@ class PaymentController extends Controller
     {
         $payment = SupplierPayment::findOrFail($id);
 
-        if (!$payment->isApproved()) {
+        if (! $payment->isApproved()) {
             return back()->with('error', 'Only approved payments can be posted.');
         }
 
         try {
             $this->paymentService->postPayment($payment);
+
             return back()->with('success', 'Payment posted successfully.');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -112,7 +110,7 @@ class PaymentController extends Controller
     {
         $payment = SupplierPayment::findOrFail($id);
 
-        if (!$payment->isSubmitted()) {
+        if (! $payment->isSubmitted()) {
             return back()->with('error', 'Only submitted payments can be rejected.');
         }
 

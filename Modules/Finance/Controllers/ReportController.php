@@ -2,11 +2,11 @@
 
 namespace Modules\Finance\Controllers;
 
-use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Modules\Finance\Services\LedgerService;
-use Modules\Finance\Services\FinancialReportService;
+use Illuminate\Http\Request;
 use Modules\Core\Services\CompanyContextService;
+use Modules\Finance\Services\FinancialReportService;
+use Modules\Finance\Services\LedgerService;
 
 class ReportController extends Controller
 {
@@ -18,7 +18,7 @@ class ReportController extends Controller
 
     public function trialBalance(Request $request)
     {
-        $companyId = $request->get('company_id') ?? $this->companyContext->getCompanyId();
+        $companyId = $this->companyContext->getActiveCompanyId();
 
         $trialBalance = $this->ledgerService->getTrialBalance(
             $companyId,
@@ -31,7 +31,7 @@ class ReportController extends Controller
 
     public function generalLedger(Request $request)
     {
-        $companyId = $request->get('company_id') ?? $this->companyContext->getCompanyId();
+        $companyId = $this->companyContext->getActiveCompanyId();
 
         $ledger = $this->ledgerService->getGeneralLedger(
             $companyId,
@@ -58,7 +58,7 @@ class ReportController extends Controller
 
     public function profitAndLoss(Request $request)
     {
-        $companyId = $request->get('company_id') ?? $this->companyContext->getCompanyId();
+        $companyId = $this->companyContext->getActiveCompanyId();
 
         $report = $this->financialReportService->getProfitAndLoss(
             $companyId,
@@ -72,7 +72,7 @@ class ReportController extends Controller
 
     public function balanceSheet(Request $request)
     {
-        $companyId = $request->get('company_id') ?? $this->companyContext->getCompanyId();
+        $companyId = $this->companyContext->getActiveCompanyId();
 
         $report = $this->financialReportService->getBalanceSheet(
             $companyId,
@@ -85,7 +85,7 @@ class ReportController extends Controller
 
     public function dashboard(Request $request)
     {
-        $companyId = $request->get('company_id') ?? $this->companyContext->getCompanyId();
+        $companyId = $this->companyContext->getActiveCompanyId();
 
         $dashboard = $this->financialReportService->getDashboardData($companyId);
 

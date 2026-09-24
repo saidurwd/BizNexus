@@ -1,6 +1,13 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
+use Modules\Core\Models\Company;
+use Modules\Core\Models\CompanyUserRole;
+use Modules\Core\Models\Permission;
+use Modules\Core\Models\Role;
+use Modules\Core\Models\UserCompany;
 use Tests\TestCase;
 
 /*
@@ -44,7 +51,60 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Create a user who belongs to the given company with a role holding the given permission slugs.
+ *
+ * @param  array<int, string>  $permissions
+ */
+function companyUser(array $permissions = [], ?Company $company = null): User
 {
-    // ..
+    $user = User::factory()->create();
+
+    companyUserRole($user, $company ?? Company::factory()->create(), $permissions, isDefault: true);
+
+    return $user;
+}
+
+/**
+ * Give the user access to the company through a new role holding the given permission slugs.
+ *
+ * @param  array<int, string>  $permissions
+ */
+function companyUserRole(User $user, Company $company, array $permissions = [], bool $isDefault = false): Role
+{
+    UserCompany::create([
+        'user_id' => $user->id,
+        'company_id' => $company->id,
+        'is_default' => $isDefault,
+        'status' => 'active',
+    ]);
+
+    $role = Role::create([
+        'name' => 'Role '.Str::random(8),
+        'slug' => 'role-'.Str::lower(Str::random(8)),
+        'status' => 'active',
+    ]);
+
+    $role->permissions()->sync(collect($permissions)->map(
+        fn (string $slug) => Permission::firstOrCreate(['slug' => $slug], ['name' => $slug, 'group' => 'Test'])->id
+    ));
+
+    CompanyUserRole::create([
+        'user_id' => $user->id,
+        'company_id' => $company->id,
+        'role_id' => $role->id,
+        'status' => 'active',
+    ]);
+
+    return $role;
+}
+
+/**
+ * Authenticate as the user with the given company active in the session.
+ */
+function actingInCompany(User $user, Company|int $company): TestCase
+{
+    return test()->actingAs($user)->withSession([
+        'active_company_id' => $company instanceof Company ? $company->id : $company,
+    ]);
 }

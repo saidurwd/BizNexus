@@ -2,12 +2,12 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\RecurringJournal;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\RecurringJournal;
 
 class RecurringJournalController extends Controller
 {
@@ -20,7 +20,6 @@ class RecurringJournalController extends Controller
 
     public function index()
     {
-        $this->checkPermission('finance.journals.view');
 
         $recurringJournals = RecurringJournal::with(['company', 'createdBy'])
             ->orderByDesc('next_run_date')
@@ -31,14 +30,12 @@ class RecurringJournalController extends Controller
 
     public function create()
     {
-        $this->checkPermission('finance.journals.create');
 
         return view('finance.recurring-journals.create');
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $this->checkPermission('finance.journals.create');
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -64,7 +61,6 @@ class RecurringJournalController extends Controller
 
     public function edit(int $id)
     {
-        $this->checkPermission('finance.journals.update');
 
         $recurringJournal = RecurringJournal::findOrFail($id);
 
@@ -73,7 +69,6 @@ class RecurringJournalController extends Controller
 
     public function update(Request $request, int $id): RedirectResponse
     {
-        $this->checkPermission('finance.journals.update');
 
         $recurringJournal = RecurringJournal::findOrFail($id);
 
@@ -100,7 +95,6 @@ class RecurringJournalController extends Controller
 
     public function destroy(int $id): RedirectResponse
     {
-        $this->checkPermission('finance.journals.delete');
 
         $recurringJournal = RecurringJournal::findOrFail($id);
         $recurringJournal->delete();

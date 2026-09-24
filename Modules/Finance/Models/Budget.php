@@ -1,20 +1,19 @@
 <?php
 
-
 namespace Modules\Finance\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Modules\Finance\Scopes\CompanyScope;
+use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Core\Models\Company;
+use Modules\Core\Models\FiscalYear;
 
 class Budget extends Model
 {
+    use BelongsToCompany;
 
-    protected static function booted()
-    {
-        static::addGlobalScope(new CompanyScope);
-    }
     protected $fillable = [
         'company_id',
         'fiscal_year_id',
@@ -26,18 +25,21 @@ class Budget extends Model
     ];
 
     public const STATUS_DRAFT = 'DRAFT';
+
     public const STATUS_SUBMITTED = 'SUBMITTED';
+
     public const STATUS_APPROVED = 'APPROVED';
+
     public const STATUS_REJECTED = 'REJECTED';
 
     public function company(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Company::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function fiscalYear(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\FiscalYear::class);
+        return $this->belongsTo(FiscalYear::class);
     }
 
     public function lines(): HasMany
@@ -47,12 +49,12 @@ class Budget extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function isDraft(): bool
@@ -72,12 +74,12 @@ class Budget extends Model
 
     public function getTotalActual(?int $period = null): float
     {
-        $query = \Modules\Finance\Models\JournalLine::query()
-            ->whereHas('journal', fn($q) => $q->where('status', 'POSTED'))
-            ->whereHas('account', fn($q) => $q->where('account_type', 'EXPENSE'));
+        $query = JournalLine::query()
+            ->whereHas('journal', fn ($q) => $q->where('status', 'POSTED'))
+            ->whereHas('account', fn ($q) => $q->where('account_type', 'EXPENSE'));
 
         if ($period) {
-            $query->whereHas('journal.fiscalPeriod', fn($q) => $q->where('period_number', $period));
+            $query->whereHas('journal.fiscalPeriod', fn ($q) => $q->where('period_number', $period));
         }
 
         $totalDebit = (float) $query->clone()->sum('debit');

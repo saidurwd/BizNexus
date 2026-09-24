@@ -3,11 +3,14 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Modules\Core\Models\Currency;
 use Modules\Core\Models\Company;
-use Modules\Core\Models\FiscalYear;
+use Modules\Core\Models\Currency;
 use Modules\Core\Models\FiscalPeriod;
+use Modules\Core\Models\FiscalYear;
+use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DocumentNumberService;
+use Modules\Finance\Models\Account;
+use Modules\Finance\Models\AccountCategory;
 
 class FinanceSeeder extends Seeder
 {
@@ -56,9 +59,11 @@ class FinanceSeeder extends Seeder
             ]
         );
 
-        $this->createFiscalYear($company);
-        $this->createChartOfAccounts($company);
-        $this->initializeDocumentSequences($company);
+        app(CompanyContextService::class)->runAs($company->id, function () use ($company) {
+            $this->createFiscalYear($company);
+            $this->createChartOfAccounts($company);
+            $this->initializeDocumentSequences($company);
+        });
     }
 
     protected function createFiscalYear(Company $company): void
@@ -117,7 +122,7 @@ class FinanceSeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            \Modules\Finance\Models\AccountCategory::firstOrCreate(
+            AccountCategory::firstOrCreate(
                 [
                     'company_id' => $company->id,
                     'code' => $category['code'],
@@ -191,7 +196,7 @@ class FinanceSeeder extends Seeder
 
             $level = substr_count($key, '.') + 1;
 
-            $created = \Modules\Finance\Models\Account::firstOrCreate(
+            $created = Account::firstOrCreate(
                 [
                     'company_id' => $company->id,
                     'account_code' => $account['code'],
@@ -203,7 +208,7 @@ class FinanceSeeder extends Seeder
                     'normal_balance' => in_array($account['type'], ['ASSET', 'EXPENSE']) ? 'DEBIT' : 'CREDIT',
                     'level' => $level,
                     'is_group' => $account['is_group'],
-                    'is_postable' => !$account['is_group'],
+                    'is_postable' => ! $account['is_group'],
                     'status' => 'active',
                 ]
             );
@@ -217,9 +222,9 @@ class FinanceSeeder extends Seeder
         $fiscalYear = $company->currentFiscalYear()->first();
 
         if ($fiscalYear) {
-            app(\Modules\Core\Services\DocumentNumberService::class)->initializeDefaultsForCompany($company->id, $fiscalYear->id);
+            app(DocumentNumberService::class)->initializeDefaultsForCompany($company->id, $fiscalYear->id);
         } else {
-            app(\Modules\Core\Services\DocumentNumberService::class)->initializeDefaultsForCompany($company->id);
+            app(DocumentNumberService::class)->initializeDefaultsForCompany($company->id);
         }
     }
 }

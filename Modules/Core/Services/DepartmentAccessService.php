@@ -2,6 +2,7 @@
 
 namespace Modules\Core\Services;
 
+use Modules\Core\Models\Department;
 use Modules\Core\Models\UserDepartment;
 
 class DepartmentAccessService
@@ -9,9 +10,9 @@ class DepartmentAccessService
     public function hasAccess(int $departmentId, ?int $branchId = null, ?int $companyId = null, ?int $userId = null): bool
     {
         $userId = $userId ?? auth()->id();
-        $companyId = $companyId ?? session('active_company_id');
+        $companyId = $companyId ?? app(CompanyContextService::class)->getActiveCompanyId();
 
-        if (!$userId || !$companyId) {
+        if (! $userId || ! $companyId) {
             return false;
         }
 
@@ -30,13 +31,13 @@ class DepartmentAccessService
     public function getAccessibleDepartments(?int $companyId = null, ?int $branchId = null, ?int $userId = null)
     {
         $userId = $userId ?? auth()->id();
-        $companyId = $companyId ?? session('active_company_id');
+        $companyId = $companyId ?? app(CompanyContextService::class)->getActiveCompanyId();
 
-        if (!$userId || !$companyId) {
+        if (! $userId || ! $companyId) {
             return collect();
         }
 
-        $query = \Modules\Core\Models\Department::whereHas('userDepartments', function ($query) use ($userId, $companyId) {
+        $query = Department::whereHas('userDepartments', function ($query) use ($userId, $companyId) {
             $query->where('user_id', $userId)
                 ->where('company_id', $companyId)
                 ->where('status', 'active');

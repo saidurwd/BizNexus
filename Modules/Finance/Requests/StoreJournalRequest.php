@@ -3,7 +3,6 @@
 namespace Modules\Finance\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Modules\Finance\Exceptions\UnbalancedJournalException;
 
 class StoreJournalRequest extends FormRequest
 {
@@ -36,6 +35,7 @@ class StoreJournalRequest extends FormRequest
 
             if (count($lines) < 2) {
                 $validator->errors()->add('lines', 'A journal must have at least 2 lines.');
+
                 return;
             }
 

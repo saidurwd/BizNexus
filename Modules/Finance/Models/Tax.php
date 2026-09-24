@@ -1,26 +1,23 @@
 <?php
 
-
 namespace Modules\Finance\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Database\Factories\TaxFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Finance\Scopes\CompanyScope;
+use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Core\Models\Company;
 
 class Tax extends Model
 {
-    use HasFactory;
+    use BelongsToCompany, HasFactory;
 
     protected static function newFactory()
     {
-        return \Database\Factories\TaxFactory::new();
+        return TaxFactory::new();
     }
 
-    protected static function booted()
-    {
-        static::addGlobalScope(new CompanyScope);
-    }
     protected $fillable = [
         'company_id',
         'tax_code',
@@ -39,13 +36,16 @@ class Tax extends Model
     ];
 
     public const TYPE_VAT = 'VAT';
+
     public const TYPE_WITHHOLDING_TAX = 'WITHHOLDING_TAX';
+
     public const TYPE_INCOME_TAX = 'INCOME_TAX';
+
     public const TYPE_OTHER = 'OTHER';
 
     public function company(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Company::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function inputAccount(): BelongsTo
@@ -63,31 +63,38 @@ class Tax extends Model
         return $this->status === 'active';
     }
 
-    public function calculateTax(float $amount): float
-    {
-        if ($this->is_inclusive) {
-            return (float) bcmul($amount, bcdiv($this->rate, bcadd(100, $this->rate, 4), 4), 4);
-        }
+    /**
+     * Intermediate precision for tax arithmetic; results are rounded half-up to 4 places only once.
+     */
+    protected const CALCULATION_SCALE = 12;
 
-        return (float) bcmul($amount, bcdiv($this->rate, 100, 4), 4);
+    public function calculateTax(float|string $amount): float
+    {
+        $amount = (string) $amount;
+        $divisor = $this->is_inclusive ? bcadd('100', (string) $this->rate, self::CALCULATION_SCALE) : '100';
+
+        return (float) bcround(
+            bcdiv(bcmul($amount, (string) $this->rate, self::CALCULATION_SCALE), $divisor, self::CALCULATION_SCALE),
+            4
+        );
     }
 
-    public function calculateTaxExclusive(float $amount): float
+    public function calculateTaxExclusive(float|string $amount): float
     {
         if ($this->is_inclusive) {
-            return $amount;
+            return (float) $amount;
         }
 
-        return (float) bcmul($amount, bcdiv($this->rate, 100, 4), 4);
+        return $this->calculateTax($amount);
     }
 
-    public function calculateGrossFromNet(float $netAmount): float
+    public function calculateGrossFromNet(float|string $netAmount): float
     {
         if ($this->is_inclusive) {
-            return $netAmount;
+            return (float) $netAmount;
         }
 
-        return (float) bcmul($netAmount, bcadd(1, bcdiv($this->rate, 100, 4), 4), 4);
+        return (float) bcadd((string) $netAmount, (string) $this->calculateTax($netAmount), 4);
     }
 
     public function scopeActive($query)

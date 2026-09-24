@@ -2,59 +2,38 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Http\Controllers\Auth\Concerns\CompletesLogin;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Modules\Core\Services\CompanyContextService;
 
 class AuthenticatedSessionController extends Controller
 {
-    public function __construct(protected CompanyContextService $companyContext)
-    {
-    }
+    use CompletesLogin;
+
+    public function __construct(protected CompanyContextService $companyContext) {}
 
     public function create()
     {
         return view('auth.login');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(LoginRequest $request): RedirectResponse
     {
-        $request->validate([
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
-        ]);
+        $user = $request->authenticate();
 
-        if (!auth()->attempt($request->only('email', 'password'), $request->boolean('remember'))) {
-            return back()->withErrors([
-                'email' => 'The provided credentials do not match our records.',
-            ])->onlyInput('email');
+        if ($user->hasEnabledTwoFactorAuthentication()) {
+            $request->session()->put([
+                'login.id' => $user->id,
+                'login.remember' => $request->boolean('remember'),
+            ]);
+
+            return redirect()->route('two-factor.login');
         }
 
-        $request->session()->regenerate();
-
-        $companies = $this->companyContext->getUserCompanies();
-
-        if ($companies->count() === 0) {
-            auth()->logout();
-
-            return redirect()->route('login')->with('error', 'You do not have access to any companies.');
-        }
-
-        if ($companies->count() === 1) {
-            $companyId = $companies->first()->id;
-            $this->companyContext->setActiveCompany($companyId);
-
-            $branches = app(\Modules\Core\Services\BranchContextService::class)->getAccessibleBranches($companyId);
-
-            if ($branches->count() === 1) {
-                app(\Modules\Core\Services\BranchContextService::class)->setActiveBranch($companyId, $branches->first()->id);
-            }
-
-            return redirect()->intended(route('dashboard', absolute: false));
-        }
-
-        return redirect()->route('company.selection');
+        return $this->completeLogin($request, $user, $request->boolean('remember'));
     }
 
     public function destroy(Request $request): RedirectResponse

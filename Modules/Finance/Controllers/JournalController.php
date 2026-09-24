@@ -3,9 +3,11 @@
 namespace Modules\Finance\Controllers;
 
 use Illuminate\Http\Request;
-use Modules\Finance\Models\Journal;
-use Modules\Finance\Services\JournalService;
+use Modules\Core\Exceptions\UnbalancedJournalException;
 use Modules\Core\Services\CompanyContextService;
+use Modules\Finance\Models\Journal;
+use Modules\Finance\Models\JournalLine;
+use Modules\Finance\Services\JournalService;
 
 class JournalController extends Controller
 {
@@ -16,13 +18,13 @@ class JournalController extends Controller
 
     public function index(Request $request)
     {
-        $companyId = $request->get('company_id') ?? $this->companyContext->getCompanyId();
+        $companyId = $this->companyContext->getActiveCompanyId();
 
         $journals = Journal::with(['lines.account', 'fiscalPeriod'])
             ->where('company_id', $companyId)
-            ->when($request->get('status'), fn($q, $status) => $q->where('status', $status))
-            ->when($request->get('start_date'), fn($q, $date) => $q->where('journal_date', '>=', $date))
-            ->when($request->get('end_date'), fn($q, $date) => $q->where('journal_date', '<=', $date))
+            ->when($request->get('status'), fn ($q, $status) => $q->where('status', $status))
+            ->when($request->get('start_date'), fn ($q, $date) => $q->where('journal_date', '>=', $date))
+            ->when($request->get('end_date'), fn ($q, $date) => $q->where('journal_date', '<=', $date))
             ->orderBy('journal_date', 'desc')
             ->orderBy('id', 'desc')
             ->paginate($request->get('per_page', 15));
@@ -41,7 +43,6 @@ class JournalController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
             'journal_date' => 'required|date',
             'fiscal_period_id' => 'nullable|exists:fiscal_periods,id',
             'reference_type' => 'nullable|string|max:100',
@@ -59,10 +60,13 @@ class JournalController extends Controller
             'lines.*.branch_id' => 'nullable|exists:branches,id',
         ]);
 
+        $validated['company_id'] = $this->companyContext->getActiveCompanyId();
+
         try {
             $journal = $this->journalService->create($validated);
+
             return $this->successResponse($journal, 'Journal created successfully', 201);
-        } catch (\Modules\Core\Exceptions\UnbalancedJournalException $e) {
+        } catch (UnbalancedJournalException $e) {
             return $this->errorResponse($e->getMessage(), 422);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -80,6 +84,7 @@ class JournalController extends Controller
 
         try {
             $journal = $this->journalService->update($journal, $validated);
+
             return $this->successResponse($journal, 'Journal updated successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -92,6 +97,7 @@ class JournalController extends Controller
 
         try {
             $this->journalService->delete($journal);
+
             return $this->successResponse(null, 'Journal deleted successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -115,6 +121,7 @@ class JournalController extends Controller
         try {
             $line = $this->journalService->addLine($journal, $validated);
             $journal->refresh();
+
             return $this->successResponse($journal, 'Line added successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -123,7 +130,7 @@ class JournalController extends Controller
 
     public function removeLine(int $journalId, int $lineId)
     {
-        $line = \Modules\Finance\Models\JournalLine::findOrFail($lineId);
+        $line = JournalLine::findOrFail($lineId);
 
         if ($line->journal_id !== $journalId) {
             return $this->errorResponse('Line does not belong to this journal', 400);
@@ -131,6 +138,7 @@ class JournalController extends Controller
 
         try {
             $this->journalService->removeLine($line);
+
             return $this->successResponse(null, 'Line removed successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -143,6 +151,7 @@ class JournalController extends Controller
 
         try {
             $journal = $this->journalService->submit($journal);
+
             return $this->successResponse($journal, 'Journal submitted successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -155,6 +164,7 @@ class JournalController extends Controller
 
         try {
             $journal = $this->journalService->approve($journal);
+
             return $this->successResponse($journal, 'Journal approved successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -167,6 +177,7 @@ class JournalController extends Controller
 
         try {
             $journal = $this->journalService->reject($journal, $request->get('reason'));
+
             return $this->successResponse($journal, 'Journal rejected');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -179,6 +190,7 @@ class JournalController extends Controller
 
         try {
             $journal = $this->journalService->post($journal);
+
             return $this->successResponse($journal, 'Journal posted successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -191,6 +203,7 @@ class JournalController extends Controller
 
         try {
             $reversal = $this->journalService->reverse($journal, $request->get('reason'));
+
             return $this->successResponse($reversal, 'Journal reversed successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
@@ -203,6 +216,7 @@ class JournalController extends Controller
 
         try {
             $journal = $this->journalService->cancel($journal);
+
             return $this->successResponse($journal, 'Journal cancelled');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);

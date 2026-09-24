@@ -12,10 +12,13 @@ use Modules\Finance\Events\PaymentApproved;
 use Modules\Finance\Models\PaymentAllocation;
 use Modules\Finance\Models\SupplierInvoice;
 use Modules\Finance\Models\SupplierPayment;
+use Modules\Finance\Services\Concerns\EnforcesSegregationOfDuties;
 use Modules\Workflow\Services\WorkflowService;
 
 class PaymentService
 {
+    use EnforcesSegregationOfDuties;
+
     public function __construct(
         protected DocumentNumberService $documentNumber,
         protected AuditService $audit,
@@ -90,11 +93,13 @@ class PaymentService
 
     public function postPayment(SupplierPayment $payment): SupplierPayment
     {
-        if (! $payment->isApproved()) {
-            throw new InvalidAccountingTransactionException('Only approved payments can be posted');
-        }
-
         return DB::transaction(function () use ($payment) {
+            $payment = SupplierPayment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
+
+            if (! $payment->isApproved()) {
+                throw new InvalidAccountingTransactionException('Only approved payments can be posted');
+            }
+
             $supplier = $payment->supplier;
             $company = $payment->company;
 
@@ -124,7 +129,7 @@ class PaymentService
                 ];
             }
 
-            $journal = $this->journalService->create([
+            $journal = $this->journalService->postFromSource([
                 'company_id' => $payment->company_id,
                 'journal_date' => $payment->payment_date->toDateString(),
                 'reference_type' => 'supplier_payment',
@@ -134,10 +139,6 @@ class PaymentService
                 'exchange_rate' => $payment->exchange_rate,
                 'lines' => $journalLines,
             ]);
-
-            $this->journalService->submit($journal);
-            $this->journalService->approve($journal);
-            $this->journalService->post($journal);
 
             foreach ($payment->allocations as $allocation) {
                 $allocation->invoice->calculateOutstanding();
@@ -199,6 +200,8 @@ class PaymentService
         if (! $payment->isSubmitted()) {
             throw new InvalidAccountingTransactionException('Only submitted payments can be approved');
         }
+
+        $this->ensureApproverIsNotCreator($payment, 'payment');
 
         $payment->update(['status' => SupplierPayment::STATUS_APPROVED]);
 

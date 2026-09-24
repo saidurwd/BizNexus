@@ -5,16 +5,17 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\AuditService;
 use Modules\Core\Services\BranchContextService;
+use Modules\Core\Services\CompanyContextService;
 
 class CompanySelectionController extends Controller
 {
     public function __construct(
         protected CompanyContextService $companyContext,
-        protected BranchContextService $branchContext
-    ) {
-    }
+        protected BranchContextService $branchContext,
+        protected AuditService $audit
+    ) {}
 
     public function index()
     {
@@ -50,7 +51,7 @@ class CompanySelectionController extends Controller
 
         $companyId = (int) $request->input('company_id');
 
-        if (!$this->companyContext->hasCompanyAccess($companyId)) {
+        if (! $this->companyContext->hasCompanyAccess($companyId)) {
             return redirect()->route('login')->with('error', 'You do not have access to the selected company.');
         }
 
@@ -61,7 +62,7 @@ class CompanySelectionController extends Controller
         if ($accessibleBranches->isNotEmpty()) {
             $branchId = (int) $request->input('branch_id');
 
-            if (!$branchId || !$this->branchContext->hasBranchAccess($branchId, $companyId)) {
+            if (! $branchId || ! $this->branchContext->hasBranchAccess($branchId, $companyId)) {
                 return redirect()->route('company.selection')
                     ->with('error', 'You do not have access to the selected branch.');
             }
@@ -82,20 +83,25 @@ class CompanySelectionController extends Controller
         $companyId = (int) $request->input('company_id');
         $branchId = $request->filled('branch_id') ? (int) $request->input('branch_id') : null;
 
-        if (!$this->companyContext->hasCompanyAccess($companyId)) {
+        if (! $this->companyContext->hasCompanyAccess($companyId)) {
             return back()->with('error', 'You do not have access to the selected company.');
         }
 
+        if ($branchId && ! $this->branchContext->hasBranchAccess($branchId, $companyId)) {
+            return back()->with('error', 'You do not have access to the selected branch.');
+        }
+
+        $previousCompanyId = $this->companyContext->getActiveCompanyId();
+
+        $this->branchContext->clearActiveBranch();
         $this->companyContext->setActiveCompany($companyId);
 
         if ($branchId) {
-            if (!$this->branchContext->hasBranchAccess($branchId, $companyId)) {
-                return back()->with('error', 'You do not have access to the selected branch.');
-            }
-
             $this->branchContext->setActiveBranch($companyId, $branchId);
-        } else {
-            $this->branchContext->clearActiveBranch();
+        }
+
+        if ($previousCompanyId !== $companyId) {
+            $this->audit->log('Core', 'Company', $companyId, 'COMPANY_SWITCH', ['company_id' => $previousCompanyId], ['company_id' => $companyId], $companyId);
         }
 
         return redirect()->back();
