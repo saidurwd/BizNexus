@@ -12,7 +12,6 @@ use Modules\Core\Models\Branch;
 use Modules\Core\Models\CostCenter;
 use Modules\Core\Models\Department;
 use Modules\Finance\Scopes\BranchScope;
-use Modules\Finance\Scopes\DepartmentScope;
 
 class JournalLine extends Model
 {
@@ -26,7 +25,6 @@ class JournalLine extends Model
     protected static function booted()
     {
         static::addGlobalScope(new BranchScope);
-        static::addGlobalScope(new DepartmentScope);
 
         static::creating(function (JournalLine $line) {
             $journalCompanyId = Journal::withoutGlobalScopes()->whereKey($line->journal_id)->value('company_id');

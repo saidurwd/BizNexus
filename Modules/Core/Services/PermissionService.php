@@ -30,8 +30,7 @@ class PermissionService
             ->whereHas('roles', fn ($roles) => $roles
                 ->where('roles.status', 'active')
                 ->whereIn('roles.id', CompanyUserRole::where('user_id', $userId)
-                    ->where('company_id', $companyId)
-                    ->where('status', 'active')
+                    ->where('company_id', $companyId)->active()
                     ->select('role_id')))
             ->pluck('slug')
             ->all();
@@ -46,8 +45,7 @@ class PermissionService
     {
         $userId = $userId ?? auth()->id();
 
-        return CompanyUserRole::where('user_id', $userId)
-            ->where('status', 'active')
+        return CompanyUserRole::where('user_id', $userId)->active()
             ->whereIn('company_id', UserCompany::where('user_id', $userId)->where('status', 'active')->select('company_id'))
             ->whereHas('role', fn ($role) => $role
                 ->where('status', 'active')
@@ -84,8 +82,7 @@ class PermissionService
         }
 
         return CompanyUserRole::where('user_id', $userId)
-            ->where('company_id', $companyId)
-            ->where('status', 'active')
+            ->where('company_id', $companyId)->active()
             ->with('role')
             ->get()
             ->pluck('role');

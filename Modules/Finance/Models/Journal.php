@@ -16,7 +16,6 @@ use Modules\Core\Models\Currency;
 use Modules\Core\Models\FiscalPeriod;
 use Modules\Core\Scopes\CompanyScope;
 use Modules\Finance\Scopes\BranchScope;
-use Modules\Finance\Scopes\DepartmentScope;
 
 class Journal extends Model
 {
@@ -111,8 +110,7 @@ class Journal extends Model
     {
         return $this->hasMany(JournalLine::class)
             ->withoutGlobalScope(CompanyScope::class)
-            ->withoutGlobalScope(BranchScope::class)
-            ->withoutGlobalScope(DepartmentScope::class);
+            ->withoutGlobalScope(BranchScope::class);
     }
 
     public function postedBy()

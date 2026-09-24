@@ -91,6 +91,7 @@ class UserController extends Controller
             'user' => $user,
             'userCompanies' => UserCompany::where('user_id', $id)->whereIn('company_id', $companyIds)->pluck('company_id')->toArray(),
             'userRoles' => CompanyUserRole::where('user_id', $id)->whereIn('company_id', $companyIds)->pluck('role_id')->toArray(),
+            'userAllBranches' => UserCompany::where('user_id', $id)->whereIn('company_id', $companyIds)->where('all_branches', true)->pluck('company_id')->toArray(),
             'userBranches' => UserBranch::where('user_id', $id)->whereIn('company_id', $companyIds)->pluck('branch_id')->toArray(),
             'userDepartments' => UserDepartment::where('user_id', $id)->whereIn('company_id', $companyIds)->pluck('department_id')->toArray(),
         ]);
@@ -197,6 +198,8 @@ class UserController extends Controller
             'companies.*' => ['integer', Rule::in($companyIds->all())],
             'roles' => 'required|array|min:1',
             'roles.*' => Rule::exists('roles', 'id')->where('status', 'active'),
+            'all_branches' => 'array',
+            'all_branches.*' => 'integer|in_array:companies.*',
             'branches' => 'array',
             'branches.*' => ['integer', Rule::exists('branches', 'id')->whereIn('company_id', $companyIds->all())],
             'departments' => 'array',
@@ -251,6 +254,7 @@ class UserController extends Controller
                 'user_id' => $user->id,
                 'company_id' => $companyId,
                 'is_default' => false,
+                'all_branches' => in_array((int) $companyId, array_map('intval', $validated['all_branches'] ?? []), true),
                 'status' => 'active',
             ]);
 

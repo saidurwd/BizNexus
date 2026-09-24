@@ -16,11 +16,13 @@ use Modules\Core\Http\Middleware\SetCompanyContext;
 use Modules\Core\Http\Middleware\SetTokenCompanyContext;
 use Modules\Core\Http\Middleware\ShareAdminLte;
 use Modules\Finance\FinanceServiceProvider;
+use Modules\Workflow\WorkflowServiceProvider;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withProviders([
         CoreServiceProvider::class,
         FinanceServiceProvider::class,
+        WorkflowServiceProvider::class,
         EventServiceProvider::class,
         AdminLteServiceProvider::class,
     ])

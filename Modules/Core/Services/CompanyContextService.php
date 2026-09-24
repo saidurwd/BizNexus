@@ -121,8 +121,7 @@ class CompanyContextService
         $userId = $userId ?? auth()->id();
 
         return CompanyUserRole::where('user_id', $userId)
-            ->where('company_id', $companyId)
-            ->where('status', 'active')
+            ->where('company_id', $companyId)->active()
             ->with('role')
             ->get()
             ->pluck('role');

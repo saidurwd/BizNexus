@@ -2,28 +2,28 @@
 
 namespace Modules\Workflow\Services;
 
+use Illuminate\Support\Collection;
+use Modules\Core\Services\PermissionService;
+use Modules\Workflow\Models\WorkflowAction;
+use Modules\Workflow\Models\WorkflowApproval;
 use Modules\Workflow\Models\WorkflowDefinition;
 use Modules\Workflow\Models\WorkflowInstance;
-use Modules\Workflow\Models\WorkflowApproval;
-use Modules\Workflow\Models\WorkflowAction;
 
 class WorkflowService
 {
-    public function getPendingApprovals(?int $userId = null): \Illuminate\Support\Collection
+    /**
+     * Pending approvals of the active company assigned to the user directly or to one of the user's
+     * roles in force in that company.
+     */
+    public function getPendingApprovals(?int $userId = null): Collection
     {
         $userId = $userId ?? auth()->id();
+        $roleSlugs = app(PermissionService::class)->getUserRoles($userId)->where('status', 'active')->pluck('slug');
 
         $approvals = WorkflowApproval::with(['instance.definition', 'instance'])
+            ->whereHas('instance')
             ->where('status', WorkflowApproval::STATUS_PENDING)
-            ->where(function ($query) use ($userId) {
-                $query->where('approver_id', $userId)
-                      ->orWhereIn('role', function ($q) use ($userId) {
-                          $q->select('slug')
-                              ->from('roles')
-                              ->join('role_user', 'roles.id', '=', 'role_user.role_id')
-                              ->where('role_user.user_id', $userId);
-                      });
-            })
+            ->where(fn ($query) => $query->where('approver_id', $userId)->orWhereIn('role', $roleSlugs))
             ->orderByDesc('created_at')
             ->get();
 
@@ -37,7 +37,7 @@ class WorkflowService
             ->where('entity_id', $entityId)
             ->first();
 
-        if (!$instance) {
+        if (! $instance) {
             return [];
         }
 
@@ -52,11 +52,12 @@ class WorkflowService
     {
         $definition = WorkflowDefinition::forEntity($entityType)->active()->first();
 
-        if (!$definition) {
+        if (! $definition) {
             throw new \RuntimeException("No active workflow definition found for entity type: {$entityType}");
         }
 
         return WorkflowInstance::create([
+            'company_id' => $companyId,
             'workflow_definition_id' => $definition->id,
             'entity_type' => $entityType,
             'entity_id' => $entityId,
@@ -71,7 +72,7 @@ class WorkflowService
             ->where('entity_id', $entityId)
             ->first();
 
-        if (!$instance) {
+        if (! $instance) {
             return;
         }
 
