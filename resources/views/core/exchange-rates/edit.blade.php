@@ -33,6 +33,18 @@
                     </div>
                 </div>
 
+                <div class="form-group">
+                    <label for="rate_type">Rate Type</label>
+                    <select class="form-control" name="rate_type" id="rate_type" required>
+                        @foreach (\Modules\Finance\Enums\ExchangeRateType::cases() as $rateType)
+                            <option value="{{ $rateType->value }}" @selected(old('rate_type', $rate->rate_type->value) === $rateType->value)>{{ ucfirst($rateType->value) }}</option>
+                        @endforeach
+                    </select>
+                    <small class="form-text text-muted">Spot: transactions. Average: income statement translation. Closing: period-end revaluation.</small>
+                    @error('rate_type')<div class="text-danger mt-1">{{ $message }}</div>@enderror
+                    @error('rate_date')<div class="text-danger mt-1">{{ $message }}</div>@enderror
+                </div>
+
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
