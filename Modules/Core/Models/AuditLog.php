@@ -2,8 +2,9 @@
 
 namespace Modules\Core\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
+use LogicException;
 
 class AuditLog extends Model
 {
@@ -29,35 +30,66 @@ class AuditLog extends Model
         'created_at' => 'datetime',
     ];
 
-    public static function log(
-        string $module,
-        string $entityType,
-        ?int $entityId,
-        string $action,
-        ?array $oldValues = null,
-        ?array $newValues = null,
-        ?int $companyId = null
-    ): self {
-        $user = Auth::user();
+    protected static function booted(): void
+    {
+        static::creating(function (AuditLog $log) {
+            $log->created_at ??= now();
+            $log->previous_hash = static::query()
+                ->where('company_id', $log->company_id)
+                ->whereNotNull('hash')
+                ->latest('id')
+                ->lockForUpdate()
+                ->value('hash');
+            $log->hash = $log->computeHash();
+        });
 
-        return static::create([
-            'company_id' => $companyId ?? $user?->company_id,
-            'user_id' => $user?->id,
-            'module' => $module,
-            'entity_type' => $entityType,
-            'entity_id' => $entityId,
-            'action' => $action,
-            'old_values' => $oldValues,
-            'new_values' => $newValues,
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-            'created_at' => now(),
-        ]);
+        static::updating(fn () => throw new LogicException('Audit log entries cannot be changed.'));
+        static::deleting(fn () => throw new LogicException('Audit log entries cannot be deleted.'));
+    }
+
+    /**
+     * SHA-256 over the entry's content and the previous entry's hash, chaining each company's log so that
+     * altering or removing an entry breaks every later hash.
+     */
+    public function computeHash(): string
+    {
+        return hash('sha256', json_encode([
+            $this->previous_hash,
+            $this->company_id,
+            $this->user_id,
+            $this->module,
+            $this->entity_type,
+            $this->entity_id,
+            $this->action,
+            self::canonical($this->old_values),
+            self::canonical($this->new_values),
+            $this->ip_address,
+            $this->user_agent,
+            $this->created_at?->format('Y-m-d H:i:s'),
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION));
+    }
+
+    /**
+     * Sort keys recursively so JSON columns that reorder keys (MySQL) still hash identically.
+     */
+    protected static function canonical(mixed $value): mixed
+    {
+        if (! is_array($value)) {
+            return $value;
+        }
+
+        $value = array_map(self::canonical(...), $value);
+
+        if (! array_is_list($value)) {
+            ksort($value);
+        }
+
+        return $value;
     }
 
     public function user()
     {
-        return $this->belongsTo(\App\Models\User::class);
+        return $this->belongsTo(User::class);
     }
 
     public function company()
