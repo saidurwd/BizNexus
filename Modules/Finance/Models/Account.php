@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Core\Concerns\BelongsToCompany;
 use Modules\Core\Models\Company;
 use Modules\Core\Models\Currency;
+use Modules\Finance\Enums\CashFlowCategory;
 
 class Account extends Model
 {
@@ -33,6 +34,10 @@ class Account extends Model
         'level',
         'is_group',
         'is_postable',
+        'revalue_foreign_currency',
+        'is_control_account',
+        'cash_flow_category',
+        'is_current',
         'currency_id',
         'status',
         'description',
@@ -41,6 +46,10 @@ class Account extends Model
     ];
 
     protected $casts = [
+        'revalue_foreign_currency' => 'boolean',
+        'is_control_account' => 'boolean',
+        'cash_flow_category' => CashFlowCategory::class,
+        'is_current' => 'boolean',
         'is_group' => 'boolean',
         'is_postable' => 'boolean',
         'level' => 'integer',

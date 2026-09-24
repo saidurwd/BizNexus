@@ -28,6 +28,7 @@ use Modules\Finance\Controllers\Web\CostCenterController;
 use Modules\Finance\Controllers\Web\CustomerController;
 use Modules\Finance\Controllers\Web\CustomerInvoiceController;
 use Modules\Finance\Controllers\Web\CustomerStatementController;
+use Modules\Finance\Controllers\Web\FxRevaluationController;
 use Modules\Finance\Controllers\Web\JournalController;
 use Modules\Finance\Controllers\Web\PaymentController;
 use Modules\Finance\Controllers\Web\ReceiptController;
@@ -145,6 +146,10 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::get('/accounts/{id}/edit', [AccountController::class, 'edit'])->middleware('permission:finance.accounts.update')->name('accounts.edit');
         Route::put('/accounts/{id}', [AccountController::class, 'update'])->middleware('permission:finance.accounts.update')->name('accounts.update');
         Route::delete('/accounts/{id}', [AccountController::class, 'destroy'])->middleware('permission:finance.accounts.delete')->name('accounts.destroy');
+
+        // Foreign currency revaluation
+        Route::get('/fx-revaluations', [FxRevaluationController::class, 'index'])->middleware('permission:finance.fx-revaluation.view')->name('fx-revaluations.index');
+        Route::post('/fx-revaluations', [FxRevaluationController::class, 'store'])->middleware('permission:finance.fx-revaluation.run')->name('fx-revaluations.store');
 
         // Account determination
         Route::get('/account-mappings', [AccountMappingController::class, 'index'])->middleware('permission:finance.accounts.view')->name('account-mappings.index');

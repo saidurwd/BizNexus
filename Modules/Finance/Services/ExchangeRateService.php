@@ -61,6 +61,20 @@ class ExchangeRateService
         return $amount->convertedTo($company->baseCurrency->code, $this->rate($company, $currency, $date, $type));
     }
 
+    /**
+     * Rate to store on a new document: 1 for the functional currency (or no currency), otherwise the spot rate.
+     */
+    public function rateForDocument(Company|int $company, ?int $currencyId, CarbonInterface|string $date): string
+    {
+        $company = $company instanceof Company ? $company : Company::findOrFail($company);
+
+        if ($currencyId === null || (int) $currencyId === (int) $company->base_currency_id) {
+            return '1';
+        }
+
+        return $this->rate($company, Currency::findOrFail($currencyId), Carbon::parse($date));
+    }
+
     public function record(Company $company, Currency $currency, CarbonInterface $date, string $rate, ExchangeRateType $type = ExchangeRateType::Spot, string $source = 'manual'): ExchangeRate
     {
         $exchangeRate = ExchangeRate::withoutGlobalScope(CompanyScope::class)->updateOrCreate(

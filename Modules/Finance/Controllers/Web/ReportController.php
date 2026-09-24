@@ -6,11 +6,16 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Modules\Core\Models\FiscalYear;
 use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\PermissionService;
 use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Enums\AccountPurpose;
+use Modules\Finance\Exceptions\MissingAccountMappingException;
 use Modules\Finance\Jobs\GenerateReportJob;
+use Modules\Finance\Models\BankAccount;
+use Modules\Finance\Models\CashAccount;
 use Modules\Finance\Models\CustomerReceipt;
-use Modules\Finance\Models\Journal;
+use Modules\Finance\Models\JournalLine;
 use Modules\Finance\Models\SupplierPayment;
 use Modules\Finance\Services\BudgetService;
 use Modules\Finance\Services\FinancialReportService;
@@ -159,28 +164,42 @@ class ReportController extends Controller
         return view('finance.reports.receipt-register', compact('receipts'));
     }
 
-    public function cashBook()
+    public function cashBook(Request $request)
     {
-
-        $transactions = Journal::where('company_id', $this->getActiveCompanyId())
-            ->whereHas('lines', fn ($q) => $q->whereHas('account', fn ($q2) => $q2->where('account_code', 'like', '1110%')))
-            ->with('lines.account')
-            ->orderBy('journal_date', 'desc')
-            ->get();
-
-        return view('finance.reports.cash-book', compact('transactions'));
+        return $this->treasuryBook($request, 'Cash Book', $this->treasuryAccountIds(CashAccount::class, AccountPurpose::Cash));
     }
 
-    public function bankBook()
+    public function bankBook(Request $request)
     {
+        return $this->treasuryBook($request, 'Bank Book', $this->treasuryAccountIds(BankAccount::class, AccountPurpose::Bank));
+    }
 
-        $transactions = Journal::where('company_id', $this->getActiveCompanyId())
-            ->whereHas('lines', fn ($q) => $q->whereHas('account', fn ($q2) => $q2->where('account_code', 'like', '1120%')))
-            ->with('lines.account')
-            ->orderBy('journal_date', 'desc')
-            ->get();
+    /**
+     * Receipts (debits) and payments (credits) on treasury GL accounts from posted journals, with balances.
+     *
+     * @param  array<int, int>  $accountIds
+     */
+    protected function treasuryBook(Request $request, string $title, array $accountIds)
+    {
+        $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
+        $endDate = $request->input('end_date', now()->toDateString());
 
-        return view('finance.reports.bank-book', compact('transactions'));
+        $postedLines = fn () => JournalLine::whereIn('account_id', $accountIds);
+
+        $openingBalance = (float) $postedLines()
+            ->whereHas('journal', fn ($query) => $query->posted()->whereDate('journal_date', '<', $startDate))
+            ->selectRaw('COALESCE(SUM(debit - credit), 0) AS balance')->value('balance');
+
+        $lines = $postedLines()
+            ->with(['journal', 'account'])
+            ->whereHas('journal', fn ($query) => $query->posted()->whereDate('journal_date', '>=', $startDate)->whereDate('journal_date', '<=', $endDate))
+            ->get()
+            ->sortBy(fn (JournalLine $line) => [$line->journal->journal_date->toDateString(), $line->journal_id])
+            ->values();
+
+        $closingBalance = $openingBalance + (float) $lines->sum('debit') - (float) $lines->sum('credit');
+
+        return view('finance.reports.treasury-book', compact('title', 'lines', 'openingBalance', 'closingBalance', 'startDate', 'endDate'));
     }
 
     public function management()
@@ -216,5 +235,23 @@ class ReportController extends Controller
         );
 
         return back()->with('success', 'Report generation started. You will be notified when it\'s ready.');
+    }
+
+    /**
+     * GL accounts behind the company's cash or bank accounts, plus the mapped default account.
+     *
+     * @param  class-string<CashAccount|BankAccount>  $treasuryModel
+     * @return array<int, int>
+     */
+    protected function treasuryAccountIds(string $treasuryModel, AccountPurpose $purpose): array
+    {
+        $accountIds = $treasuryModel::pluck('gl_account_id')->filter()->all();
+
+        try {
+            $accountIds[] = app(DefaultAccountService::class)->forPurpose($this->getActiveCompanyId(), $purpose);
+        } catch (MissingAccountMappingException) {
+        }
+
+        return array_values(array_unique($accountIds));
     }
 }

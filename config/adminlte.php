@@ -926,6 +926,11 @@ return [
                     'icon' => 'bi bi-diagram-3',
                 ],
                 [
+                    'text' => 'FX Revaluation',
+                    'url' => 'finance/fx-revaluations', 'can' => 'finance.fx-revaluation.view',
+                    'icon' => 'bi bi-currency-exchange',
+                ],
+                [
                     'text' => 'Account Determination',
                     'url' => 'finance/account-mappings', 'can' => 'finance.accounts.view',
                     'icon' => 'bi bi-signpost-split',

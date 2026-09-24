@@ -2,18 +2,18 @@
 
 namespace Modules\Finance\Services;
 
+use Modules\Core\Models\FiscalYear;
 use Modules\Finance\Models\Budget;
 use Modules\Finance\Models\BudgetLine;
-use Modules\Finance\Jobs\SendBudgetAlertJob;
-use Modules\Finance\Models\Account;
-use Carbon\Carbon;
+use Modules\Finance\Models\Journal;
+use Modules\Finance\Models\JournalLine;
 
 class BudgetService
 {
     public function getBudgetVsActual(int $companyId, ?int $fiscalYearId = null, ?int $accountId = null, ?int $costCenterId = null): array
     {
-        if (!$fiscalYearId) {
-            $currentFiscalYear = \Modules\Core\Models\FiscalYear::where('company_id', $companyId)
+        if (! $fiscalYearId) {
+            $currentFiscalYear = FiscalYear::where('company_id', $companyId)
                 ->where('status', 'ACTIVE')
                 ->first();
 
@@ -36,7 +36,7 @@ class BudgetService
             ->where('status', Budget::STATUS_APPROVED)
             ->first();
 
-        if (!$budget) {
+        if (! $budget) {
             return [
                 'budget' => 0,
                 'actual' => 0,
@@ -100,10 +100,10 @@ class BudgetService
 
     public function getActualSpending(int $accountId, ?int $costCenterId, string $startDate, string $endDate): float
     {
-        $query = \Modules\Finance\Models\JournalLine::where('account_id', $accountId)
+        $query = JournalLine::where('account_id', $accountId)
             ->whereHas('journal', function ($q) use ($startDate, $endDate) {
-                $q->where('status', 'POSTED')
-                  ->whereBetween('journal_date', [$startDate, $endDate]);
+                $q->whereIn('status', Journal::LEDGER_STATUSES)
+                    ->whereBetween('journal_date', [$startDate, $endDate]);
             });
 
         if ($costCenterId) {
@@ -118,7 +118,7 @@ class BudgetService
 
     public function checkBudgetAvailability(int $accountId, ?int $costCenterId, int $fiscalYearId, float $requestedAmount): bool
     {
-        $fiscalYear = \Modules\Core\Models\FiscalYear::findOrFail($fiscalYearId);
+        $fiscalYear = FiscalYear::findOrFail($fiscalYearId);
 
         $actualSpending = $this->getActualSpending(
             $accountId,
@@ -128,14 +128,14 @@ class BudgetService
         );
 
         $budgetData = $this->getBudgetVsActual($accountId, $costCenterId, $fiscalYearId);
-        
+
         return ($budgetData['actual'] + $requestedAmount) <= $budgetData['budget'];
     }
 
     public function getRemainingBudget(int $accountId, ?int $costCenterId, int $fiscalYearId): float
     {
         $budgetData = $this->getBudgetVsActual($accountId, $costCenterId, $fiscalYearId);
-        
+
         return max(0, $budgetData['budget'] - $budgetData['actual']);
     }
 

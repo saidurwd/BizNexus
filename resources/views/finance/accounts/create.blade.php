@@ -118,6 +118,48 @@
                                 <option value="1" {{ old('is_postable', 1) == 1 ? 'selected' : '' }}>Yes</option>
                             </select>
                         </div>
+
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="revalue_foreign_currency">Revalue foreign currency</label>
+                            <select class="form-control" id="revalue_foreign_currency" name="revalue_foreign_currency">
+                                <option value="0" @selected(old('revalue_foreign_currency', 0) == 0)>No</option>
+                                <option value="1" @selected(old('revalue_foreign_currency', 0) == 1)>Yes (monetary item)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="is_control_account">Control account</label>
+                            <select class="form-control" id="is_control_account" name="is_control_account">
+                                <option value="0" @selected(old('is_control_account', 0) == 0)>No</option>
+                                <option value="1" @selected(old('is_control_account', 0) == 1)>Yes (sub-ledger postings only)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="cash_flow_category">Cash flow category</label>
+                            <select class="form-control" id="cash_flow_category" name="cash_flow_category">
+                                <option value="">—</option>
+                                @foreach (\Modules\Finance\Enums\CashFlowCategory::cases() as $category)
+                                    <option value="{{ $category->value }}" @selected(old('cash_flow_category', '') === $category->value)>{{ $category->label() }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="is_current">Balance sheet class</label>
+                            <select class="form-control" id="is_current" name="is_current">
+                                <option value="">—</option>
+                                <option value="1" @selected(old('is_current', '') === '1' || old('is_current', '') === true)>Current</option>
+                                <option value="0" @selected(old('is_current', '') === '0' || old('is_current', '') === false)>Non-current</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
                     </div>
                 </div>
 

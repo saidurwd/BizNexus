@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
 use Modules\Core\Services\AuditService;
+use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
 use Modules\Finance\Events\SupplierInvoiceApproved;
@@ -34,7 +35,7 @@ class SupplierInvoiceService
                 'invoice_date' => $data['invoice_date'],
                 'due_date' => $data['due_date'],
                 'currency_id' => $data['currency_id'] ?? null,
-                'exchange_rate' => $data['exchange_rate'] ?? 1,
+                'exchange_rate' => $data['exchange_rate'] ?? app(ExchangeRateService::class)->rateForDocument(app(CompanyContextService::class)->getActiveCompanyId(), $data['currency_id'] ?? null, $data['invoice_date']),
                 'subtotal' => 0,
                 'tax_amount' => 0,
                 'discount_amount' => $data['discount_amount'] ?? 0,
@@ -284,7 +285,7 @@ class SupplierInvoiceService
             'invoice_date' => $data['invoice_date'],
             'due_date' => $data['due_date'],
             'currency_id' => $data['currency_id'] ?? null,
-            'exchange_rate' => $data['exchange_rate'] ?? 1,
+            'exchange_rate' => $data['exchange_rate'] ?? app(ExchangeRateService::class)->rateForDocument(app(CompanyContextService::class)->getActiveCompanyId(), $data['currency_id'] ?? null, $data['invoice_date']),
             'discount_amount' => $data['discount_amount'] ?? 0,
             'description' => $data['description'] ?? null,
             'updated_by' => Auth::id(),

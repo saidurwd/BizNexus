@@ -86,6 +86,8 @@ class Journal extends Model
 
     public const STATUS_REVERSED = 'REVERSED';
 
+    public const LEDGER_STATUSES = [self::STATUS_POSTED, self::STATUS_REVERSED];
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
@@ -254,9 +256,13 @@ class Journal extends Model
         return $query->where('status', self::STATUS_APPROVED);
     }
 
+    /**
+     * Journals in the ledger: posted ones and reversed ones. A reversed journal stays in the ledger and is
+     * offset by its posted reversal; excluding it would leave only the reversal and misstate every balance.
+     */
     public function scopePosted($query)
     {
-        return $query->where('status', self::STATUS_POSTED);
+        return $query->whereIn($this->qualifyColumn('status'), self::LEDGER_STATUSES);
     }
 
     public function scopeForCompany($query, int $companyId)

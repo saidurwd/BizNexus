@@ -34,6 +34,12 @@ class JournalService
 {
     use EnforcesSegregationOfDuties;
 
+    /**
+     * True while a system posting (source document, revaluation) builds its journal; only then may lines
+     * use control accounts.
+     */
+    protected bool $systemPosting = false;
+
     public function __construct(
         protected CompanyContextService $companyContext,
         protected AccountingPeriodService $periodService,
@@ -108,10 +114,14 @@ class JournalService
 
         $this->ensureAccountCanReceivePosting($journal, (int) $lineData['account_id']);
 
+        $isFunctionalAdjustment = in_array($lineData['line_type'] ?? null, JournalLine::FUNCTIONAL_ADJUSTMENT_TYPES, true);
+
         $line = $journal->lines()->create([
             'account_id' => $lineData['account_id'],
             'description' => $lineData['description'] ?? null,
-            ...$this->lineAmounts($journal, $lineData['debit'] ?? 0, $lineData['credit'] ?? 0),
+            ...($isFunctionalAdjustment
+                ? $this->functionalAdjustmentAmounts($journal, $lineData['functional_amount'])
+                : $this->lineAmounts($journal, $lineData['debit'] ?? 0, $lineData['credit'] ?? 0)),
             'cost_center_id' => $lineData['cost_center_id'] ?? null,
             'department_id' => $lineData['department_id'] ?? null,
             'branch_id' => $lineData['branch_id'] ?? null,
@@ -119,7 +129,7 @@ class JournalService
             'project_id' => $lineData['project_id'] ?? null,
             'tax_id' => $lineData['tax_id'] ?? null,
             'reference' => $lineData['reference'] ?? null,
-            'line_type' => JournalLine::TYPE_STANDARD,
+            'line_type' => $isFunctionalAdjustment ? $lineData['line_type'] : JournalLine::TYPE_STANDARD,
         ]);
 
         $this->balanceFunctionalRounding($journal);
@@ -294,7 +304,23 @@ class JournalService
      */
     public function postFromSource(array $data): Journal
     {
-        $posted = DB::transaction(function () use ($data) {
+        $wasSystemPosting = $this->systemPosting;
+        $this->systemPosting = true;
+
+        try {
+            $posted = $this->createAndPostSystemJournal($data);
+        } finally {
+            $this->systemPosting = $wasSystemPosting;
+        }
+
+        ProcessIntegrationJob::dispatch(JournalPosted::class, ['journal' => $posted])->afterCommit();
+
+        return $posted->fresh();
+    }
+
+    protected function createAndPostSystemJournal(array $data): Journal
+    {
+        return DB::transaction(function () use ($data) {
             $journal = $this->create($data);
 
             $journal->update([
@@ -311,10 +337,6 @@ class JournalService
 
             return $journal;
         });
-
-        ProcessIntegrationJob::dispatch(JournalPosted::class, ['journal' => $posted])->afterCommit();
-
-        return $posted->fresh();
     }
 
     /**
@@ -460,6 +482,12 @@ class JournalService
             throw new InvalidAccountingTransactionException('Journal lines must use accounts of the journal\'s company.');
         }
 
+        if ($account->is_control_account && ! $this->systemPosting) {
+            throw new InvalidAccountingTransactionException(
+                "{$account->account_code} {$account->account_name} is a control account; post through its sub-ledger (invoices, payments, receipts)."
+            );
+        }
+
         $this->ensureAccountIsPostable($account);
     }
 
@@ -485,7 +513,7 @@ class JournalService
         $budgetService = app(BudgetService::class);
 
         foreach ($journal->lines as $line) {
-            if ($line->debit > 0 && $line->account->account_type === 'EXPENSE') {
+            if ($line->line_type === JournalLine::TYPE_STANDARD && $line->debit > 0 && $line->account->account_type === 'EXPENSE') {
                 $budgetLines = BudgetLine::where('account_id', $line->account_id)
                     ->whereHas('budget', function ($q) use ($journal) {
                         $q->where('company_id', $journal->company_id)
@@ -549,6 +577,23 @@ class JournalService
             'currency_credit' => $transactionCredit->amount,
             'debit' => $transactionDebit->convertedTo($functionalCurrency, $journal->exchange_rate)->amount,
             'credit' => $transactionCredit->convertedTo($functionalCurrency, $journal->exchange_rate)->amount,
+        ];
+    }
+
+    /**
+     * A system adjustment in the functional currency only (signed: positive debits, negative credits).
+     *
+     * @return array{debit: string, credit: string, currency_debit: string, currency_credit: string}
+     */
+    protected function functionalAdjustmentAmounts(Journal $journal, string|int|float $functionalAmount): array
+    {
+        $amount = Money::of($functionalAmount, $this->currencyCodes($journal)[1]);
+
+        return [
+            'currency_debit' => '0',
+            'currency_credit' => '0',
+            'debit' => $amount->isPositive() ? $amount->amount : '0',
+            'credit' => $amount->isNegative() ? $amount->abs()->amount : '0',
         ];
     }
 

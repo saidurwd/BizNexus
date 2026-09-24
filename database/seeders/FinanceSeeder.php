@@ -74,6 +74,7 @@ class FinanceSeeder extends Seeder
         app(CompanyContextService::class)->runAs($company->id, function () use ($company) {
             $this->createFiscalYear($company);
             $this->createChartOfAccounts($company);
+            $this->classifyAccounts();
             $this->mapAutomaticPostingAccounts($company);
             $this->initializeDocumentSequences($company);
         });
@@ -233,6 +234,31 @@ class FinanceSeeder extends Seeder
             );
 
             $accountIds[$key] = $created->id;
+        }
+    }
+
+    /**
+     * Control accounts, foreign-currency revaluation (monetary items only, IAS 21), cash flow category
+     * (IAS 7) and current/non-current presentation (IAS 1) for the demo chart of accounts.
+     */
+    protected function classifyAccounts(): void
+    {
+        $classification = [
+            '1110' => ['cash_flow_category' => 'cash', 'is_current' => true, 'revalue_foreign_currency' => true],
+            '1120' => ['cash_flow_category' => 'cash', 'is_current' => true, 'revalue_foreign_currency' => true],
+            '1130' => ['cash_flow_category' => 'operating', 'is_current' => true, 'revalue_foreign_currency' => true, 'is_control_account' => true],
+            '1140' => ['cash_flow_category' => 'operating', 'is_current' => true],
+            '1210' => ['cash_flow_category' => 'investing', 'is_current' => false],
+            '1220' => ['cash_flow_category' => 'investing', 'is_current' => false],
+            '2110' => ['cash_flow_category' => 'operating', 'is_current' => true, 'revalue_foreign_currency' => true, 'is_control_account' => true],
+            '2120' => ['cash_flow_category' => 'operating', 'is_current' => true],
+            '2130' => ['cash_flow_category' => 'operating', 'is_current' => true],
+            '2210' => ['cash_flow_category' => 'financing', 'is_current' => false, 'revalue_foreign_currency' => true],
+            '3110' => ['cash_flow_category' => 'financing'],
+        ];
+
+        foreach ($classification as $accountCode => $attributes) {
+            Account::where('account_code', $accountCode)->update($attributes);
         }
     }
 

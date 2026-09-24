@@ -19,11 +19,11 @@ class PaymentAllocation extends Model
 
     public function payment(): BelongsTo
     {
-        return $this->belongsTo(SupplierPayment::class);
+        return $this->belongsTo(SupplierPayment::class, 'supplier_payment_id');
     }
 
     public function invoice(): BelongsTo
     {
-        return $this->belongsTo(SupplierInvoice::class);
+        return $this->belongsTo(SupplierInvoice::class, 'supplier_invoice_id');
     }
 }
