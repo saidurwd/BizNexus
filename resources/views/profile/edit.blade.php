@@ -151,6 +151,15 @@
                 </div>
             </div>
 
+            <div class="card mt-4" id="approval-delegation">
+                <div class="card-header">
+                    <h3 class="card-title">Approval Delegation</h3>
+                </div>
+                <div class="card-body">
+                    @include('profile.partials.approval-delegation-form')
+                </div>
+            </div>
+
             <div class="card mt-4" id="two-factor">
                 <div class="card-header">
                     <h3 class="card-title">Two-Factor Authentication</h3>

@@ -29,7 +29,7 @@ class RoleController extends Controller
      */
     protected function grantablePermissionIds(): array
     {
-        return Permission::whereIn('slug', $this->permissionService->getUserPermissions())->pluck('id')->all();
+        return Permission::whereIn('slug', $this->permissionService->getRolePermissions(auth()->id(), $this->companyContext->getActiveCompanyId()))->pluck('id')->all();
     }
 
     /**

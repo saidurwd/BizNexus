@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use Modules\Core\Controllers\Web\ApprovalDelegationController;
 use Modules\Core\Controllers\Web\AuditController;
 use Modules\Core\Controllers\Web\BranchController;
 use Modules\Core\Controllers\Web\CompanyController;
@@ -374,6 +375,10 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Approval delegation (self-service; users delegate only their own approval authority)
+    Route::post('/approval-delegations', [ApprovalDelegationController::class, 'store'])->name('core.approval-delegations.store');
+    Route::delete('/approval-delegations/{id}', [ApprovalDelegationController::class, 'destroy'])->whereNumber('id')->name('core.approval-delegations.destroy');
 });
 
 require __DIR__.'/auth.php';

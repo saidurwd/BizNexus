@@ -22,6 +22,7 @@ test('a role assignment only grants permissions within its validity window', fun
 })->with([
     'no window' => [null, null, true],
     'current window' => [fn () => now()->subDay()->toDateString(), fn () => now()->addDay()->toDateString(), true],
+    'starts and ends today' => [fn () => now()->toDateString(), fn () => now()->toDateString(), true],
     'expired' => [null, fn () => now()->subDay()->toDateString(), false],
     'not yet started' => [fn () => now()->addDay()->toDateString(), null, false],
 ]);

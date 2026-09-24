@@ -3,10 +3,12 @@
 namespace Modules\Core\Services;
 
 use Illuminate\Support\Collection;
+use Modules\Core\Models\ApprovalDelegation;
 use Modules\Core\Models\CompanyUserRole;
 use Modules\Core\Models\Permission;
 use Modules\Core\Models\Role;
 use Modules\Core\Models\UserCompany;
+use Modules\Core\Scopes\CompanyScope;
 
 class PermissionService
 {
@@ -17,6 +19,16 @@ class PermissionService
      */
     protected array $resolvedPermissions = [];
 
+    /**
+     * @var array<string, array<int, string>>
+     */
+    protected array $resolvedRolePermissions = [];
+
+    /**
+     * Permissions the user holds in the company: through their own roles plus approval permissions delegated to them.
+     *
+     * @return array<int, string>
+     */
     public function getUserPermissions(?int $userId = null, ?int $companyId = null): array
     {
         $userId = $userId ?? auth()->id();
@@ -26,13 +38,60 @@ class PermissionService
             return [];
         }
 
-        return $this->resolvedPermissions["{$userId}:{$companyId}"] ??= Permission::query()
+        return $this->resolvedPermissions["{$userId}:{$companyId}"] ??= array_values(array_unique([
+            ...$this->getRolePermissions($userId, $companyId),
+            ...$this->getDelegatedPermissions($userId, $companyId),
+        ]));
+    }
+
+    /**
+     * Permissions from the user's own roles in force in the company, excluding delegations. Use this for
+     * anything the user may pass on to others (roles, API tokens, delegations), so delegated authority cannot chain.
+     *
+     * @return array<int, string>
+     */
+    public function getRolePermissions(int $userId, int $companyId): array
+    {
+        return $this->resolvedRolePermissions["{$userId}:{$companyId}"] ??= Permission::query()
             ->whereHas('roles', fn ($roles) => $roles
                 ->where('roles.status', 'active')
                 ->whereIn('roles.id', CompanyUserRole::where('user_id', $userId)
                     ->where('company_id', $companyId)->active()
                     ->select('role_id')))
             ->pluck('slug')
+            ->all();
+    }
+
+    /**
+     * Approval permissions lent to the user by delegations in force from active users of the company.
+     *
+     * @return array<int, string>
+     */
+    public function getDelegatedPermissions(int $userId, int $companyId): array
+    {
+        return ApprovalDelegation::withoutGlobalScope(CompanyScope::class)
+            ->where('company_id', $companyId)
+            ->where('delegate_id', $userId)
+            ->inForce()
+            ->whereHas('delegator', fn ($delegator) => $delegator->where('status', 'active'))
+            ->pluck('delegator_id')
+            ->flatMap(fn (int $delegatorId) => self::delegablePermissions($this->getRolePermissions($delegatorId, $companyId)))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * The subset of permissions that may be delegated: approving and rejecting.
+     *
+     * @param  iterable<int, string>  $permissions
+     * @return array<int, string>
+     */
+    public static function delegablePermissions(iterable $permissions): array
+    {
+        return collect($permissions)
+            ->filter(fn (string $slug) => str_ends_with($slug, '.approve') || str_ends_with($slug, '.reject'))
+            ->values()
             ->all();
     }
 
@@ -61,7 +120,7 @@ class PermissionService
     public function canGrantRole(Role $role, int $companyId, ?int $userId = null): bool
     {
         return $role->permissions()->pluck('slug')
-            ->diff($this->getUserPermissions($userId, $companyId))
+            ->diff($this->getRolePermissions($userId ?? auth()->id(), $companyId))
             ->isEmpty();
     }
 

@@ -53,7 +53,7 @@ class TokenController extends Controller
         }
 
         $requestedAbilities = $validated['abilities'] ?? ['*'];
-        $heldPermissions = $this->permissionService->getUserPermissions($user->id, $validated['company_id']);
+        $heldPermissions = $this->permissionService->getRolePermissions($user->id, (int) $validated['company_id']);
 
         if ($requestedAbilities !== ['*'] && array_diff($requestedAbilities, $heldPermissions) !== []) {
             throw ValidationException::withMessages(['abilities' => 'A token cannot carry permissions you do not hold in this company.']);

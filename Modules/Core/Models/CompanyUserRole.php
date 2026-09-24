@@ -45,7 +45,7 @@ class CompanyUserRole extends Model
         $today = now()->toDateString();
 
         return $query->where($this->qualifyColumn('status'), 'active')
-            ->where(fn ($query) => $query->whereNull($this->qualifyColumn('valid_from'))->orWhere($this->qualifyColumn('valid_from'), '<=', $today))
-            ->where(fn ($query) => $query->whereNull($this->qualifyColumn('valid_until'))->orWhere($this->qualifyColumn('valid_until'), '>=', $today));
+            ->where(fn ($query) => $query->whereNull($this->qualifyColumn('valid_from'))->orWhereDate($this->qualifyColumn('valid_from'), '<=', $today))
+            ->where(fn ($query) => $query->whereNull($this->qualifyColumn('valid_until'))->orWhereDate($this->qualifyColumn('valid_until'), '>=', $today));
     }
 }
