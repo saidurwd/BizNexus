@@ -16,6 +16,7 @@ use Modules\Finance\Models\Journal;
 const SELF_SERVICE_ROUTES = [
     'dashboard', 'logout', 'password.confirm', 'confirm-password', 'password.update', 'verification.notice', 'verification.verify',
     'verification.send', 'profile.edit', 'profile.update', 'profile.destroy',
+    'two-factor.enable', 'two-factor.confirm', 'two-factor.recovery-codes', 'two-factor.disable',
     'company.selection', 'company.selection.submit', 'company.switch',
     'branch.selection', 'branch.selection.submit', 'branch.switch', 'auth.branches.index',
     'core.notifications.index', 'core.notifications.show', 'core.notifications.mark-read',

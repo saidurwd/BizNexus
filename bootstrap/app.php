@@ -11,6 +11,7 @@ use Modules\Core\Http\Middleware\BranchAccess;
 use Modules\Core\Http\Middleware\CompanyAccess;
 use Modules\Core\Http\Middleware\DepartmentAccess;
 use Modules\Core\Http\Middleware\EnsureCompanyAndBranchSelected;
+use Modules\Core\Http\Middleware\EnsureTwoFactorEnrolment;
 use Modules\Core\Http\Middleware\Permission;
 use Modules\Core\Http\Middleware\SetCompanyContext;
 use Modules\Core\Http\Middleware\SetTokenCompanyContext;
@@ -36,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web([
             SetCompanyContext::class,
+            EnsureTwoFactorEnrolment::class,
             ShareAdminLte::class,
         ]);
 

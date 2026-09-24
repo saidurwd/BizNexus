@@ -50,6 +50,7 @@ class CompanyController extends Controller
             'timezone' => 'nullable|string|max:100',
             'fiscal_year_start' => 'nullable|date',
             'status' => 'required|in:active,inactive',
+            'require_mfa' => 'sometimes|boolean',
         ]);
 
         Company::create($validated);
@@ -82,6 +83,7 @@ class CompanyController extends Controller
             'timezone' => 'nullable|string|max:100',
             'fiscal_year_start' => 'nullable|date',
             'status' => 'required|in:active,inactive',
+            'require_mfa' => 'sometimes|boolean',
         ]);
 
         $company->update($validated);

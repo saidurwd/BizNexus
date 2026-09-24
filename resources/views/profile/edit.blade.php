@@ -151,6 +151,15 @@
                 </div>
             </div>
 
+            <div class="card mt-4" id="two-factor">
+                <div class="card-header">
+                    <h3 class="card-title">Two-Factor Authentication</h3>
+                </div>
+                <div class="card-body">
+                    @include('profile.partials.two-factor-authentication-form')
+                </div>
+            </div>
+
             <div class="card mt-4">
                 <div class="card-header">
                     <h3 class="card-title text-danger">Delete Account</h3>

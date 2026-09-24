@@ -8,6 +8,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
+use Laravel\Fortify\Fortify;
 use Modules\Core\Http\Middleware\SetTokenCompanyContext;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
@@ -30,6 +32,7 @@ class TokenController extends Controller
             'password' => 'required|string',
             'company_id' => 'required|integer',
             'device_name' => 'required|string|max:255',
+            'code' => 'nullable|string',
             'abilities' => 'array',
             'abilities.*' => 'string',
         ]);
@@ -38,6 +41,11 @@ class TokenController extends Controller
 
         if (! $user || ! $user->isActive() || ! Hash::check($validated['password'], $user->password)) {
             throw ValidationException::withMessages(['email' => trans('auth.failed')]);
+        }
+
+        if ($user->hasEnabledTwoFactorAuthentication()
+            && ! app(TwoFactorAuthenticationProvider::class)->verify(Fortify::currentEncrypter()->decrypt($user->two_factor_secret), (string) ($validated['code'] ?? ''))) {
+            throw ValidationException::withMessages(['code' => 'A valid two-factor authentication code is required.']);
         }
 
         if (! $this->companyContext->hasCompanyAccess($validated['company_id'], $user->id)) {

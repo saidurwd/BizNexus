@@ -35,15 +35,18 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Attempt to authenticate the request's credentials.
+     * Verify the credentials of an active user without signing in, so a second factor can be required first.
      *
      * @throws ValidationException
      */
-    public function authenticate(): void
+    public function authenticate(): User
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attemptWhen($this->only('email', 'password'), fn (User $user) => $user->isActive(), $this->boolean('remember'))) {
+        $provider = Auth::guard('web')->getProvider();
+        $user = $provider->retrieveByCredentials($this->only('email'));
+
+        if (! $user instanceof User || ! $user->isActive() || ! $provider->validateCredentials($user, $this->only('password'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -53,7 +56,7 @@ class LoginRequest extends FormRequest
 
         RateLimiter::clear($this->throttleKey());
 
-        Auth::user()->forceFill(['last_login_at' => now()])->save();
+        return $user;
     }
 
     /**
