@@ -14,6 +14,8 @@ class PermissionCatalog
      * @var array<string, array{name: string, group: string}>
      */
     public const GRANULAR_PERMISSIONS = [
+        'core.fiscal-years.close' => ['name' => 'Close Fiscal Years', 'group' => 'Administration'],
+        'core.fiscal-years.reopen' => ['name' => 'Reopen Fiscal Years', 'group' => 'Administration'],
         'finance.fx-revaluation.view' => ['name' => 'View FX Revaluations', 'group' => 'Finance'],
         'finance.fx-revaluation.run' => ['name' => 'Run FX Revaluation', 'group' => 'Finance'],
         'finance.bank-accounts.view-sensitive' => ['name' => 'View Full Bank Account Numbers', 'group' => 'Finance'],
@@ -154,6 +156,8 @@ class PermissionCatalog
         'finance.bank-accounts.view-sensitive' => ['finance.bank-accounts.update'],
         'finance.fx-revaluation.view' => ['finance.journals.view'],
         'finance.fx-revaluation.run' => ['finance.journals.post'],
+        'core.fiscal-years.close' => ['core.periods.close'],
+        'core.fiscal-years.reopen' => ['core.periods.reopen'],
     ];
 
     /**

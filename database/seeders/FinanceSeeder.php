@@ -8,6 +8,7 @@ use Modules\Core\Models\Currency;
 use Modules\Core\Models\FiscalPeriod;
 use Modules\Core\Models\FiscalYear;
 use Modules\Core\Models\Tenant;
+use Modules\Core\Services\AccountingPeriodService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DocumentNumberService;
 use Modules\Finance\Enums\AccountPurpose;
@@ -121,6 +122,8 @@ class FinanceSeeder extends Seeder
 
             $periodStart = $periodEnd->copy()->addDay();
         }
+
+        app(AccountingPeriodService::class)->ensureAdjustmentPeriod($fiscalYear);
     }
 
     protected function createAccountCategories(Company $company): void

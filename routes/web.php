@@ -41,6 +41,7 @@ use Modules\Finance\Controllers\Web\SupplierInvoiceController;
 use Modules\Finance\Controllers\Web\SupplierInvoiceLineController;
 use Modules\Finance\Controllers\Web\SupplierStatementController;
 use Modules\Finance\Controllers\Web\TaxController;
+use Modules\Finance\Controllers\Web\YearEndCloseController;
 use Modules\Workflow\Controllers\Web\WorkflowController;
 
 Route::get('/', function () {
@@ -107,6 +108,9 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
     Route::get('/periods', [PeriodClosingController::class, 'index'])->middleware('permission:core.periods.view')->name('core.periods.index');
     Route::get('/fiscal-years/create', [FiscalYearController::class, 'create'])->middleware('permission:core.fiscal-years.create')->name('core.fiscal-years.create');
     Route::post('/fiscal-years', [FiscalYearController::class, 'store'])->middleware('permission:core.fiscal-years.create')->name('core.fiscal-years.store');
+
+    Route::post('/fiscal-years/{id}/close', [YearEndCloseController::class, 'close'])->whereNumber('id')->middleware('permission:core.fiscal-years.close')->name('core.fiscal-years.close');
+    Route::post('/fiscal-years/{id}/reopen', [YearEndCloseController::class, 'reopen'])->whereNumber('id')->middleware('permission:core.fiscal-years.reopen')->name('core.fiscal-years.reopen');
 
     Route::post('/periods/{id}/close', [PeriodClosingController::class, 'closePeriod'])->middleware('permission:core.periods.close')->name('core.periods.close');
     Route::post('/periods/{id}/reopen', [PeriodClosingController::class, 'reopenPeriod'])->middleware('permission:core.periods.reopen')->name('core.periods.reopen');

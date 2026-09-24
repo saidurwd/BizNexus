@@ -78,6 +78,7 @@ class JournalService
                 'branch_id' => $data['branch_id'] ?? null,
                 'journal_number' => 'DRAFT-'.uniqid(),
                 'journal_date' => $data['journal_date'],
+                'adjustment_period' => (bool) ($data['adjustment_period'] ?? false),
                 'reference_type' => $data['reference_type'] ?? null,
                 'reference_id' => $data['reference_id'] ?? null,
                 'description' => $data['description'] ?? null,
@@ -343,9 +344,9 @@ class JournalService
      * Reverse a posted journal by posting a mirror journal dated $reversalDate (default today) in the same
      * transaction that marks the original as reversed, so the ledger never shows one without the other.
      */
-    public function reverse(Journal $journal, ?string $reason = null, ?string $reversalDate = null): Journal
+    public function reverse(Journal $journal, ?string $reason = null, ?string $reversalDate = null, bool $adjustmentPeriod = false): Journal
     {
-        return DB::transaction(function () use ($journal, $reason, $reversalDate) {
+        return DB::transaction(function () use ($journal, $reason, $reversalDate, $adjustmentPeriod) {
             $journal = Journal::whereKey($journal->id)->lockForUpdate()->firstOrFail();
 
             if (! $journal->canReverse()) {
@@ -357,6 +358,7 @@ class JournalService
                 'branch_id' => $journal->branch_id,
                 'journal_number' => 'DRAFT-'.uniqid(),
                 'journal_date' => $reversalDate ?? now()->toDateString(),
+                'adjustment_period' => $adjustmentPeriod,
                 'reference_type' => $journal->reference_type,
                 'reference_id' => $journal->reference_id,
                 'description' => "Reversal of {$journal->journal_number}".($reason ? ": {$reason}" : ''),
@@ -458,7 +460,7 @@ class JournalService
     protected function postLocked(Journal $journal): void
     {
         $journalDate = Carbon::parse($journal->journal_date);
-        $period = $this->periodService->validateDateForPosting($journal->company_id, $journalDate);
+        $period = $this->periodService->validateDateForPosting($journal->company_id, $journalDate, (bool) $journal->adjustment_period);
 
         $this->validate($journal);
         $this->validateBudget($journal);

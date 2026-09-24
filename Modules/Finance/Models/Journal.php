@@ -38,6 +38,7 @@ class Journal extends Model
         'journal_date',
         'posting_date',
         'fiscal_period_id',
+        'adjustment_period',
         'reference_type',
         'reference_id',
         'description',
@@ -61,6 +62,7 @@ class Journal extends Model
     ];
 
     protected $casts = [
+        'adjustment_period' => 'boolean',
         'journal_date' => 'date',
         'posting_date' => 'date',
         'exchange_rate' => 'decimal:8',
