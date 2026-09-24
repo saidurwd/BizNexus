@@ -5,10 +5,13 @@ namespace Modules\Core\Controllers\Web;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Modules\Core\Models\CompanyUserRole;
 use Modules\Core\Models\Permission;
 use Modules\Core\Models\Role;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Core\Services\SegregationOfDutiesService;
 
 /**
  * Roles are shared across companies, so an administrator may only assign permissions they hold themselves
@@ -27,6 +30,39 @@ class RoleController extends Controller
     protected function grantablePermissionIds(): array
     {
         return Permission::whereIn('slug', $this->permissionService->getUserPermissions())->pluck('id')->all();
+    }
+
+    /**
+     * Refuse a permission set that, alone or combined with other roles its holders have, breaks segregation of duties.
+     *
+     * @param  array<int, int>  $permissionIds
+     */
+    protected function ensureNoConflictingPermissions(array $permissionIds, ?Role $role = null): void
+    {
+        $sod = app(SegregationOfDutiesService::class);
+        $slugs = Permission::whereIn('id', $permissionIds)->pluck('slug');
+
+        if (($conflicts = $sod->conflictsIn($slugs))->isNotEmpty()) {
+            throw ValidationException::withMessages(['permissions' => 'These permissions must not be combined: '.$sod->describe($conflicts).'.']);
+        }
+
+        if (! $role) {
+            return;
+        }
+
+        foreach (CompanyUserRole::active()->where('role_id', $role->id)->get() as $assignment) {
+            $otherRoleIds = CompanyUserRole::active()
+                ->where('user_id', $assignment->user_id)
+                ->where('company_id', $assignment->company_id)
+                ->where('role_id', '!=', $role->id)
+                ->pluck('role_id');
+
+            $combined = $slugs->merge(Role::whereIn('id', $otherRoleIds)->with('permissions')->get()->flatMap->permissions->pluck('slug'));
+
+            if (($conflicts = $sod->conflictsIn($combined))->isNotEmpty()) {
+                throw ValidationException::withMessages(['permissions' => 'A user holding this role would combine conflicting permissions: '.$sod->describe($conflicts).'.']);
+            }
+        }
     }
 
     protected function ensureRoleIsManageable(Role $role): void
@@ -62,6 +98,8 @@ class RoleController extends Controller
             'permissions.*' => ['integer', Rule::in($this->grantablePermissionIds())],
         ]);
 
+        $this->ensureNoConflictingPermissions($validated['permissions'] ?? []);
+
         $role = Role::create($validated);
 
         if (isset($validated['permissions'])) {
@@ -94,6 +132,8 @@ class RoleController extends Controller
             'permissions' => 'array',
             'permissions.*' => ['integer', Rule::in($this->grantablePermissionIds())],
         ]);
+
+        $this->ensureNoConflictingPermissions($validated['permissions'] ?? [], $role);
 
         $role->update($validated);
 

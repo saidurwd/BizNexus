@@ -20,6 +20,7 @@ use Modules\Core\Models\UserBranch;
 use Modules\Core\Models\UserCompany;
 use Modules\Core\Models\UserDepartment;
 use Modules\Core\Services\PermissionService;
+use Modules\Core\Services\SegregationOfDutiesService;
 
 /**
  * User administration is limited to the companies in which the administrator holds the relevant
@@ -236,6 +237,14 @@ class UserController extends Controller
                     ]);
                 }
             }
+        }
+
+        $sod = app(SegregationOfDutiesService::class);
+
+        if (($conflicts = $sod->conflictsForRoles($validated['roles']))->isNotEmpty()) {
+            throw ValidationException::withMessages([
+                'roles' => 'These roles together combine conflicting permissions: '.$sod->describe($conflicts).'.',
+            ]);
         }
 
         $selectedCompanyIds = array_map('intval', $validated['companies']);
