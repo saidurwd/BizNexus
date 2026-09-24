@@ -3,6 +3,7 @@
 namespace Modules\Finance;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\Finance\Contracts\TaxCalculator;
 use Modules\Finance\Services\ChartOfAccountsService;
 use Modules\Finance\Services\CustomerInvoiceService;
 use Modules\Finance\Services\FinancialReportService;
@@ -16,6 +17,8 @@ class FinanceServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->bind(TaxCalculator::class, fn ($app) => $app->make(config('finance.tax.calculator')));
+
         $this->app->scoped(JournalService::class);
         $this->app->scoped(LedgerService::class);
         $this->app->scoped(ChartOfAccountsService::class);
