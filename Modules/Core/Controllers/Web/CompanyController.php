@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Modules\Core\Models\Company;
 use Modules\Core\Services\PermissionService;
 
@@ -38,7 +39,7 @@ class CompanyController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'code' => 'required|string|max:50|unique:companies,code',
+            'code' => ['required', 'string', 'max:50', Rule::unique('companies', 'code')->where('tenant_id', $request->user()->tenant_id)],
             'name' => 'required|string|max:255',
             'legal_name' => 'nullable|string|max:255',
             'address' => 'nullable|string',
@@ -71,7 +72,7 @@ class CompanyController extends Controller
         $company = $this->findPermittedCompany($id, 'core.companies.update');
 
         $validated = $request->validate([
-            'code' => 'required|string|max:50|unique:companies,code,'.$id,
+            'code' => ['required', 'string', 'max:50', Rule::unique('companies', 'code')->where('tenant_id', $request->user()->tenant_id)->ignore($id)],
             'name' => 'required|string|max:255',
             'legal_name' => 'nullable|string|max:255',
             'address' => 'nullable|string',

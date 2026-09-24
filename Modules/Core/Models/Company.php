@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use LogicException;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\BankAccount;
 use Modules\Finance\Models\Budget;
@@ -24,7 +25,26 @@ class Company extends Model
         return CompanyFactory::new();
     }
 
+    protected static function booted(): void
+    {
+        static::creating(function (Company $company) {
+            $company->tenant_id ??= auth()->user()?->tenant_id ?? Tenant::default()->id;
+        });
+
+        static::updating(function (Company $company) {
+            if ($company->isDirty('tenant_id')) {
+                throw new LogicException('A company cannot be moved to another tenant.');
+            }
+        });
+    }
+
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
     protected $fillable = [
+        'tenant_id',
         'code',
         'name',
         'legal_name',

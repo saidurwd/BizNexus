@@ -19,7 +19,7 @@ class SetTokenCompanyContext
 
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->user()->isActive()) {
+        if (! $request->user()->canSignIn()) {
             abort(403, 'This account has been deactivated.');
         }
 

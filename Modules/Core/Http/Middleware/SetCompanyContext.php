@@ -12,7 +12,7 @@ class SetCompanyContext
 
     public function handle(Request $request, Closure $next)
     {
-        if (auth()->check() && ! $request->user()->isActive()) {
+        if (auth()->check() && ! $request->user()->canSignIn()) {
             auth()->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
