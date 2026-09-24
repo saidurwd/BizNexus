@@ -2,34 +2,69 @@
 
 namespace Modules\Core\Services;
 
-use Modules\Core\Models\Role;
-use Modules\Core\Models\Permission;
+use Illuminate\Support\Collection;
 use Modules\Core\Models\CompanyUserRole;
+use Modules\Core\Models\Permission;
+use Modules\Core\Models\Role;
+use Modules\Core\Models\UserCompany;
 
 class PermissionService
 {
+    /**
+     * Permission slugs already resolved during this request, keyed by "userId:companyId".
+     *
+     * @var array<string, array<int, string>>
+     */
+    protected array $resolvedPermissions = [];
+
     public function getUserPermissions(?int $userId = null, ?int $companyId = null): array
     {
         $userId = $userId ?? auth()->id();
-        $companyId = $companyId ?? session('active_company_id');
+        $companyId = $companyId ?? app(CompanyContextService::class)->getActiveCompanyId();
 
-        if (!$userId || !$companyId) {
+        if (! $userId || ! $companyId) {
             return [];
         }
 
-        $roles = CompanyUserRole::where('user_id', $userId)
-            ->where('company_id', $companyId)
+        return $this->resolvedPermissions["{$userId}:{$companyId}"] ??= Permission::query()
+            ->whereHas('roles', fn ($roles) => $roles
+                ->where('roles.status', 'active')
+                ->whereIn('roles.id', CompanyUserRole::where('user_id', $userId)
+                    ->where('company_id', $companyId)
+                    ->where('status', 'active')
+                    ->select('role_id')))
+            ->pluck('slug')
+            ->all();
+    }
+
+    /**
+     * Ids of the companies in which the user holds the permission through an active role and active company access.
+     *
+     * @return Collection<int, int>
+     */
+    public function companyIdsWithPermission(string $permissionSlug, ?int $userId = null): Collection
+    {
+        $userId = $userId ?? auth()->id();
+
+        return CompanyUserRole::where('user_id', $userId)
             ->where('status', 'active')
-            ->with('role.permissions')
-            ->get()
-            ->pluck('role');
+            ->whereIn('company_id', UserCompany::where('user_id', $userId)->where('status', 'active')->select('company_id'))
+            ->whereHas('role', fn ($role) => $role
+                ->where('status', 'active')
+                ->whereHas('permissions', fn ($permissions) => $permissions->where('slug', $permissionSlug)))
+            ->pluck('company_id')
+            ->unique()
+            ->values();
+    }
 
-        $permissions = collect();
-        foreach ($roles as $role) {
-            $permissions = $permissions->merge($role->permissions);
-        }
-
-        return $permissions->unique('slug')->pluck('slug')->toArray();
+    /**
+     * Whether every permission of the role is also held by the user in the company, so granting it cannot escalate privileges.
+     */
+    public function canGrantRole(Role $role, int $companyId, ?int $userId = null): bool
+    {
+        return $role->permissions()->pluck('slug')
+            ->diff($this->getUserPermissions($userId, $companyId))
+            ->isEmpty();
     }
 
     public function hasPermission(string $permissionSlug, ?int $userId = null, ?int $companyId = null): bool
@@ -42,9 +77,9 @@ class PermissionService
     public function getUserRoles(?int $userId = null, ?int $companyId = null)
     {
         $userId = $userId ?? auth()->id();
-        $companyId = $companyId ?? session('active_company_id');
+        $companyId = $companyId ?? app(CompanyContextService::class)->getActiveCompanyId();
 
-        if (!$userId || !$companyId) {
+        if (! $userId || ! $companyId) {
             return collect();
         }
 

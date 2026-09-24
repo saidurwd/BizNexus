@@ -4,10 +4,13 @@ namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Finance\Scopes\CompanyScope;
+use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Core\Models\Company;
 
 class TaxTransaction extends Model
 {
+    use BelongsToCompany;
+
     protected $fillable = [
         'company_id',
         'tax_id',
@@ -33,11 +36,6 @@ class TaxTransaction extends Model
         'exchange_rate' => 'decimal:6',
     ];
 
-    protected static function booted()
-    {
-        static::addGlobalScope(new CompanyScope);
-    }
-
     public function tax(): BelongsTo
     {
         return $this->belongsTo(Tax::class);
@@ -45,7 +43,7 @@ class TaxTransaction extends Model
 
     public function company(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Company::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function invoice(): BelongsTo

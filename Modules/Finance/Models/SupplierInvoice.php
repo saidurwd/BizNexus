@@ -6,13 +6,15 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Core\Concerns\BelongsToCompany;
 use Modules\Core\Models\Company;
 use Modules\Core\Models\Currency;
 use Modules\Finance\Scopes\BranchScope;
-use Modules\Finance\Scopes\CompanyScope;
 
 class SupplierInvoice extends Model
 {
+    use BelongsToCompany;
+
     protected $fillable = [
         'company_id',
         'branch_id',
@@ -36,7 +38,6 @@ class SupplierInvoice extends Model
 
     protected static function booted()
     {
-        static::addGlobalScope(new CompanyScope);
         static::addGlobalScope(new BranchScope);
     }
 

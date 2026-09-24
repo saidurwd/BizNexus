@@ -2,14 +2,14 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
 use Modules\Finance\Models\Supplier;
 use Modules\Finance\Models\SupplierDebitNote;
 use Modules\Finance\Services\SupplierDebitNoteService;
-use Modules\Core\Services\CompanyContextService;
-use Modules\Core\Services\PermissionService;
 
 class SupplierDebitNoteController extends Controller
 {
@@ -23,7 +23,6 @@ class SupplierDebitNoteController extends Controller
 
     public function index()
     {
-        $this->checkPermission('finance.suppliers.view');
 
         $debitNotes = SupplierDebitNote::with('supplier')
             ->orderByDesc('note_date')
@@ -34,7 +33,6 @@ class SupplierDebitNoteController extends Controller
 
     public function create()
     {
-        $this->checkPermission('finance.suppliers.create');
 
         $suppliers = Supplier::where('status', 'active')->get();
 
@@ -43,7 +41,6 @@ class SupplierDebitNoteController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.create');
 
         $validated = $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
@@ -68,7 +65,6 @@ class SupplierDebitNoteController extends Controller
 
     public function show(int $id)
     {
-        $this->checkPermission('finance.suppliers.view');
 
         $debitNote = SupplierDebitNote::with('supplier')->findOrFail($id);
 
@@ -77,11 +73,10 @@ class SupplierDebitNoteController extends Controller
 
     public function edit(int $id)
     {
-        $this->checkPermission('finance.suppliers.update');
 
         $debitNote = SupplierDebitNote::findOrFail($id);
 
-        if (!$debitNote->isDraft()) {
+        if (! $debitNote->isDraft()) {
             return redirect()->route('finance.supplier-debit-notes.show', $id)
                 ->with('error', 'Only draft debit notes can be edited.');
         }
@@ -93,18 +88,17 @@ class SupplierDebitNoteController extends Controller
 
     public function update(Request $request, int $id): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.update');
 
         $debitNote = SupplierDebitNote::findOrFail($id);
 
-        if (!$debitNote->isDraft()) {
+        if (! $debitNote->isDraft()) {
             return redirect()->route('finance.supplier-debit-notes.show', $id)
                 ->with('error', 'Only draft debit notes can be edited.');
         }
 
         $validated = $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
-            'note_number' => 'required|string|max:50|unique:supplier_debit_notes,note_number,' . $id,
+            'note_number' => 'required|string|max:50|unique:supplier_debit_notes,note_number,'.$id,
             'note_date' => 'required|date',
             'reference_type' => 'nullable|string|max:100',
             'reference_id' => 'nullable|integer',
@@ -122,11 +116,10 @@ class SupplierDebitNoteController extends Controller
 
     public function destroy(int $id): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.delete');
 
         $debitNote = SupplierDebitNote::findOrFail($id);
 
-        if (!$debitNote->isDraft()) {
+        if (! $debitNote->isDraft()) {
             return redirect()->route('finance.supplier-debit-notes.index')
                 ->with('error', 'Only draft debit notes can be deleted.');
         }
@@ -139,18 +132,17 @@ class SupplierDebitNoteController extends Controller
 
     public function post(int $id): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.post');
 
         $debitNote = SupplierDebitNote::findOrFail($id);
 
-        if (!$debitNote->isApproved()) {
+        if (! $debitNote->isApproved()) {
             return back()->with('error', 'Only approved debit notes can be posted.');
         }
 
         try {
             $this->debitNoteService->postDebitNote($debitNote);
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to post debit note: ' . $e->getMessage());
+            return back()->with('error', 'Failed to post debit note: '.$e->getMessage());
         }
 
         return back()->with('success', 'Debit note posted successfully.');
@@ -158,18 +150,17 @@ class SupplierDebitNoteController extends Controller
 
     public function submit(int $id): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.approve');
 
         $debitNote = SupplierDebitNote::findOrFail($id);
 
-        if (!$debitNote->isDraft()) {
+        if (! $debitNote->isDraft()) {
             return back()->with('error', 'Only draft debit notes can be submitted.');
         }
 
         try {
             $this->debitNoteService->submitDebitNote($debitNote);
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to submit debit note: ' . $e->getMessage());
+            return back()->with('error', 'Failed to submit debit note: '.$e->getMessage());
         }
 
         return back()->with('success', 'Debit note submitted successfully.');
@@ -177,18 +168,17 @@ class SupplierDebitNoteController extends Controller
 
     public function approve(int $id): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.approve');
 
         $debitNote = SupplierDebitNote::findOrFail($id);
 
-        if (!$debitNote->isSubmitted()) {
+        if (! $debitNote->isSubmitted()) {
             return back()->with('error', 'Only submitted debit notes can be approved.');
         }
 
         try {
             $this->debitNoteService->approveDebitNote($debitNote);
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to approve debit note: ' . $e->getMessage());
+            return back()->with('error', 'Failed to approve debit note: '.$e->getMessage());
         }
 
         return back()->with('success', 'Debit note approved successfully.');
@@ -196,11 +186,10 @@ class SupplierDebitNoteController extends Controller
 
     public function reject(int $id): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.approve');
 
         $debitNote = SupplierDebitNote::findOrFail($id);
 
-        if (!$debitNote->isSubmitted()) {
+        if (! $debitNote->isSubmitted()) {
             return back()->with('error', 'Only submitted debit notes can be rejected.');
         }
 
@@ -211,7 +200,6 @@ class SupplierDebitNoteController extends Controller
 
     public function cancel(int $id): RedirectResponse
     {
-        $this->checkPermission('finance.suppliers.cancel');
 
         $debitNote = SupplierDebitNote::findOrFail($id);
 

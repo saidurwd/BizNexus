@@ -2,12 +2,16 @@
 
 namespace Modules\Finance\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Finance\Scopes\CompanyScope;
+use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Core\Models\Company;
 
 class BankReconciliation extends Model
 {
+    use BelongsToCompany;
+
     protected $fillable = [
         'company_id',
         'bank_account_id',
@@ -28,18 +32,15 @@ class BankReconciliation extends Model
         'reconciled_at' => 'datetime',
     ];
 
-    protected static function booted()
-    {
-        static::addGlobalScope(new CompanyScope);
-    }
-
     public const STATUS_PENDING = 'PENDING';
+
     public const STATUS_RECONCILED = 'RECONCILED';
+
     public const STATUS_DISPUTED = 'DISPUTED';
 
     public function company(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Company::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function bankAccount(): BelongsTo
@@ -49,7 +50,7 @@ class BankReconciliation extends Model
 
     public function reconciledBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'reconciled_by');
+        return $this->belongsTo(User::class, 'reconciled_by');
     }
 
     public function isReconciled(): bool

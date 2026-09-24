@@ -2,16 +2,18 @@
 
 namespace Modules\Finance\Jobs;
 
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Modules\Finance\Models\RecurringJournal;
-use Modules\Finance\Models\Journal;
-use Modules\Finance\Services\JournalService;
-use Modules\Core\Services\DocumentNumberService;
 use Illuminate\Support\Facades\Auth;
+use Modules\Core\Scopes\CompanyScope;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\DocumentNumberService;
+use Modules\Finance\Models\RecurringJournal;
+use Modules\Finance\Services\JournalService;
 
 class GenerateRecurringJournalsJob implements ShouldQueue
 {
@@ -21,13 +23,17 @@ class GenerateRecurringJournalsJob implements ShouldQueue
     {
         $today = now()->toDateString();
 
-        $recurringJournals = RecurringJournal::where('status', 'active')
+        $recurringJournals = RecurringJournal::withoutGlobalScope(CompanyScope::class)
+            ->where('status', 'active')
             ->where('next_run_date', '<=', $today)
             ->with('company')
             ->get();
 
         foreach ($recurringJournals as $recurring) {
-            $this->processRecurringJournal($recurring, $journalService, $documentNumber);
+            app(CompanyContextService::class)->runAs(
+                $recurring->company_id,
+                fn () => $this->processRecurringJournal($recurring, $journalService, $documentNumber)
+            );
         }
     }
 
@@ -58,12 +64,12 @@ class GenerateRecurringJournalsJob implements ShouldQueue
     protected function calculateNextRunDate(string $currentDate, string $frequency): string
     {
         return match ($frequency) {
-            'DAILY' => \Carbon\Carbon::parse($currentDate)->addDay()->toDateString(),
-            'WEEKLY' => \Carbon\Carbon::parse($currentDate)->addWeek()->toDateString(),
-            'MONTHLY' => \Carbon\Carbon::parse($currentDate)->addMonth()->toDateString(),
-            'QUARTERLY' => \Carbon\Carbon::parse($currentDate)->addMonths(3)->toDateString(),
-            'YEARLY' => \Carbon\Carbon::parse($currentDate)->addYear()->toDateString(),
-            default => \Carbon\Carbon::parse($currentDate)->addMonth()->toDateString(),
+            'DAILY' => Carbon::parse($currentDate)->addDay()->toDateString(),
+            'WEEKLY' => Carbon::parse($currentDate)->addWeek()->toDateString(),
+            'MONTHLY' => Carbon::parse($currentDate)->addMonth()->toDateString(),
+            'QUARTERLY' => Carbon::parse($currentDate)->addMonths(3)->toDateString(),
+            'YEARLY' => Carbon::parse($currentDate)->addYear()->toDateString(),
+            default => Carbon::parse($currentDate)->addMonth()->toDateString(),
         };
     }
 }

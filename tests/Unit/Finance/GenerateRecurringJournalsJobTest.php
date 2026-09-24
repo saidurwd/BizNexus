@@ -2,12 +2,18 @@
 
 namespace Tests\Unit\Finance;
 
-use Tests\TestCase;
-use Modules\Finance\Models\RecurringJournal;
-use Modules\Finance\Jobs\GenerateRecurringJournalsJob;
-use Illuminate\Support\Facades\Bus;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
+use Modules\Core\Models\Company;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\DocumentNumberService;
+use Modules\Finance\Jobs\GenerateRecurringJournalsJob;
+use Modules\Finance\Models\Account;
+use Modules\Finance\Models\Journal;
+use Modules\Finance\Models\RecurringJournal;
+use Modules\Finance\Services\JournalService;
+use Tests\TestCase;
 
 class GenerateRecurringJournalsJobTest extends TestCase
 {
@@ -17,8 +23,9 @@ class GenerateRecurringJournalsJobTest extends TestCase
     {
         Bus::fake();
 
-        $company = \Modules\Core\Models\Company::factory()->create();
-        $account = \Modules\Finance\Models\Account::factory()->asset()->create(['company_id' => $company->id]);
+        $company = Company::factory()->create();
+        app(CompanyContextService::class)->pinCompany($company->id);
+        $account = Account::factory()->asset()->create(['company_id' => $company->id]);
 
         RecurringJournal::create([
             'company_id' => $company->id,
@@ -43,8 +50,9 @@ class GenerateRecurringJournalsJobTest extends TestCase
 
     public function test_recurring_journal_with_future_date_is_not_processed(): void
     {
-        $company = \Modules\Core\Models\Company::factory()->create();
-        $account = \Modules\Finance\Models\Account::factory()->asset()->create(['company_id' => $company->id]);
+        $company = Company::factory()->create();
+        app(CompanyContextService::class)->pinCompany($company->id);
+        $account = Account::factory()->asset()->create(['company_id' => $company->id]);
 
         RecurringJournal::create([
             'company_id' => $company->id,
@@ -62,9 +70,9 @@ class GenerateRecurringJournalsJobTest extends TestCase
             'status' => 'active',
         ]);
 
-        $job = new GenerateRecurringJournalsJob();
-        $job->handle(app(\Modules\Finance\Services\JournalService::class), app(\Modules\Core\Services\DocumentNumberService::class));
+        $job = new GenerateRecurringJournalsJob;
+        $job->handle(app(JournalService::class), app(DocumentNumberService::class));
 
-        $this->assertEquals(0, \Modules\Finance\Models\Journal::count());
+        $this->assertEquals(0, Journal::count());
     }
 }

@@ -3,8 +3,8 @@
 namespace Modules\Finance\Controllers;
 
 use Illuminate\Http\Request;
-use Modules\Finance\Services\FinancialReportService;
 use Modules\Core\Services\CompanyContextService;
+use Modules\Finance\Services\FinancialReportService;
 
 class DashboardController extends Controller
 {
@@ -15,7 +15,7 @@ class DashboardController extends Controller
 
     public function index(Request $request)
     {
-        $companyId = $request->get('company_id') ?? $this->companyContext->getActiveCompanyId();
+        $companyId = $this->companyContext->getActiveCompanyId();
 
         $dashboardData = $this->reportService->getDashboardData($companyId);
 

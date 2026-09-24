@@ -2,12 +2,14 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\BankAccount;
+use Modules\Core\Models\Currency;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\Account;
+use Modules\Finance\Models\BankAccount;
 
 class BankAccountController extends Controller
 {
@@ -20,7 +22,6 @@ class BankAccountController extends Controller
 
     public function index(Request $request)
     {
-        $this->checkPermission('finance.accounts.view');
 
         $bankAccounts = BankAccount::with(['currency', 'glAccount'])
             ->orderBy('bank_name')
@@ -32,24 +33,22 @@ class BankAccountController extends Controller
 
     public function create()
     {
-        $this->checkPermission('finance.accounts.create');
 
         $companyId = $this->getActiveCompanyId();
 
-        $glOptions = \Modules\Finance\Models\Account::where('is_postable', true)
+        $glOptions = Account::where('is_postable', true)
             ->where('company_id', $companyId)
             ->where('account_code', 'like', '1120%')
             ->orderBy('account_code')
             ->get(['id', 'account_code', 'account_name']);
 
-        $currencyOptions = \Modules\Core\Models\Currency::orderBy('code')->get(['id', 'code', 'name']);
+        $currencyOptions = Currency::orderBy('code')->get(['id', 'code', 'name']);
 
         return view('finance.bank-accounts.create', compact('glOptions', 'currencyOptions'));
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $this->checkPermission('finance.accounts.create');
 
         $validated = $request->validate([
             'bank_name' => 'required|string|max:255',
@@ -74,25 +73,23 @@ class BankAccountController extends Controller
 
     public function edit(int $id)
     {
-        $this->checkPermission('finance.accounts.update');
 
         $bankAccount = BankAccount::findOrFail($id);
 
         $companyId = $this->getActiveCompanyId();
-        $glOptions = \Modules\Finance\Models\Account::where('is_postable', true)
+        $glOptions = Account::where('is_postable', true)
             ->where('company_id', $companyId)
             ->where('account_code', 'like', '1120%')
             ->orderBy('account_code')
             ->get(['id', 'account_code', 'account_name']);
 
-        $currencyOptions = \Modules\Core\Models\Currency::orderBy('code')->get(['id', 'code', 'name']);
+        $currencyOptions = Currency::orderBy('code')->get(['id', 'code', 'name']);
 
         return view('finance.bank-accounts.edit', compact('bankAccount', 'glOptions', 'currencyOptions'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
     {
-        $this->checkPermission('finance.accounts.update');
 
         $bankAccount = BankAccount::findOrFail($id);
 
@@ -117,7 +114,6 @@ class BankAccountController extends Controller
 
     public function destroy(int $id): RedirectResponse
     {
-        $this->checkPermission('finance.accounts.delete');
 
         $bankAccount = BankAccount::findOrFail($id);
         $bankAccount->delete();

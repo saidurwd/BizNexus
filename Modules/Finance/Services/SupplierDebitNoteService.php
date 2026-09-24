@@ -7,9 +7,12 @@ use Modules\Core\Exceptions\InvalidAccountingTransactionException;
 use Modules\Core\Services\DefaultAccountService;
 use Modules\Finance\Events\SupplierDebitNoteApproved;
 use Modules\Finance\Models\SupplierDebitNote;
+use Modules\Finance\Services\Concerns\EnforcesSegregationOfDuties;
 
 class SupplierDebitNoteService
 {
+    use EnforcesSegregationOfDuties;
+
     public function postDebitNote(SupplierDebitNote $debitNote): SupplierDebitNote
     {
         if (! $debitNote->isApproved()) {
@@ -66,6 +69,8 @@ class SupplierDebitNoteService
         if (! $debitNote->isSubmitted()) {
             throw new InvalidAccountingTransactionException('Only submitted debit notes can be approved');
         }
+
+        $this->ensureApproverIsNotCreator($debitNote, 'debit note');
 
         $debitNote->update(['status' => SupplierDebitNote::STATUS_APPROVED]);
 

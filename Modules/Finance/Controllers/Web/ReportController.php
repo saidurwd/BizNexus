@@ -2,16 +2,21 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Modules\Finance\Services\LedgerService;
-use Modules\Finance\Services\FinancialReportService;
-use Modules\Finance\Services\PaymentService;
-use Modules\Finance\Services\ReceiptService;
-use Modules\Finance\Jobs\GenerateReportJob;
+use Illuminate\Http\Request;
+use Modules\Core\Models\FiscalYear;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Jobs\GenerateReportJob;
+use Modules\Finance\Models\CustomerReceipt;
+use Modules\Finance\Models\Journal;
+use Modules\Finance\Models\SupplierPayment;
+use Modules\Finance\Services\BudgetService;
+use Modules\Finance\Services\FinancialReportService;
+use Modules\Finance\Services\LedgerService;
+use Modules\Finance\Services\PaymentService;
+use Modules\Finance\Services\ReceiptService;
 
 class ReportController extends Controller
 {
@@ -20,7 +25,7 @@ class ReportController extends Controller
         protected FinancialReportService $financialReportService,
         protected PaymentService $paymentService,
         protected ReceiptService $receiptService,
-        protected \Modules\Finance\Services\BudgetService $budgetService,
+        protected BudgetService $budgetService,
         CompanyContextService $companyContext,
         PermissionService $permissionService
     ) {
@@ -29,7 +34,6 @@ class ReportController extends Controller
 
     public function generalLedger(Request $request)
     {
-        $this->checkPermission('finance.reports.view');
 
         $ledger = $this->ledgerService->getGeneralLedger(
             $this->getActiveCompanyId(),
@@ -44,7 +48,6 @@ class ReportController extends Controller
 
     public function trialBalance(Request $request)
     {
-        $this->checkPermission('finance.reports.view');
 
         $trialBalance = $this->ledgerService->getTrialBalance(
             $this->getActiveCompanyId(),
@@ -63,7 +66,6 @@ class ReportController extends Controller
 
     public function profitLoss(Request $request)
     {
-        $this->checkPermission('finance.reports.view');
 
         $report = $this->financialReportService->getProfitAndLoss(
             $this->getActiveCompanyId(),
@@ -88,7 +90,6 @@ class ReportController extends Controller
 
     public function balanceSheet(Request $request)
     {
-        $this->checkPermission('finance.reports.view');
 
         $report = $this->financialReportService->getBalanceSheet(
             $this->getActiveCompanyId(),
@@ -103,7 +104,6 @@ class ReportController extends Controller
 
     public function cashFlow(Request $request)
     {
-        $this->checkPermission('finance.reports.view');
 
         $report = $this->financialReportService->getCashFlow(
             $this->getActiveCompanyId(),
@@ -119,7 +119,6 @@ class ReportController extends Controller
 
     public function apAging()
     {
-        $this->checkPermission('finance.reports.view');
 
         $aging = $this->paymentService->getAPAging($this->getActiveCompanyId());
 
@@ -130,7 +129,6 @@ class ReportController extends Controller
 
     public function arAging()
     {
-        $this->checkPermission('finance.reports.view');
 
         $aging = $this->receiptService->getARAging($this->getActiveCompanyId());
 
@@ -141,9 +139,8 @@ class ReportController extends Controller
 
     public function paymentRegister()
     {
-        $this->checkPermission('finance.reports.view');
 
-        $payments = \Modules\Finance\Models\SupplierPayment::where('company_id', $this->getActiveCompanyId())
+        $payments = SupplierPayment::where('company_id', $this->getActiveCompanyId())
             ->with('supplier')
             ->orderBy('payment_date', 'desc')
             ->get();
@@ -153,9 +150,8 @@ class ReportController extends Controller
 
     public function receiptRegister()
     {
-        $this->checkPermission('finance.reports.view');
 
-        $receipts = \Modules\Finance\Models\CustomerReceipt::where('company_id', $this->getActiveCompanyId())
+        $receipts = CustomerReceipt::where('company_id', $this->getActiveCompanyId())
             ->with('customer')
             ->orderBy('receipt_date', 'desc')
             ->get();
@@ -165,10 +161,9 @@ class ReportController extends Controller
 
     public function cashBook()
     {
-        $this->checkPermission('finance.reports.view');
 
-        $transactions = \Modules\Finance\Models\Journal::where('company_id', $this->getActiveCompanyId())
-            ->whereHas('lines', fn($q) => $q->whereHas('account', fn($q2) => $q2->where('account_code', 'like', '1110%')))
+        $transactions = Journal::where('company_id', $this->getActiveCompanyId())
+            ->whereHas('lines', fn ($q) => $q->whereHas('account', fn ($q2) => $q2->where('account_code', 'like', '1110%')))
             ->with('lines.account')
             ->orderBy('journal_date', 'desc')
             ->get();
@@ -178,10 +173,9 @@ class ReportController extends Controller
 
     public function bankBook()
     {
-        $this->checkPermission('finance.reports.view');
 
-        $transactions = \Modules\Finance\Models\Journal::where('company_id', $this->getActiveCompanyId())
-            ->whereHas('lines', fn($q) => $q->whereHas('account', fn($q2) => $q2->where('account_code', 'like', '1120%')))
+        $transactions = Journal::where('company_id', $this->getActiveCompanyId())
+            ->whereHas('lines', fn ($q) => $q->whereHas('account', fn ($q2) => $q2->where('account_code', 'like', '1120%')))
             ->with('lines.account')
             ->orderBy('journal_date', 'desc')
             ->get();
@@ -191,9 +185,8 @@ class ReportController extends Controller
 
     public function management()
     {
-        $this->checkPermission('finance.reports.view');
 
-        $fiscalYearId = \Modules\Core\Models\FiscalYear::where('company_id', $this->getActiveCompanyId())
+        $fiscalYearId = FiscalYear::where('company_id', $this->getActiveCompanyId())
             ->where('is_current', true)
             ->value('id');
 
@@ -207,7 +200,6 @@ class ReportController extends Controller
 
     public function generateAsync(Request $request)
     {
-        $this->checkPermission('finance.reports.view');
 
         $request->validate([
             'report_type' => 'required|string|in:trial_balance,general_ledger,profit_loss,balance_sheet,cash_flow',

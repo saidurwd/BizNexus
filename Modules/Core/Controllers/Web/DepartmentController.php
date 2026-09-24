@@ -3,18 +3,44 @@
 namespace Modules\Core\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Modules\Core\Models\Department;
-use Modules\Core\Models\Company;
+use Illuminate\Validation\Rule;
 use Modules\Core\Models\Branch;
-use App\Models\User;
+use Modules\Core\Models\Company;
+use Modules\Core\Models\Department;
+use Modules\Core\Services\CompanyContextService;
 
+/**
+ * Departments are managed within the active company only; their branch, parent and manager must belong to it too.
+ */
 class DepartmentController extends Controller
 {
+    public function __construct(protected CompanyContextService $companyContext) {}
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function rules(?int $ignoreId = null): array
+    {
+        $companyId = $this->companyContext->getActiveCompanyId();
+
+        return [
+            'company_id' => ['required', Rule::in([$companyId])],
+            'branch_id' => ['nullable', Rule::exists('branches', 'id')->where('company_id', $companyId)],
+            'parent_id' => ['nullable', Rule::exists('departments', 'id')->where('company_id', $companyId)],
+            'code' => ['required', 'string', 'max:50', Rule::unique('departments', 'code')->ignore($ignoreId)],
+            'name' => 'required|string|max:255',
+            'manager_id' => ['nullable', Rule::exists('user_companies', 'user_id')->where('company_id', $companyId)],
+            'status' => 'required|in:active,inactive',
+        ];
+    }
+
     public function index()
     {
         $departments = Department::with(['company', 'branch', 'parent', 'manager'])
+            ->where('company_id', $this->companyContext->getActiveCompanyId())
             ->orderBy('name')
             ->get();
 
@@ -23,25 +49,18 @@ class DepartmentController extends Controller
 
     public function create()
     {
-        $companies = Company::orderBy('name')->get();
-        $branches = Branch::orderBy('name')->get();
-        $parentDepartments = Department::orderBy('name')->get();
-        $users = User::orderBy('name')->get(['id', 'name', 'email']);
+        $companyId = $this->companyContext->getActiveCompanyId();
+        $companies = Company::whereKey($companyId)->get();
+        $branches = Branch::where('company_id', $companyId)->orderBy('name')->get();
+        $parentDepartments = Department::where('company_id', $companyId)->orderBy('name')->get();
+        $users = User::whereHas('userCompanies', fn ($query) => $query->where('company_id', $companyId))->orderBy('name')->get(['id', 'name', 'email']);
 
         return view('core.departments.create', compact('companies', 'branches', 'parentDepartments', 'users'));
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
-            'branch_id' => 'nullable|exists:branches,id',
-            'parent_id' => 'nullable|exists:departments,id',
-            'code' => 'required|string|max:50|unique:departments,code',
-            'name' => 'required|string|max:255',
-            'manager_id' => 'nullable|exists:users,id',
-            'status' => 'required|in:active,inactive',
-        ]);
+        $validated = $request->validate($this->rules());
 
         Department::create($validated);
 
@@ -51,28 +70,21 @@ class DepartmentController extends Controller
 
     public function edit(int $id)
     {
-        $department = Department::findOrFail($id);
-        $companies = Company::orderBy('name')->get();
-        $branches = Branch::orderBy('name')->get();
-        $parentDepartments = Department::where('id', '!=', $id)->orderBy('name')->get();
-        $users = User::orderBy('name')->get(['id', 'name', 'email']);
+        $companyId = $this->companyContext->getActiveCompanyId();
+        $department = Department::where('company_id', $companyId)->findOrFail($id);
+        $companies = Company::whereKey($companyId)->get();
+        $branches = Branch::where('company_id', $companyId)->orderBy('name')->get();
+        $parentDepartments = Department::where('company_id', $companyId)->where('id', '!=', $id)->orderBy('name')->get();
+        $users = User::whereHas('userCompanies', fn ($query) => $query->where('company_id', $companyId))->orderBy('name')->get(['id', 'name', 'email']);
 
         return view('core.departments.edit', compact('department', 'companies', 'branches', 'parentDepartments', 'users'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
     {
-        $department = Department::findOrFail($id);
+        $department = Department::where('company_id', $this->companyContext->getActiveCompanyId())->findOrFail($id);
 
-        $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
-            'branch_id' => 'nullable|exists:branches,id',
-            'parent_id' => 'nullable|exists:departments,id',
-            'code' => 'required|string|max:50|unique:departments,code,' . $id,
-            'name' => 'required|string|max:255',
-            'manager_id' => 'nullable|exists:users,id',
-            'status' => 'required|in:active,inactive',
-        ]);
+        $validated = $request->validate($this->rules($id));
 
         $department->update($validated);
 
@@ -82,7 +94,7 @@ class DepartmentController extends Controller
 
     public function destroy(int $id): RedirectResponse
     {
-        $department = Department::findOrFail($id);
+        $department = Department::where('company_id', $this->companyContext->getActiveCompanyId())->findOrFail($id);
         $department->delete();
 
         return redirect()->route('core.departments.index')

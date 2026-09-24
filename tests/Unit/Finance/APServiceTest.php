@@ -2,20 +2,27 @@
 
 namespace Tests\Unit\Finance;
 
-use Tests\TestCase;
-use Modules\Finance\Models\Account;
-use Modules\Finance\Models\Journal;
-use Modules\Finance\Models\JournalLine;
-use Modules\Finance\Models\SupplierInvoice;
-use Modules\Finance\Services\SupplierInvoiceService;
-use Modules\Finance\Services\PaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Core\Models\Company;
+use Modules\Core\Services\AccountingPeriodService;
+use Modules\Core\Services\AuditService;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Services\DefaultAccountService;
+use Modules\Core\Services\DocumentNumberService;
+use Modules\Finance\Models\Account;
+use Modules\Finance\Models\Supplier;
+use Modules\Finance\Models\SupplierInvoice;
+use Modules\Finance\Services\JournalService;
+use Modules\Finance\Services\PaymentService;
+use Modules\Finance\Services\SupplierInvoiceService;
+use Tests\TestCase;
 
 class APServiceTest extends TestCase
 {
     use RefreshDatabase;
 
     protected SupplierInvoiceService $supplierInvoiceService;
+
     protected PaymentService $paymentService;
 
     protected function setUp(): void
@@ -23,38 +30,39 @@ class APServiceTest extends TestCase
         parent::setUp();
 
         $this->supplierInvoiceService = new SupplierInvoiceService(
-            new \Modules\Core\Services\DocumentNumberService(),
-            new \Modules\Core\Services\AuditService(),
-            new \Modules\Finance\Services\JournalService(
-                new \Modules\Core\Services\CompanyContextService(),
-                new \Modules\Core\Services\AccountingPeriodService(),
-                new \Modules\Core\Services\DocumentNumberService(),
-                new \Modules\Core\Services\AuditService()
+            new DocumentNumberService,
+            new AuditService,
+            new JournalService(
+                new CompanyContextService,
+                new AccountingPeriodService,
+                new DocumentNumberService,
+                new AuditService
             ),
-            new \Modules\Core\Services\DefaultAccountService(
-                new \Modules\Core\Services\CompanyContextService()
+            new DefaultAccountService(
+                new CompanyContextService
             )
         );
 
         $this->paymentService = new PaymentService(
-            new \Modules\Core\Services\DocumentNumberService(),
-            new \Modules\Core\Services\AuditService(),
-            new \Modules\Finance\Services\JournalService(
-                new \Modules\Core\Services\CompanyContextService(),
-                new \Modules\Core\Services\AccountingPeriodService(),
-                new \Modules\Core\Services\DocumentNumberService(),
-                new \Modules\Core\Services\AuditService()
+            new DocumentNumberService,
+            new AuditService,
+            new JournalService(
+                new CompanyContextService,
+                new AccountingPeriodService,
+                new DocumentNumberService,
+                new AuditService
             ),
-            new \Modules\Core\Services\DefaultAccountService(
-                new \Modules\Core\Services\CompanyContextService()
+            new DefaultAccountService(
+                new CompanyContextService
             )
         );
     }
 
     public function test_can_create_supplier_invoice(): void
     {
-        $company = \Modules\Core\Models\Company::factory()->create();
-        $supplier = \Modules\Finance\Models\Supplier::factory()->create(['company_id' => $company->id]);
+        $company = Company::factory()->create();
+        app(CompanyContextService::class)->pinCompany($company->id);
+        $supplier = Supplier::factory()->create(['company_id' => $company->id]);
         $expenseAccount = Account::factory()->expense()->create(['company_id' => $company->id]);
 
         $invoiceData = [
@@ -81,8 +89,9 @@ class APServiceTest extends TestCase
 
     public function test_supplier_invoice_calculates_outstanding_correctly(): void
     {
-        $company = \Modules\Core\Models\Company::factory()->create();
-        $supplier = \Modules\Finance\Models\Supplier::factory()->create(['company_id' => $company->id]);
+        $company = Company::factory()->create();
+        app(CompanyContextService::class)->pinCompany($company->id);
+        $supplier = Supplier::factory()->create(['company_id' => $company->id]);
         $expenseAccount = Account::factory()->expense()->create(['company_id' => $company->id]);
 
         $invoiceData = [
@@ -108,8 +117,9 @@ class APServiceTest extends TestCase
 
     public function test_ap_aging_groups_invoices_by_age(): void
     {
-        $company = \Modules\Core\Models\Company::factory()->create();
-        $supplier = \Modules\Finance\Models\Supplier::factory()->create(['company_id' => $company->id]);
+        $company = Company::factory()->create();
+        app(CompanyContextService::class)->pinCompany($company->id);
+        $supplier = Supplier::factory()->create(['company_id' => $company->id]);
         $expenseAccount = Account::factory()->expense()->create(['company_id' => $company->id]);
 
         $invoiceData = [

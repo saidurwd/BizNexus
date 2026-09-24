@@ -4,10 +4,14 @@ namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Finance\Scopes\CompanyScope;
+use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Core\Models\Company;
+use Modules\Core\Models\FiscalPeriod;
 
 class AccountBalance extends Model
 {
+    use BelongsToCompany;
+
     protected $fillable = [
         'company_id',
         'account_id',
@@ -21,11 +25,6 @@ class AccountBalance extends Model
         'created_by',
         'updated_by',
     ];
-
-    protected static function booted()
-    {
-        static::addGlobalScope(new CompanyScope);
-    }
 
     protected $casts = [
         'balance_date' => 'date',
@@ -42,12 +41,12 @@ class AccountBalance extends Model
 
     public function fiscalPeriod(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\FiscalPeriod::class);
+        return $this->belongsTo(FiscalPeriod::class);
     }
 
     public function company(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Company::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function isDebitBalance(): bool

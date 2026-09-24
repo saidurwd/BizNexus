@@ -3,33 +3,24 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Modules\Core\Services\BranchContextService;
 use Modules\Core\Services\CompanyContextService;
 
 class AuthenticatedSessionController extends Controller
 {
-    public function __construct(protected CompanyContextService $companyContext)
-    {
-    }
+    public function __construct(protected CompanyContextService $companyContext) {}
 
     public function create()
     {
         return view('auth.login');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(LoginRequest $request): RedirectResponse
     {
-        $request->validate([
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
-        ]);
-
-        if (!auth()->attempt($request->only('email', 'password'), $request->boolean('remember'))) {
-            return back()->withErrors([
-                'email' => 'The provided credentials do not match our records.',
-            ])->onlyInput('email');
-        }
+        $request->authenticate();
 
         $request->session()->regenerate();
 
@@ -45,10 +36,10 @@ class AuthenticatedSessionController extends Controller
             $companyId = $companies->first()->id;
             $this->companyContext->setActiveCompany($companyId);
 
-            $branches = app(\Modules\Core\Services\BranchContextService::class)->getAccessibleBranches($companyId);
+            $branches = app(BranchContextService::class)->getAccessibleBranches($companyId);
 
             if ($branches->count() === 1) {
-                app(\Modules\Core\Services\BranchContextService::class)->setActiveBranch($companyId, $branches->first()->id);
+                app(BranchContextService::class)->setActiveBranch($companyId, $branches->first()->id);
             }
 
             return redirect()->intended(route('dashboard', absolute: false));

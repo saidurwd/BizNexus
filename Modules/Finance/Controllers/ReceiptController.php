@@ -16,7 +16,7 @@ class ReceiptController extends Controller
 
     public function index(Request $request)
     {
-        $companyId = $request->get('company_id') ?? $this->companyContext->getCompanyId();
+        $companyId = $this->companyContext->getActiveCompanyId();
 
         $receipts = CustomerReceipt::with(['customer', 'bankAccount', 'currency'])
             ->where('company_id', $companyId)
@@ -41,7 +41,6 @@ class ReceiptController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
             'customer_id' => 'required|exists:customers,id',
             'receipt_number' => 'nullable|string|max:50',
             'receipt_date' => 'required|date',
@@ -56,6 +55,8 @@ class ReceiptController extends Controller
             'allocations.*.invoice_id' => 'required|exists:customer_invoices,id',
             'allocations.*.amount' => 'required|numeric|min:0',
         ]);
+
+        $validated['company_id'] = $this->companyContext->getActiveCompanyId();
 
         try {
             $receipt = $this->receiptService->createReceipt($validated);
@@ -165,7 +166,7 @@ class ReceiptController extends Controller
 
     public function aging(Request $request)
     {
-        $companyId = $request->get('company_id') ?? $this->companyContext->getCompanyId();
+        $companyId = $this->companyContext->getActiveCompanyId();
 
         $aging = $this->receiptService->getARAging($companyId);
 

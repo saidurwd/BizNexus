@@ -10,10 +10,13 @@ use Modules\Core\Services\DocumentNumberService;
 use Modules\Finance\Events\CustomerInvoiceApproved;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\CustomerInvoice;
+use Modules\Finance\Services\Concerns\EnforcesSegregationOfDuties;
 use Modules\Workflow\Services\WorkflowService;
 
 class CustomerInvoiceService
 {
+    use EnforcesSegregationOfDuties;
+
     public function __construct(
         protected DocumentNumberService $documentNumber,
         protected AuditService $audit,
@@ -89,15 +92,17 @@ class CustomerInvoiceService
 
     public function postInvoice(CustomerInvoice $invoice): CustomerInvoice
     {
-        if (! $invoice->isApproved()) {
-            throw new InvalidAccountingTransactionException('Only approved invoices can be posted');
-        }
-
-        if ($invoice->lines->isEmpty()) {
-            throw new InvalidAccountingTransactionException('Invoice must have at least one line item to post.');
-        }
-
         return DB::transaction(function () use ($invoice) {
+            $invoice = CustomerInvoice::whereKey($invoice->id)->lockForUpdate()->firstOrFail();
+
+            if (! $invoice->isApproved()) {
+                throw new InvalidAccountingTransactionException('Only approved invoices can be posted');
+            }
+
+            if ($invoice->lines->isEmpty()) {
+                throw new InvalidAccountingTransactionException('Invoice must have at least one line item to post.');
+            }
+
             $customer = $invoice->customer;
             $company = $invoice->company;
 
@@ -131,7 +136,7 @@ class CustomerInvoiceService
                 }
             }
 
-            $journal = $this->journalService->create([
+            $journal = $this->journalService->postFromSource([
                 'company_id' => $invoice->company_id,
                 'journal_date' => $invoice->invoice_date->toDateString(),
                 'reference_type' => 'customer_invoice',
@@ -141,10 +146,6 @@ class CustomerInvoiceService
                 'exchange_rate' => $invoice->exchange_rate,
                 'lines' => $journalLines,
             ]);
-
-            $this->journalService->submit($journal);
-            $this->journalService->approve($journal);
-            $this->journalService->post($journal);
 
             $invoice->update([
                 'status' => CustomerInvoice::STATUS_POSTED,
@@ -199,6 +200,8 @@ class CustomerInvoiceService
         if (! $invoice->isSubmitted()) {
             throw new InvalidAccountingTransactionException('Only submitted invoices can be approved');
         }
+
+        $this->ensureApproverIsNotCreator($invoice, 'customer invoice');
 
         $invoice->update(['status' => CustomerInvoice::STATUS_APPROVED]);
 

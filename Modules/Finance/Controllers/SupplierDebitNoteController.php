@@ -16,7 +16,7 @@ class SupplierDebitNoteController extends Controller
 
     public function index(Request $request)
     {
-        $companyId = $request->get('company_id') ?? $this->companyContext->getCompanyId();
+        $companyId = $this->companyContext->getActiveCompanyId();
 
         $debitNotes = SupplierDebitNote::with(['supplier'])
             ->where('company_id', $companyId)
@@ -41,7 +41,6 @@ class SupplierDebitNoteController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
             'supplier_id' => 'required|exists:suppliers,id',
             'note_number' => 'nullable|string|max:50',
             'note_date' => 'required|date',
@@ -50,6 +49,8 @@ class SupplierDebitNoteController extends Controller
             'description' => 'nullable|string',
             'amount' => 'required|numeric|min:0',
         ]);
+
+        $validated['company_id'] = $this->companyContext->getActiveCompanyId();
 
         try {
             $debitNote = $this->debitNoteService->createDebitNote($validated);

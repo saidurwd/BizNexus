@@ -2,13 +2,13 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\BankAccount;
-use Modules\Finance\Models\BankTransaction;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\BankAccount;
+use Modules\Finance\Models\BankTransaction;
 
 class BankPaymentController extends Controller
 {
@@ -21,7 +21,6 @@ class BankPaymentController extends Controller
 
     public function index()
     {
-        $this->checkPermission('finance.accounts.view');
 
         $payments = BankTransaction::with(['bankAccount'])
             ->whereIn('transaction_type', ['WITHDRAWAL', 'TRANSFER', 'CHARGE'])
@@ -33,7 +32,6 @@ class BankPaymentController extends Controller
 
     public function create()
     {
-        $this->checkPermission('finance.accounts.create');
 
         $bankAccounts = BankAccount::where('status', 'active')->get();
 
@@ -42,7 +40,6 @@ class BankPaymentController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $this->checkPermission('finance.accounts.create');
 
         $validated = $request->validate([
             'bank_account_id' => 'required|exists:bank_accounts,id',
@@ -53,7 +50,7 @@ class BankPaymentController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $validated['transaction_number'] = 'BP-' . now()->format('Ymd') . '-' . str_pad((string) (BankTransaction::count() + 1), 4, '0', STR_PAD_LEFT);
+        $validated['transaction_number'] = 'BP-'.now()->format('Ymd').'-'.str_pad((string) (BankTransaction::count() + 1), 4, '0', STR_PAD_LEFT);
         $validated['status'] = BankTransaction::STATUS_COMPLETED;
         $validated['created_by'] = auth()->id();
 

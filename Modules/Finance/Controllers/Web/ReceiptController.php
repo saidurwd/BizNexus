@@ -2,12 +2,12 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\CustomerReceipt;
-use Modules\Finance\Services\ReceiptService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\CustomerReceipt;
+use Modules\Finance\Services\ReceiptService;
 
 class ReceiptController extends Controller
 {
@@ -21,7 +21,6 @@ class ReceiptController extends Controller
 
     public function index(Request $request)
     {
-        $this->checkPermission('finance.customers.view');
 
         $receipts = CustomerReceipt::with(['customer', 'bankAccount'])
             ->orderBy('receipt_date', 'desc')
@@ -32,14 +31,12 @@ class ReceiptController extends Controller
 
     public function create()
     {
-        $this->checkPermission('finance.customers.create');
 
         return view('finance.receipts.create');
     }
 
     public function bankReceipts(Request $request)
     {
-        $this->checkPermission('finance.customers.view');
 
         $receipts = CustomerReceipt::with(['customer', 'bankAccount'])
             ->whereNotNull('bank_account_id')
@@ -54,7 +51,6 @@ class ReceiptController extends Controller
 
     public function store(Request $request)
     {
-        $this->checkPermission('finance.customers.create');
 
         $validated = $request->validate([
             'receipt_date' => 'required|date',
@@ -86,7 +82,7 @@ class ReceiptController extends Controller
     {
         $receipt = CustomerReceipt::findOrFail($id);
 
-        if (!$receipt->isDraft()) {
+        if (! $receipt->isDraft()) {
             return back()->with('error', 'Only draft receipts can be submitted.');
         }
 
@@ -99,7 +95,7 @@ class ReceiptController extends Controller
     {
         $receipt = CustomerReceipt::findOrFail($id);
 
-        if (!$receipt->isSubmitted()) {
+        if (! $receipt->isSubmitted()) {
             return back()->with('error', 'Only submitted receipts can be approved.');
         }
 
@@ -112,7 +108,7 @@ class ReceiptController extends Controller
     {
         $receipt = CustomerReceipt::findOrFail($id);
 
-        if (!$receipt->isSubmitted()) {
+        if (! $receipt->isSubmitted()) {
             return back()->with('error', 'Only submitted receipts can be rejected.');
         }
 

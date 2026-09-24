@@ -2,9 +2,9 @@
 
 namespace Tests\Unit\Finance;
 
-use Tests\TestCase;
-use Modules\Finance\Models\Tax;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Finance\Models\Tax;
+use Tests\TestCase;
 
 class TaxCalculationTest extends TestCase
 {
@@ -34,6 +34,16 @@ class TaxCalculationTest extends TestCase
         $calculatedTax = $tax->calculateTax($grossAmount);
 
         $this->assertEquals(150, $calculatedTax);
+    }
+
+    public function test_rounds_inclusive_tax_half_up_to_four_decimals(): void
+    {
+        $tax = Tax::factory()->create([
+            'rate' => 15.00,
+            'is_inclusive' => true,
+        ]);
+
+        $this->assertSame(13.0435, $tax->calculateTax(100));
     }
 
     public function test_calculates_gross_from_net_exclusive(): void

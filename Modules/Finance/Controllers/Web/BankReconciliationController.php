@@ -2,13 +2,13 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\BankAccount;
-use Modules\Finance\Models\BankReconciliation;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\BankAccount;
+use Modules\Finance\Models\BankReconciliation;
 
 class BankReconciliationController extends Controller
 {
@@ -21,7 +21,6 @@ class BankReconciliationController extends Controller
 
     public function index()
     {
-        $this->checkPermission('finance.accounts.view');
 
         $reconciliations = BankReconciliation::with(['bankAccount', 'reconciledBy'])
             ->orderByDesc('statement_date')
@@ -32,7 +31,6 @@ class BankReconciliationController extends Controller
 
     public function create()
     {
-        $this->checkPermission('finance.accounts.create');
 
         $bankAccounts = BankAccount::where('status', 'active')->get();
 
@@ -41,7 +39,6 @@ class BankReconciliationController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $this->checkPermission('finance.accounts.create');
 
         $validated = $request->validate([
             'bank_account_id' => 'required|exists:bank_accounts,id',

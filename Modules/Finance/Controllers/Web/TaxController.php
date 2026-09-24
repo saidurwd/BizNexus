@@ -2,11 +2,11 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\Tax;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\Tax;
 
 class TaxController extends Controller
 {
@@ -19,7 +19,6 @@ class TaxController extends Controller
 
     public function index(Request $request)
     {
-        $this->checkPermission('finance.taxes.view');
 
         $taxes = Tax::orderBy('tax_code')->paginate(20);
 
@@ -28,14 +27,12 @@ class TaxController extends Controller
 
     public function create()
     {
-        $this->checkPermission('finance.taxes.create');
 
         return view('finance.taxes.create');
     }
 
     public function store(Request $request)
     {
-        $this->checkPermission('finance.taxes.create');
 
         $validated = $request->validate([
             'tax_code' => 'required|string|max:20|unique:taxes,tax_code',
@@ -57,7 +54,6 @@ class TaxController extends Controller
 
     public function show(string $id)
     {
-        $this->checkPermission('finance.taxes.view');
 
         $tax = Tax::findOrFail($id);
 
@@ -66,7 +62,6 @@ class TaxController extends Controller
 
     public function edit(string $id)
     {
-        $this->checkPermission('finance.taxes.update');
 
         $tax = Tax::findOrFail($id);
 
@@ -75,12 +70,11 @@ class TaxController extends Controller
 
     public function update(Request $request, string $id)
     {
-        $this->checkPermission('finance.taxes.update');
 
         $tax = Tax::findOrFail($id);
 
         $validated = $request->validate([
-            'tax_code' => 'required|string|max:20|unique:taxes,tax_code,' . $tax->id,
+            'tax_code' => 'required|string|max:20|unique:taxes,tax_code,'.$tax->id,
             'tax_name' => 'required|string|max:100',
             'rate' => 'required|numeric|min:0|max:100',
             'tax_type' => 'required|in:VAT,WITHHOLDING_TAX,INCOME_TAX,OTHER',
@@ -99,7 +93,6 @@ class TaxController extends Controller
 
     public function destroy(string $id)
     {
-        $this->checkPermission('finance.taxes.delete');
 
         $tax = Tax::findOrFail($id);
         $tax->delete();

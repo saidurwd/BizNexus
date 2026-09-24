@@ -2,11 +2,11 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Finance\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Finance\Models\Customer;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\Customer;
 
 class CustomerController extends Controller
 {
@@ -19,9 +19,8 @@ class CustomerController extends Controller
 
     public function index(Request $request)
     {
-        $this->checkPermission('finance.customers.view');
 
-        $customers = Customer::when($request->get('status'), fn($q, $status) => $q->where('status', $status))
+        $customers = Customer::when($request->get('status'), fn ($q, $status) => $q->where('status', $status))
             ->orderBy('name')
             ->get();
 
@@ -32,16 +31,14 @@ class CustomerController extends Controller
 
     public function create()
     {
-        $this->checkPermission('finance.customers.create');
 
         return view('finance.customers.create');
     }
 
     public function store(Request $request)
     {
-        $this->checkPermission('finance.customers.create');
 
-        $validated = $request->validate([            'customer_code' => 'required|string|max:50',
+        $validated = $request->validate(['customer_code' => 'required|string|max:50',
             'name' => 'required|string|max:255',
             'contact_person' => 'nullable|string|max:255',
             'address' => 'nullable|string',
@@ -60,7 +57,6 @@ class CustomerController extends Controller
 
     public function show(int $id)
     {
-        $this->checkPermission('finance.customers.view');
 
         $customer = Customer::with(['invoices', 'receipts'])
             ->findOrFail($id);

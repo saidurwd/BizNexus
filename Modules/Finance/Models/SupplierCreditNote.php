@@ -2,12 +2,16 @@
 
 namespace Modules\Finance\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Finance\Scopes\CompanyScope;
+use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Core\Models\Company;
 
 class SupplierCreditNote extends Model
 {
+    use BelongsToCompany;
+
     protected $fillable = [
         'company_id',
         'supplier_id',
@@ -34,15 +38,14 @@ class SupplierCreditNote extends Model
     ];
 
     public const STATUS_DRAFT = 'DRAFT';
-    public const STATUS_SUBMITTED = 'SUBMITTED';
-    public const STATUS_APPROVED = 'APPROVED';
-    public const STATUS_POSTED = 'POSTED';
-    public const STATUS_CANCELLED = 'CANCELLED';
 
-    protected static function booted()
-    {
-        static::addGlobalScope(new CompanyScope);
-    }
+    public const STATUS_SUBMITTED = 'SUBMITTED';
+
+    public const STATUS_APPROVED = 'APPROVED';
+
+    public const STATUS_POSTED = 'POSTED';
+
+    public const STATUS_CANCELLED = 'CANCELLED';
 
     public function supplier(): BelongsTo
     {
@@ -56,12 +59,12 @@ class SupplierCreditNote extends Model
 
     public function postedBy(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class, 'posted_by');
+        return $this->belongsTo(User::class, 'posted_by');
     }
 
     public function company(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Company::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function isPosted(): bool

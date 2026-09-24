@@ -2,13 +2,16 @@
 
 namespace Modules\Finance\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Modules\Finance\Scopes\CompanyScope;
+use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Core\Models\Company;
 
 class SupplierDebitNote extends Model
 {
+    use BelongsToCompany;
+
     protected $fillable = [
         'company_id',
         'supplier_id',
@@ -24,25 +27,24 @@ class SupplierDebitNote extends Model
         'updated_by',
     ];
 
-    protected static function booted()
-    {
-        static::addGlobalScope(new CompanyScope);
-    }
-
     protected $casts = [
         'note_date' => 'date',
         'amount' => 'decimal:4',
     ];
 
     public const STATUS_DRAFT = 'DRAFT';
+
     public const STATUS_SUBMITTED = 'SUBMITTED';
+
     public const STATUS_APPROVED = 'APPROVED';
+
     public const STATUS_POSTED = 'POSTED';
+
     public const STATUS_CANCELLED = 'CANCELLED';
 
     public function company(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Company::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function supplier(): BelongsTo
@@ -57,12 +59,12 @@ class SupplierDebitNote extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function isDraft(): bool

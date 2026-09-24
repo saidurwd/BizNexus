@@ -12,10 +12,13 @@ use Modules\Finance\Models\Account;
 use Modules\Finance\Models\CustomerInvoice;
 use Modules\Finance\Models\CustomerReceipt;
 use Modules\Finance\Models\ReceiptAllocation;
+use Modules\Finance\Services\Concerns\EnforcesSegregationOfDuties;
 use Modules\Workflow\Services\WorkflowService;
 
 class ReceiptService
 {
+    use EnforcesSegregationOfDuties;
+
     public function __construct(
         protected DocumentNumberService $documentNumber,
         protected AuditService $audit,
@@ -89,11 +92,13 @@ class ReceiptService
 
     public function postReceipt(CustomerReceipt $receipt): CustomerReceipt
     {
-        if (! $receipt->isApproved()) {
-            throw new InvalidAccountingTransactionException('Only approved receipts can be posted');
-        }
-
         return DB::transaction(function () use ($receipt) {
+            $receipt = CustomerReceipt::whereKey($receipt->id)->lockForUpdate()->firstOrFail();
+
+            if (! $receipt->isApproved()) {
+                throw new InvalidAccountingTransactionException('Only approved receipts can be posted');
+            }
+
             $customer = $receipt->customer;
             $company = $receipt->company;
 
@@ -123,7 +128,7 @@ class ReceiptService
                 'credit' => $receipt->amount,
             ];
 
-            $journal = $this->journalService->create([
+            $journal = $this->journalService->postFromSource([
                 'company_id' => $receipt->company_id,
                 'journal_date' => $receipt->receipt_date->toDateString(),
                 'reference_type' => 'customer_receipt',
@@ -133,10 +138,6 @@ class ReceiptService
                 'exchange_rate' => $receipt->exchange_rate,
                 'lines' => $journalLines,
             ]);
-
-            $this->journalService->submit($journal);
-            $this->journalService->approve($journal);
-            $this->journalService->post($journal);
 
             foreach ($receipt->allocations as $allocation) {
                 $allocation->invoice->calculateOutstanding();
@@ -198,6 +199,8 @@ class ReceiptService
         if (! $receipt->isDraft() && ! $receipt->isSubmitted()) {
             throw new InvalidAccountingTransactionException('Only draft or submitted receipts can be approved');
         }
+
+        $this->ensureApproverIsNotCreator($receipt, 'receipt');
 
         $receipt->update(['status' => CustomerReceipt::STATUS_APPROVED]);
 

@@ -16,7 +16,7 @@ class SupplierInvoiceController extends Controller
 
     public function index(Request $request)
     {
-        $companyId = $request->get('company_id') ?? $this->companyContext->getCompanyId();
+        $companyId = $this->companyContext->getActiveCompanyId();
 
         $invoices = SupplierInvoice::with(['supplier', 'currency'])
             ->where('company_id', $companyId)
@@ -41,7 +41,6 @@ class SupplierInvoiceController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'company_id' => 'required|exists:companies,id',
             'supplier_id' => 'required|exists:suppliers,id',
             'invoice_number' => 'nullable|string|max:50',
             'invoice_date' => 'required|date',
@@ -58,6 +57,8 @@ class SupplierInvoiceController extends Controller
             'lines.*.tax_id' => 'nullable|exists:taxes,id',
             'lines.*.discount_amount' => 'nullable|numeric|min:0',
         ]);
+
+        $validated['company_id'] = $this->companyContext->getActiveCompanyId();
 
         try {
             $invoice = $this->supplierInvoiceService->createInvoice($validated);

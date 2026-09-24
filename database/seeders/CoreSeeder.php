@@ -2,12 +2,16 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
-use Modules\Core\Models\Role;
-use Modules\Core\Models\Permission;
-use Modules\Core\Models\UserCompany;
+use Modules\Core\Models\Branch;
+use Modules\Core\Models\Company;
 use Modules\Core\Models\CompanyUserRole;
+use Modules\Core\Models\Permission;
+use Modules\Core\Models\Role;
 use Modules\Core\Models\UserBranch;
+use Modules\Core\Models\UserCompany;
+use Modules\Core\Support\PermissionCatalog;
 
 class CoreSeeder extends Seeder
 {
@@ -16,13 +20,14 @@ class CoreSeeder extends Seeder
         $this->seedPermissions();
         $this->seedRoles();
         $this->assignPermissionsToRoles();
+        PermissionCatalog::install();
         $this->assignTestUserToCompanies();
     }
 
     protected function seedPermissions(): void
     {
         $permissions = [
-                        ['name' => 'View Users', 'slug' => 'core.users.view', 'group' => 'Administration'],
+            ['name' => 'View Users', 'slug' => 'core.users.view', 'group' => 'Administration'],
             ['name' => 'Create User', 'slug' => 'core.users.create', 'group' => 'Administration'],
             ['name' => 'Edit User', 'slug' => 'core.users.update', 'group' => 'Administration'],
             ['name' => 'Delete User', 'slug' => 'core.users.delete', 'group' => 'Administration'],
@@ -38,7 +43,7 @@ class CoreSeeder extends Seeder
             ['name' => 'Create Department', 'slug' => 'core.departments.create', 'group' => 'Company Management'],
             ['name' => 'Edit Department', 'slug' => 'core.departments.update', 'group' => 'Company Management'],
             ['name' => 'Delete Department', 'slug' => 'core.departments.delete', 'group' => 'Company Management'],
-['name' => 'View Dashboard', 'slug' => 'dashboard.view', 'group' => 'Dashboard'],
+            ['name' => 'View Dashboard', 'slug' => 'dashboard.view', 'group' => 'Dashboard'],
             ['name' => 'View Companies', 'slug' => 'core.companies.view', 'group' => 'Company Management'],
             ['name' => 'Create Company', 'slug' => 'core.companies.create', 'group' => 'Company Management'],
             ['name' => 'Edit Company', 'slug' => 'core.companies.update', 'group' => 'Company Management'],
@@ -228,13 +233,13 @@ class CoreSeeder extends Seeder
 
     protected function assignTestUserToCompanies(): void
     {
-        $user = \App\Models\User::where('email', 'test@example.com')->first();
+        $user = User::where('email', 'test@example.com')->first();
 
-        if (!$user) {
+        if (! $user) {
             return;
         }
 
-        $companies = \Modules\Core\Models\Company::all();
+        $companies = Company::all();
 
         foreach ($companies as $company) {
             UserCompany::firstOrCreate(
@@ -253,7 +258,7 @@ class CoreSeeder extends Seeder
                 );
             }
 
-            $branches = \Modules\Core\Models\Branch::where('company_id', $company->id)
+            $branches = Branch::where('company_id', $company->id)
                 ->where('status', 'active')
                 ->get();
 

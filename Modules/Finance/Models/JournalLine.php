@@ -2,28 +2,43 @@
 
 namespace Modules\Finance\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Database\Factories\JournalLineFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Core\Exceptions\UnauthorizedCompanyAccessException;
+use Modules\Core\Models\Branch;
+use Modules\Core\Models\CostCenter;
+use Modules\Core\Models\Department;
 use Modules\Finance\Scopes\BranchScope;
-use Modules\Finance\Scopes\CompanyScope;
 use Modules\Finance\Scopes\DepartmentScope;
 
 class JournalLine extends Model
 {
-    use HasFactory;
+    use BelongsToCompany, HasFactory;
 
     protected static function newFactory()
     {
-        return \Database\Factories\JournalLineFactory::new();
+        return JournalLineFactory::new();
     }
 
     protected static function booted()
     {
-        static::addGlobalScope(new CompanyScope);
         static::addGlobalScope(new BranchScope);
         static::addGlobalScope(new DepartmentScope);
+
+        static::creating(function (JournalLine $line) {
+            $journalCompanyId = Journal::withoutGlobalScopes()->whereKey($line->journal_id)->value('company_id');
+
+            $line->company_id ??= $journalCompanyId;
+
+            if ((int) $line->company_id !== (int) $journalCompanyId) {
+                throw new UnauthorizedCompanyAccessException((int) $line->company_id, auth()->id());
+            }
+        });
     }
+
     protected $fillable = [
         'journal_id',
         'account_id',
@@ -60,17 +75,17 @@ class JournalLine extends Model
 
     public function costCenter(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\CostCenter::class);
+        return $this->belongsTo(CostCenter::class);
     }
 
     public function department(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Department::class);
+        return $this->belongsTo(Department::class);
     }
 
     public function branch(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Core\Models\Branch::class);
+        return $this->belongsTo(Branch::class);
     }
 
     public function tax(): BelongsTo
