@@ -1,15 +1,43 @@
 # ERP Finance Architecture Specification
 
 **Document:** ERP-FINANCE-ARCHITECTURE.md  
-**Version:** 1.0.0  
-**Status:** Architecture Baseline  
+**Version:** 2.0.0 (2026-09-24)  
+**Status:** Architecture baseline, revised against the implementation  
 **Platform:** Laravel ERP  
 **Primary Module:** Finance & Accounting  
 **Architecture Type:** Modular, Multi-Company, Enterprise ERP  
 **Database:** MySQL 8+ / MariaDB  
-**Backend:** Laravel + PHP 8.3+  
-**Frontend:** Blade + Livewire  
-**API:** REST API v1  
+**Backend:** Laravel 13 + PHP 8.4  
+**Frontend:** Blade + AdminLTE (Bootstrap)  
+**API:** REST API v1 (Sanctum, company-bound tokens)  
+
+---
+
+# 0. Implementation Status & Decisions (v2.0)
+
+Rules marked **Implemented** are enforced in code and covered by automated tests.
+
+| Area | Rule | Status |
+|---|---|---|
+| Company isolation | Every finance model uses `BelongsToCompany`; queries fail closed without an active company; lines carry `company_id`; a journal line must use an account of the journal's company. | Implemented |
+| Authorization | Granular permissions on every web/API route; see the Authorization Architecture v2.0. | Implemented |
+| Posting engine | The journal row is locked and re-read inside the posting transaction; a journal cannot be posted twice (`DuplicatePostingException`). | Implemented |
+| Numbering (§26) | Drafts carry `DRAFT-000123`; the official number is issued **at posting**, from a locked per-company, per-fiscal-year sequence, so posted numbers have no gaps. `{YEAR}` comes from the document date. | Implemented |
+| Reversal (§25) | The reversing journal is posted in the same transaction that marks the original `REVERSED`. | Implemented |
+| Source documents | Invoices, payments and receipts are locked while posting and post their journal via `JournalService::postFromSource()`. Approval events do not create journals. | Implemented |
+| Segregation of duties | Creator cannot approve (journals and source documents); approver cannot post (optional). `config/finance/controls.php`. | Implemented |
+| Budget control | `finance.controls.budget_control`: `block` (default) or `off`. Exact decimal comparison. | Implemented |
+| Period closing (§53) | Closing is refused while journals dated inside the period are unposted. | Implemented |
+| Deletion (§80) | Foreign keys on financial tables `RESTRICT` deletes; a company with financial records cannot be deleted. | Implemented |
+| Tax rounding | Tax is computed at 12 decimal places and rounded half-up to 4 once. | Implemented |
+| Tenancy | Tenant (customer organisation) separate from legal entity (company); shared database with `tenant_id` or database per tenant; data residency. | **Decision needed** |
+| Multi-currency | Transaction, functional and reporting currency; line-level currency; rate types; revaluation; realised/unrealised FX; rounding account; per-currency precision. | Planned |
+| Tax engine | Jurisdictions, determination rules, compound/reverse-charge/withholding, provider interface, country packs (e.g. Bangladesh VAT, GCC VAT, EU VAT). | Planned |
+| Statutory output | E-invoicing (Peppol, ZATCA, India IRN, NBR), SAF-T, hash chain on posted documents where required. | Planned |
+| Year-end close | Close P&L to retained earnings; opening period 0, adjustment period 13; non-calendar fiscal calendars (4-4-5). | Planned |
+| Intercompany & consolidation | Due-to/due-from, eliminations, ownership %, currency translation (CTA), minority interest. | Planned |
+| Chart of accounts | Group COA with company mapping; control accounts closed to manual journals; cash-flow and current/non-current tags; parallel ledgers (IFRS / local GAAP). | Planned |
+| Money arithmetic | One money library (e.g. `brick/money`) for all amounts; no floats. | Planned |
 
 ---
 
@@ -340,6 +368,8 @@ created_at
 updated_at
 Historical transactions must store their exchange rate.
 Never recalculate historical transactions using the current exchange rate.
+
+v2.0 note: exchange rates are stored as DECIMAL(20,8). A rate needs more precision than an amount. The v1.0 rule of DECIMAL(20,4) for rates (§125) was wrong. For international use this table must become a currency pair (from_currency_id, to_currency_id) with a rate_type (spot, average, closing); see status table (Multi-currency).
 14. Chart of Accounts
 The Chart of Accounts is the foundation of Finance.
 Table:
@@ -592,6 +622,11 @@ Document numbering must be configurable per:
 - Company
 - Document type
 - Fiscal year
+
+v2.0 rules (implemented):
+- A draft journal receives a temporary reference (DRAFT-000123).
+- The official number is issued inside the posting transaction from a row-locked sequence, so posted numbers are gapless and never duplicated.
+- Sequences are unique per (company, document type, fiscal year); {YEAR} is taken from the document date, not today's date.
 27. General Ledger
 The General Ledger must be based on posted journals.
 Users can filter by:
@@ -2517,10 +2552,10 @@ for:
 - Credit
 - Amount
 - Tax
-- Exchange rate
 - Budget amount
 - Balance
-Currency precision should be configurable where required.
+Use DECIMAL(20,8) for exchange rates (corrected in v2.0).
+Currency precision should be configurable where required: 0 decimals for JPY, 3 for KWD/BHD/OMR, 2 for most others. Round to the currency's precision at document level and post rounding differences to a rounding account.
 126. Data Access Rules
 Every Finance query must consider:
 company_id
@@ -2789,6 +2824,7 @@ Only after these items are approved should implementation continue.
 144. Version History
 Version	Date	Status	Description
 1.0.0	2026-09-07	Baseline	Initial ERP Finance architecture
+2.0.0	2026-09-24	Revised	Implementation status, corrected numbering, decimal and deletion rules, international roadmap
 
 END OF DOCUMENT
 

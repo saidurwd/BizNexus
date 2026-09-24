@@ -20,6 +20,31 @@ The architecture must prevent unauthorized cross-company data access.
 
 ---
 
+**Version:** 2.0 (2026-09-24). Revised against the implementation on branch `fix/erp-core-hardening`.
+
+## 0. Implementation Status & Decisions
+
+| Area | Decision | Status |
+|---|---|---|
+| Company isolation | `BelongsToCompany` trait + `CompanyScope`. **Fails closed**: no active company ⇒ no rows. Jobs, seeders and console code use `CompanyContextService::runAs()`. | Implemented |
+| Active company | Session for web, token ability `company:{id}` for API, `runAs()` for jobs. Re-validated on every request. | Implemented |
+| Roles | **One model only:** `company_user_roles` with `valid_from` / `valid_until`. The global `role_user` table was removed. | Implemented |
+| Permissions | Granular `module.resource.action` slugs (e.g. `finance.journals.post`). Enforced by `permission:` route middleware on every route; a test fails if a route has none. | Implemented |
+| Granting rules | An administrator can only grant roles/permissions they hold themselves, and only in companies where they hold the user-management permission. | Implemented |
+| Branch scope | Explicit `user_branches`, or `user_companies.all_branches` for all current and future branches. | Implemented |
+| Department scope | `user_departments` (optionally per branch) controls department assignment and approval routing. It does **not** filter ledger rows (see §15). | Decided |
+| Login | Credentials → (TOTP challenge if enrolled) → company selection. Company is never chosen before authentication. | Implemented |
+| MFA | TOTP + recovery codes (Laravel Fortify actions); `companies.require_mfa` enforces enrolment. | Implemented |
+| SSO (SAML/OIDC) | Separate login path mapped to the same user/company model. | Planned |
+| Account security | `users.status`, password policy (12+, mixed case, number, symbol, breach check in production), rate-limited login, 30-minute idle timeout. | Implemented |
+| API | Sanctum tokens bound to one company; token abilities may narrow but never exceed the user's role permissions; 2FA users must supply a code. | Implemented |
+| Segregation of duties | Creator cannot approve (configurable); approver cannot post (optional); permission conflict matrix in `config/authorization.php`; `authorization:sod-report`. | Implemented |
+| Delegation | Approve/reject permissions only, per company, date-bounded (≤ 90 days), non-transferable, audited. | Implemented |
+| Field masking | Bank account numbers masked without `finance.bank-accounts.view-sensitive`. | Implemented |
+| Audit | Append-only, per-company SHA-256 hash chain; `audit:verify`. Company switches are audited. | Implemented |
+
+---
+
 # 2. Authorization Model
 
 The ERP should use four levels of access control:
@@ -132,84 +157,36 @@ ERP Dashboard
 
 ---
 
+
 # 5. Company Selection at Login
 
-The login screen may contain:
+> **Corrected in v2.0.** The original version put a company dropdown on the login page. That reveals which companies exist to anyone who opens the page, and it cannot be filtered by user before the user is known. It contradicted §6.
+
+The company is chosen **after** authentication (and after the two-factor challenge):
 
 ```text
-Email / Username
-Password
-Company
+Email + Password  →  [TOTP code, if enrolled]  →  Company selection (only the user's companies)  →  Branch selection (if needed)
 ```
 
-Example:
-
-```text
-------------------------------------------------
-|                 ERP LOGIN                    |
-|                                              |
-| Username                                     |
-| [____________________________]               |
-|                                              |
-| Password                                     |
-| [____________________________]               |
-|                                              |
-| Company                                      |
-| [ ABC Tea Ltd             ▼ ]                |
-|                                              |
-|              [ Login ]                       |
-------------------------------------------------
-```
-
-However, the company dropdown should only display companies that are assigned to the authenticated user.
-
-Never display all companies in the database.
+- A user with one company skips the selection screen.
+- A user with a default company (`user_companies.is_default`) is taken to it and can switch later.
+- The list is built from `user_companies` rows with `status = active`, never from all companies.
 
 ---
 
+
 # 6. Recommended Login Sequence
 
-A secure implementation should preferably work as follows:
-
 ```text
-Step 1
-User enters username/password
-
-        ↓
-
-Step 2
-Authenticate user
-
-        ↓
-
-Step 3
-Retrieve authorized companies
-
-        ↓
-
-Step 4
-If multiple companies:
-Show company selection
-
-        ↓
-
-Step 5
-Set Active Company
-
-        ↓
-
-Step 6
-Load organizational access
-
-        ↓
-
-Step 7
-Load permissions
-
-        ↓
-
-Step 8
-Open ERP Dashboard
+1. User enters email and password (rate limited: 5 attempts per email + IP)
+2. Credentials verified; inactive users are rejected with the same message as a wrong password
+3. If two-factor authentication is enabled: TOTP or recovery-code challenge (rate limited)
+4. User signed in; session regenerated; last_login_at recorded
+5. Authorized companies loaded (user_companies, status active)
+6. One company → set active; several → company selection
+7. Branch selection when the user has more than one accessible branch
+8. If the active company requires MFA and the user is not enrolled → profile, enrol first
+9. ERP dashboard
 ```
 
 Do not trust a company ID supplied by the browser without validating that the user has access to that company.
@@ -331,30 +308,32 @@ Organizational Scope
 
 ---
 
+
 # 10. Database Architecture
 
-Recommended tables:
+Implemented tables:
 
 ```text
-users
+users                  (+ status, last_login_at, two_factor_* columns)
 roles
 permissions
+permission_role
 
-companies
+companies              (+ require_mfa)
 branches
 departments
 
-user_companies
+user_companies         (+ is_default, all_branches)
+company_user_roles     (+ valid_from, valid_until)   ← the only role assignment table
 user_branches
-user_departments
+user_departments       (+ branch_id: department access can be limited to a branch)
 
-role_user
-permission_role
-
-company_user_roles
+approval_delegations
+personal_access_tokens (API tokens; abilities carry company:{id})
+audit_logs             (+ previous_hash, hash)
 ```
 
-The exact table structure may be adjusted depending on the selected RBAC implementation.
+The global `role_user` table from v1.0 was removed. Roles are always assigned **per company**.
 
 ---
 
@@ -390,6 +369,8 @@ ABC Tea Ltd         Yes
 XYZ Holdings        No
 DEF Agro Ltd        No
 ```
+
+**v2.0 addition:** `all_branches` (boolean). When true the user reaches every active branch of the company, including branches created later, and `user_branches` rows are not needed.
 
 ---
 
@@ -441,6 +422,15 @@ updated_at
 ```
 
 This allows the same user to have different responsibilities in different companies.
+
+**v2.0 additions:**
+
+```text
+valid_from    date, nullable
+valid_until   date, nullable
+```
+
+An assignment only grants permissions while `status = active` and today is inside the window. Use this for temporary staff, project roles and planned role changes. A role with `status = inactive` grants nothing to anyone.
 
 ---
 
@@ -546,6 +536,12 @@ status
 created_at
 updated_at
 ```
+
+**v2.0 decision: what department access controls.**
+
+Department access decides which departments a user can be assigned work for, and it routes approvals. It does **not** hide ledger rows: a journal can carry lines for several departments, so row-level filtering of the general ledger by department would show partial, unbalanced journals. Department-restricted reporting is a reporting feature, built on explicit filters, not a global scope.
+
+`user_departments.branch_id` expresses combinations like "Finance in Sylhet only". A null `branch_id` means the department in every branch the user can access.
 
 ---
 
@@ -761,28 +757,27 @@ Backend authorization is the actual security boundary.
 
 ---
 
+
 # 22. Permission Middleware
 
-Recommended middleware:
+Implemented middleware:
 
-```text
-permission
-company.access
-branch.access
-department.access
-```
+| Alias / class | Where | Responsibility |
+|---|---|---|
+| `SetCompanyContext` | web group | Signs out inactive users; re-validates the session company on every request; picks the default company. |
+| `EnsureTwoFactorEnrolment` | web group | Holds unenrolled users on their profile when the active company requires MFA. |
+| `company.and.branch` | authenticated web routes | Redirects to company/branch selection when none is active. |
+| `api.company` (`SetTokenCompanyContext`) | API routes | Pins the token's company after re-checking access and user status. |
+| `permission:{slug}` | every protected route | Requires the slug through the user's roles (plus delegations) in the active company; for API tokens the token must also carry the ability. |
 
 Example:
 
-```text
-POST /finance/journals
-
-Middleware:
-
-auth
-company.access
-permission:journal.create
+```php
+Route::post('/journals/{id}/post', [JournalController::class, 'post'])
+    ->middleware('permission:finance.journals.post');
 ```
+
+`tests/Feature/AuthorizationTest.php` and `ApiAccessTest.php` fail when a route is added without a permission, unless it is on the short self-service list (profile, sign-out, company switching, own notifications).
 
 ---
 
@@ -877,6 +872,14 @@ Receipt
 should contain or inherit a company relationship.
 
 Queries should automatically respect the active company where appropriate.
+
+**v2.0 rule: fail closed.** A company-owned model uses the `BelongsToCompany` trait. Its scope returns **no rows** when no company is active, so a queue job, scheduled task or console command cannot read every company's data by accident. Such code must state the company explicitly:
+
+```php
+app(CompanyContextService::class)->runAs($companyId, fn () => ...);
+```
+
+The trait also fills `company_id` on create and refuses to create or move a record into a company other than the active one. `withoutGlobalScope(CompanyScope::class)` is reserved for deliberate cross-company processes (for example the recurring-journal job, which then runs each item in its own company). It must never appear in controllers.
 
 ---
 
@@ -1126,6 +1129,12 @@ Configurable rule:
 creator_cannot_approve = true
 ```
 
+**v2.0 implementation.**
+
+- `config/finance/controls.php`: `creator_cannot_approve` (default on) and `approver_cannot_post` (default off). Applies to journals, supplier and customer invoices, payments, receipts and debit notes.
+- `config/authorization.php`: `conflicting_permissions`, pairs a user must never hold together in one company. Default pairs are supplier master data against payment approval, and customer creation against receipt approval. Roles, role edits, user role assignments and delegations that would combine a pair are refused.
+- `php artisan authorization:sod-report` lists existing violations. The seeded *Finance Manager* role violates the default matrix and should be split before go-live.
+
 ---
 
 # 32. Finance Permission Categories
@@ -1224,6 +1233,8 @@ period.open
 period.close
 period.reopen
 ```
+
+**v2.0 naming convention.** The implemented slugs are `module.resource.action`, with plural resources: `finance.journals.post`, `finance.supplier-invoices.approve`, `core.periods.reopen`. Delegable actions end in `.approve` or `.reject`. New permissions are introduced by a migration through `Modules\Core\Support\PermissionCatalog`, which also grants them to roles holding the equivalent older permission.
 
 ---
 
@@ -1631,22 +1642,16 @@ getAccessibleDepartments()
 
 ---
 
+
 # 45. Active Company Storage
 
-The Active Company may be stored in:
+| Channel | Source of the active company |
+|---|---|
+| Web | `session('active_company_id')`, set only after validating access and re-validated on every request |
+| API | The token's `company:{id}` ability, pinned by `api.company` |
+| Queue jobs, scheduler, seeders | `CompanyContextService::runAs($companyId, ...)`, with the company taken from the record being processed |
 
-- Session
-- Secure server-side context
-
-Recommended:
-
-```text
-session('active_company_id')
-```
-
-with server-side validation.
-
-The system may also store the user's default company.
+`CompanyContextService` is registered as a *scoped* service, so a long-running worker cannot carry one job's company into the next.
 
 ---
 
@@ -1688,24 +1693,18 @@ Alternatively, the login page can explicitly show the company dropdown.
 
 ---
 
+
 # 47. Recommended Login UX
 
-For users with multiple companies:
+> **Corrected in v2.0** (see §5): no company field on the login form.
 
 ```text
-Username
-Password
-
-Company
-[ ABC Tea Ltd ▼ ]
-
-Remember this company
-[✓]
-
-[ Login ]
+Login:           Email · Password · Remember me · [Log in]
+Two-factor:      Authentication code  or  Recovery code · [Verify]
+Company choice:  only the user's companies, then branch if needed
 ```
 
-The company list must come from the user's authorized companies.
+"Remember this company" is covered by `user_companies.is_default`.
 
 ---
 
@@ -1976,51 +1975,28 @@ Permissions
 
 ---
 
+
 # 57. Recommended Core Tables
 
-The authorization architecture should include:
-
-```text
-users
-
-roles
-permissions
-role_user
-permission_role
-
-companies
-branches
-departments
-
-user_companies
-company_user_roles
-user_branches
-user_departments
-
-audit_logs
-```
-
-Optional:
-
-```text
-user_company_preferences
-user_branch_preferences
-```
+See §10 for the implemented list. Removed in v2.0: `role_user`. Added in v2.0: `approval_delegations`, `personal_access_tokens`, and the hash-chain columns on `audit_logs`.
 
 ---
+
 
 # 58. Recommended Relationships
 
 ```text
 User
  |
- +----< UserCompany >---- Company
+ +----< UserCompany >---- Company            (is_default, all_branches, status)
  |
- +----< CompanyUserRole >---- Role
+ +----< CompanyUserRole >---- Role           (company_id, status, valid_from, valid_until)
  |
  +----< UserBranch >---- Branch
  |
- +----< UserDepartment >---- Department
+ +----< UserDepartment >---- Department      (optional branch_id)
+ |
+ +----< ApprovalDelegation (as delegator / delegate, per company)
 
 Role
  |
@@ -2324,3 +2300,77 @@ For Finance specifically:
 > **No user should ever be able to view, modify, approve, post, reverse, or report financial data outside their authorized company and organizational scope, regardless of how the request is generated.**
 
 This authorization architecture must be implemented at the **ERP Core level** so that Finance and all future modules automatically inherit the same security model.
+
+---
+
+# 66. Account Security (v2.0)
+
+- `users.status`: inactive users cannot sign in, are signed out on their next request and cannot use API tokens. Because users are shared across companies, an administrator can change a user's status only if every company the user belongs to is one they administer.
+- Password policy (`Password::defaults()`): at least 12 characters with letters in mixed case, numbers and symbols, plus a breached-password check in production.
+- Login throttling: 5 attempts per email and IP. The two-factor challenge and token issuance are throttled too.
+- Idle session lifetime defaults to 30 minutes (`SESSION_LIFETIME`).
+- Self-registration is disabled: users are created by administrators.
+
+---
+
+# 67. Multi-Factor Authentication (v2.0)
+
+- TOTP (RFC 6238) with 8 single-use recovery codes, using Laravel Fortify's actions. Fortify's own routes are disabled.
+- Enrolment from the profile page: enable, scan the QR code, then confirm with a code. Enable, confirm, regenerate and disable require a recent password confirmation.
+- `companies.require_mfa`: users without 2FA can only reach their profile until they enrol, and cannot disable 2FA while any of their companies requires it.
+- API tokens for enrolled users require a current code at issuance.
+
+**Planned:** WebAuthn passkeys as a second factor, and SSO (SAML 2.0 / OIDC) mapping identity-provider users onto `users` and `user_companies`. SSO users will be exempt from local passwords, with MFA delegated to the identity provider.
+
+---
+
+# 68. API Authentication (v2.0)
+
+```text
+POST /api/v1/tokens   { email, password, company_id, device_name, abilities?, code? }
+```
+
+- A token belongs to exactly one company (`company:{id}` ability).
+- `abilities` may list permission slugs to narrow the token. They must be permissions the user holds in that company through their own roles. Omitted means `*`.
+- Each request requires the permission through the user's roles **and** the token's abilities.
+- `DELETE /api/v1/tokens/current` revokes the token in use.
+
+---
+
+# 69. Approval Delegation (v2.0)
+
+- A user delegates their own `*.approve` / `*.reject` permissions in the active company to a colleague in the same company for a period of up to 90 days.
+- Only permissions from the delegator's own roles are delegated; a delegate cannot delegate further.
+- Refused when it would give the delegate a conflicting permission pair (§31).
+- The delegate acts in their own name (`approved_by` is the delegate), so the creator-cannot-approve rule still applies to them.
+- Creation and revocation are audited. Delegations are shown on both users' profile pages.
+
+---
+
+# 70. Sensitive Field Masking (v2.0)
+
+Bank account numbers are shown as `••••1234` unless the user holds `finance.bank-accounts.view-sensitive`. The full number is also excluded from serialised output (API responses, audit snapshots). Edit forms show it to users who may edit bank accounts.
+
+**Planned:** the same pattern for supplier/customer bank details and salary data (Payroll).
+
+---
+
+# 71. Audit Log Integrity (v2.0)
+
+- `audit_logs` is append-only in the application: updates and deletes throw.
+- Each company's entries form a SHA-256 hash chain (`previous_hash`, `hash`) over canonicalised content.
+- `php artisan audit:verify` recomputes the chains and reports the first altered or removed entry per company. Schedule it daily and alert on failure.
+- Company switches are logged as `COMPANY_SWITCH` with previous and new company.
+
+**Planned:** ship audit entries to write-once external storage, and apply a retention policy per jurisdiction.
+
+---
+
+# 72. Open Items
+
+| Item | Notes |
+|---|---|
+| SSO (SAML/OIDC) | Needs an identity provider to integrate and test against. |
+| Company-scoped roles | Roles are still shared templates across companies. Escalation is blocked (§ granting rules), but a company may later need its own role definitions. |
+| One approval engine | `Finance\ApprovalService` and the Workflow module overlap and should be merged. |
+| API endpoint coverage | Only the journal and token endpoints have feature tests. |
