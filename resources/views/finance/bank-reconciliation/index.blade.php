@@ -29,7 +29,7 @@
                 <tbody>
                     @forelse($reconciliations as $recon)
                         <tr>
-                            <td>{{ $recon->bankAccount?->bank_name ?? '-' }} — {{ $recon->bankAccount?->account_number ?? '-' }}</td>
+                            <td>{{ $recon->bankAccount?->bank_name ?? '-' }} — {{ $recon->bankAccount?->display_account_number ?? '-' }}</td>
                             <td>{{ $recon->statement_date->format('Y-m-d') }}</td>
                             <td class="text-right">{{ number_format($recon->statement_balance, 2) }}</td>
                             <td class="text-right">{{ number_format($recon->book_balance, 2) }}</td>

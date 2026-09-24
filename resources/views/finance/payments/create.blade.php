@@ -61,7 +61,7 @@
                                 <option value="">— None —</option>
                                 @foreach(\Modules\Finance\Models\BankAccount::where('status', 'active')->get() as $account)
                                     <option value="{{ $account->id }}" @selected(old('bank_account_id') == $account->id)>
-                                        {{ $account->bank_name }} — {{ $account->account_number }}
+                                        {{ $account->bank_name }} — {{ $account->display_account_number }}
                                     </option>
                                 @endforeach
                             </select>

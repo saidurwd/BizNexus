@@ -14,6 +14,7 @@ class PermissionCatalog
      * @var array<string, array{name: string, group: string}>
      */
     public const GRANULAR_PERMISSIONS = [
+        'finance.bank-accounts.view-sensitive' => ['name' => 'View Full Bank Account Numbers', 'group' => 'Finance'],
         'core.exchange-rates.create' => ['name' => 'Create Exchange Rates', 'group' => 'Administration'],
         'core.exchange-rates.delete' => ['name' => 'Delete Exchange Rates', 'group' => 'Administration'],
         'core.exchange-rates.update' => ['name' => 'Edit Exchange Rates', 'group' => 'Administration'],
@@ -148,6 +149,7 @@ class PermissionCatalog
         'finance.supplier-invoices.submit' => ['finance.suppliers.submit'],
         'finance.supplier-invoices.update' => ['finance.suppliers.update'],
         'finance.supplier-invoices.view' => ['finance.suppliers.view'],
+        'finance.bank-accounts.view-sensitive' => ['finance.bank-accounts.update'],
     ];
 
     /**

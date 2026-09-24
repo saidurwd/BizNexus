@@ -34,7 +34,7 @@
                             <td>{{ $account->bank_name }}</td>
                             <td>{{ $account->branch_name ?? '-' }}</td>
                             <td>{{ $account->account_name }}</td>
-                            <td>{{ $account->account_number }}</td>
+                            <td>{{ $account->display_account_number }}</td>
                             <td>{{ $account->glAccount?->account_code ?? '-' }} — {{ $account->glAccount?->account_name ?? '-' }}</td>
                             <td>{{ $account->currency?->code ?? '-' }}</td>
                             <td class="text-right">{{ number_format($account->current_balance, 2) }}</td>

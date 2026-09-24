@@ -65,7 +65,7 @@
                         <tr>
                             <td>{{ $transaction->transaction_date->format('Y-m-d') }}</td>
                             <td>{{ $transaction->transaction_number }}</td>
-                            <td>{{ $transaction->bankAccount?->bank_name ?? '-' }} - {{ $transaction->bankAccount?->account_number ?? '-' }}</td>
+                            <td>{{ $transaction->bankAccount?->bank_name ?? '-' }} - {{ $transaction->bankAccount?->display_account_number ?? '-' }}</td>
                             <td>{{ $transaction->transaction_type }}</td>
                             <td>{{ $transaction->description ?? '-' }}</td>
                             <td class="text-right">{{ $receipt > 0 ? number_format($receipt, 2) : '-' }}</td>

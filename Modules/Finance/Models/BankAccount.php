@@ -3,9 +3,11 @@
 namespace Modules\Finance\Models;
 
 use App\Models\User;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Gate;
 use Modules\Core\Concerns\BelongsToCompany;
 use Modules\Core\Models\Company;
 use Modules\Core\Models\Currency;
@@ -29,10 +31,38 @@ class BankAccount extends Model
         'updated_by',
     ];
 
+    /**
+     * The full number never leaves the model in arrays or JSON; serialised output carries the masked value.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = ['account_number'];
+
+    /**
+     * @var array<int, string>
+     */
+    protected $appends = ['display_account_number'];
+
     protected $casts = [
         'opening_balance' => 'decimal:4',
         'current_balance' => 'decimal:4',
     ];
+
+    /**
+     * The account number for display: in full only with finance.bank-accounts.view-sensitive, otherwise the last four digits.
+     */
+    protected function displayAccountNumber(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            $number = $this->account_number;
+
+            if ($number === null || Gate::allows('finance.bank-accounts.view-sensitive')) {
+                return $number;
+            }
+
+            return '••••'.substr($number, -4);
+        });
+    }
 
     public function company(): BelongsTo
     {
