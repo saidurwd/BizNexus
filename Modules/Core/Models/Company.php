@@ -52,6 +52,7 @@ class Company extends Model
         'phone',
         'email',
         'tax_number',
+        'country_code',
         'registration_number',
         'base_currency_id',
         'timezone',

@@ -62,6 +62,7 @@
                             <label for="tax_number">Tax Number</label>
                             <input type="text" class="form-control" name="tax_number" value="{{ old('tax_number') }}">
                         </div>
+                        <x-form.country-select :value="null" label="Country (ISO 3166)" />
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">

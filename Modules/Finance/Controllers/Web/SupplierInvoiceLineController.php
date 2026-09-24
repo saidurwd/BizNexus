@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Controllers\Web;
 
+use Modules\Finance\Services\DocumentTaxService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Modules\Core\Services\CompanyContextService;
@@ -34,12 +35,13 @@ class SupplierInvoiceLineController extends Controller
             'quantity' => 'required|numeric|min:0.0001',
             'unit_price' => 'required|numeric|min:0',
             'tax_id' => 'nullable|exists:taxes,id',
+            'supply_type' => 'nullable|in:goods,services',
+            'is_reverse_charge' => 'nullable|boolean',
             'discount_amount' => 'nullable|numeric|min:0',
         ]);
 
         $line = new SupplierInvoiceLine($validated);
         $line->supplier_invoice_id = $invoiceId;
-        $line->calculateTotals();
         $line->save();
 
         $this->recalculateInvoiceTotals($invoice);
@@ -64,12 +66,12 @@ class SupplierInvoiceLineController extends Controller
             'quantity' => 'required|numeric|min:0.0001',
             'unit_price' => 'required|numeric|min:0',
             'tax_id' => 'nullable|exists:taxes,id',
+            'supply_type' => 'nullable|in:goods,services',
+            'is_reverse_charge' => 'nullable|boolean',
             'discount_amount' => 'nullable|numeric|min:0',
         ]);
 
         $line->update($validated);
-        $line->calculateTotals();
-        $line->save();
 
         $this->recalculateInvoiceTotals($invoice);
 
@@ -95,20 +97,6 @@ class SupplierInvoiceLineController extends Controller
 
     protected function recalculateInvoiceTotals(SupplierInvoice $invoice): void
     {
-        $lines = $invoice->lines;
-
-        $subtotal = 0;
-        $taxAmount = 0;
-
-        foreach ($lines as $line) {
-            $subtotal = bcadd($subtotal, $line->subtotal ?? 0, 4);
-            $taxAmount = bcadd($taxAmount, $line->tax_amount ?? 0, 4);
-        }
-
-        $invoice->subtotal = $subtotal;
-        $invoice->tax_amount = $taxAmount;
-        $invoice->total_amount = bcadd($subtotal, $taxAmount, 4);
-        $invoice->outstanding_amount = $invoice->total_amount;
-        $invoice->save();
+        app(DocumentTaxService::class)->recalculate($invoice);
     }
 }

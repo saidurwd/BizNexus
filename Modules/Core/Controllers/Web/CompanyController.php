@@ -2,6 +2,7 @@
 
 namespace Modules\Core\Controllers\Web;
 
+use Modules\Core\Support\Countries;
 use App\Http\Controllers\Controller;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
@@ -46,6 +47,7 @@ class CompanyController extends Controller
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
             'tax_number' => 'nullable|string|max:100',
+            'country_code' => ['nullable', Rule::in(Countries::codes())],
             'registration_number' => 'nullable|string|max:100',
             'base_currency_id' => 'nullable|exists:currencies,id',
             'timezone' => 'nullable|string|max:100',
@@ -79,6 +81,7 @@ class CompanyController extends Controller
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
             'tax_number' => 'nullable|string|max:100',
+            'country_code' => ['nullable', Rule::in(Countries::codes())],
             'registration_number' => 'nullable|string|max:100',
             'base_currency_id' => 'nullable|exists:currencies,id',
             'timezone' => 'nullable|string|max:100',

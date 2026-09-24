@@ -31,6 +31,7 @@ class Customer extends Model
         'phone',
         'email',
         'tax_number',
+        'country_code',
         'currency_id',
         'receivable_account_id',
         'status',
