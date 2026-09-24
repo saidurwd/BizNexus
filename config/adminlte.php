@@ -925,6 +925,11 @@ return [
                     'url' => 'finance/accounts', 'can' => 'finance.accounts.view',
                     'icon' => 'bi bi-diagram-3',
                 ],
+                [
+                    'text' => 'Account Determination',
+                    'url' => 'finance/account-mappings', 'can' => 'finance.accounts.view',
+                    'icon' => 'bi bi-signpost-split',
+                ],
                 // Journals
                 [
                     'text' => 'Journals',

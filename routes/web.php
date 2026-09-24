@@ -16,6 +16,7 @@ use Modules\Core\Controllers\Web\RoleController;
 use Modules\Core\Controllers\Web\UserController;
 use Modules\Finance\Controllers\DashboardController;
 use Modules\Finance\Controllers\Web\AccountController;
+use Modules\Finance\Controllers\Web\AccountMappingController;
 use Modules\Finance\Controllers\Web\BankAccountController;
 use Modules\Finance\Controllers\Web\BankPaymentController;
 use Modules\Finance\Controllers\Web\BankReceiptController;
@@ -144,6 +145,10 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::get('/accounts/{id}/edit', [AccountController::class, 'edit'])->middleware('permission:finance.accounts.update')->name('accounts.edit');
         Route::put('/accounts/{id}', [AccountController::class, 'update'])->middleware('permission:finance.accounts.update')->name('accounts.update');
         Route::delete('/accounts/{id}', [AccountController::class, 'destroy'])->middleware('permission:finance.accounts.delete')->name('accounts.destroy');
+
+        // Account determination
+        Route::get('/account-mappings', [AccountMappingController::class, 'index'])->middleware('permission:finance.accounts.view')->name('account-mappings.index');
+        Route::put('/account-mappings', [AccountMappingController::class, 'update'])->middleware('permission:finance.accounts.update')->name('account-mappings.update');
 
         // Journals
         Route::get('/journals', [JournalController::class, 'index'])->middleware('permission:finance.journals.view')->name('journals.index');

@@ -4,15 +4,10 @@ namespace Tests\Unit\Finance;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Core\Models\Company;
-use Modules\Core\Services\AccountingPeriodService;
-use Modules\Core\Services\AuditService;
 use Modules\Core\Services\CompanyContextService;
-use Modules\Core\Services\DefaultAccountService;
-use Modules\Core\Services\DocumentNumberService;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\Supplier;
 use Modules\Finance\Models\SupplierInvoice;
-use Modules\Finance\Services\JournalService;
 use Modules\Finance\Services\PaymentService;
 use Modules\Finance\Services\SupplierInvoiceService;
 use Tests\TestCase;
@@ -29,33 +24,9 @@ class APServiceTest extends TestCase
     {
         parent::setUp();
 
-        $this->supplierInvoiceService = new SupplierInvoiceService(
-            new DocumentNumberService,
-            new AuditService,
-            new JournalService(
-                new CompanyContextService,
-                new AccountingPeriodService,
-                new DocumentNumberService,
-                new AuditService
-            ),
-            new DefaultAccountService(
-                new CompanyContextService
-            )
-        );
+        $this->supplierInvoiceService = app(SupplierInvoiceService::class);
 
-        $this->paymentService = new PaymentService(
-            new DocumentNumberService,
-            new AuditService,
-            new JournalService(
-                new CompanyContextService,
-                new AccountingPeriodService,
-                new DocumentNumberService,
-                new AuditService
-            ),
-            new DefaultAccountService(
-                new CompanyContextService
-            )
-        );
+        $this->paymentService = app(PaymentService::class);
     }
 
     public function test_can_create_supplier_invoice(): void

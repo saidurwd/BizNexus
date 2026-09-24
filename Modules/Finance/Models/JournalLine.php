@@ -15,6 +15,13 @@ use Modules\Finance\Scopes\BranchScope;
 
 class JournalLine extends Model
 {
+    public const TYPE_STANDARD = 'standard';
+
+    /**
+     * System line absorbing the functional-currency rounding difference of a foreign-currency journal.
+     */
+    public const TYPE_FX_ROUNDING = 'fx_rounding';
+
     use BelongsToCompany, HasFactory;
 
     protected static function newFactory()
@@ -45,6 +52,7 @@ class JournalLine extends Model
         'credit',
         'currency_debit',
         'currency_credit',
+        'line_type',
         'cost_center_id',
         'department_id',
         'branch_id',
