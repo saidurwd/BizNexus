@@ -36,8 +36,8 @@ function newUserPayload(array $overrides = []): array
     return array_merge([
         'name' => 'New Accountant',
         'email' => 'accountant@example.com',
-        'password' => 'password123',
-        'password_confirmation' => 'password123',
+        'password' => 'N3w-Str0ng-Passw0rd!',
+        'password_confirmation' => 'N3w-Str0ng-Passw0rd!',
     ], $overrides);
 }
 

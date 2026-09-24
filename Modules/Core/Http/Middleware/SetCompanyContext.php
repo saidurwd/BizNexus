@@ -12,6 +12,14 @@ class SetCompanyContext
 
     public function handle(Request $request, Closure $next)
     {
+        if (auth()->check() && ! $request->user()->isActive()) {
+            auth()->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')->withErrors(['email' => 'Your account has been deactivated.']);
+        }
+
         if (auth()->check()) {
             $activeCompanyId = session('active_company_id');
 

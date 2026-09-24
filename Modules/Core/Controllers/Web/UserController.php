@@ -9,6 +9,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Modules\Core\Models\Branch;
 use Modules\Core\Models\Company;
@@ -54,7 +55,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => ['required', 'confirmed', Password::defaults()],
             'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ...$this->accessRules($companyIds),
         ]);
@@ -105,7 +106,8 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,'.$id,
-            'password' => 'nullable|string|min:8|confirmed',
+            'password' => ['nullable', 'confirmed', Password::defaults()],
+            'status' => 'sometimes|in:active,inactive',
             'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ...$this->accessRules($companyIds),
         ]);
@@ -116,6 +118,16 @@ class UserController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
         ];
+
+        if (isset($validated['status']) && $validated['status'] !== $user->status) {
+            abort_if($user->is(auth()->user()), 422, 'You cannot change the status of your own account.');
+            abort_if(
+                UserCompany::where('user_id', $user->id)->whereNotIn('company_id', $companyIds)->exists(),
+                403,
+                'This user also belongs to companies you do not administer.'
+            );
+            $data['status'] = $validated['status'];
+        }
 
         if (! empty($validated['password'])) {
             $data['password'] = bcrypt($validated['password']);

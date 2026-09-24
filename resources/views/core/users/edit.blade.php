@@ -33,6 +33,18 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
+                            <label for="status">Status</label>
+                            <select class="form-control" name="status" id="status">
+                                <option value="active" @selected(old('status', $user->status) === 'active')>Active</option>
+                                <option value="inactive" @selected(old('status', $user->status) === 'inactive')>Inactive (cannot sign in)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
                             <label for="password">Password</label>
                             <input type="password" class="form-control" name="password" placeholder="Leave blank to keep current">
                         </div>

@@ -19,6 +19,10 @@ class SetTokenCompanyContext
 
     public function handle(Request $request, Closure $next): Response
     {
+        if (! $request->user()->isActive()) {
+            abort(403, 'This account has been deactivated.');
+        }
+
         $abilities = $request->user()?->currentAccessToken()?->abilities ?? [];
 
         $companyId = collect($abilities)
