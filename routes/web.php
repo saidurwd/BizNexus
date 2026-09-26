@@ -29,6 +29,7 @@ use Modules\Finance\Controllers\Web\CostCenterController;
 use Modules\Finance\Controllers\Web\CustomerController;
 use Modules\Finance\Controllers\Web\CustomerInvoiceController;
 use Modules\Finance\Controllers\Web\CustomerStatementController;
+use Modules\Finance\Controllers\Web\EInvoiceController;
 use Modules\Finance\Controllers\Web\FxRevaluationController;
 use Modules\Finance\Controllers\Web\IntercompanyController;
 use Modules\Finance\Controllers\Web\JournalController;
@@ -316,6 +317,7 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::post('/customer-invoices/{id}/reject', [CustomerInvoiceController::class, 'reject'])->middleware('permission:finance.customer-invoices.reject')->name('customer-invoices.reject');
         Route::post('/customer-invoices/{id}/post', [CustomerInvoiceController::class, 'post'])->middleware('permission:finance.customer-invoices.post')->name('customer-invoices.post');
         Route::post('/customer-invoices/{id}/cancel', [CustomerInvoiceController::class, 'cancel'])->middleware('permission:finance.customer-invoices.cancel')->name('customer-invoices.cancel');
+        Route::get('/customer-invoices/{id}/e-invoice', [EInvoiceController::class, 'show'])->whereNumber('id')->middleware('permission:finance.customer-invoices.view')->name('customer-invoices.e-invoice');
 
         // Customer Statements
         Route::get('/customer-statements', [CustomerStatementController::class, 'index'])->middleware('permission:finance.customers.view')->name('customer-statements.index');

@@ -221,3 +221,53 @@ test('the tax return nets output and reverse-charge tax against recoverable inpu
         ->get(route('finance.tax-return', ['format' => 'csv', 'from' => now()->startOfMonth()->toDateString(), 'to' => now()->endOfMonth()->toDateString()]))
         ->assertOk()->assertDownload();
 });
+
+test('a posted sales invoice is issued as a Peppol BIS 3 UBL invoice', function () {
+    $this->company->update(['tax_number' => 'NL123456789B01', 'email' => 'billing@example.com']);
+    $this->customer->update(['country_code' => 'DE', 'tax_number' => 'DE987654321']);
+    $sales = app(CustomerInvoiceService::class);
+    $this->actingAs($this->clerk);
+    $invoice = $sales->submitInvoice($sales->createInvoice([
+        'company_id' => $this->company->id, 'customer_id' => $this->customer->id,
+        'invoice_date' => now()->toDateString(), 'due_date' => now()->addMonth()->toDateString(),
+        'lines' => [
+            ['account_id' => $this->revenue->id, 'description' => 'Licence', 'quantity' => 2, 'unit_price' => 500, 'tax_id' => $this->vat->id],
+            ['account_id' => $this->revenue->id, 'description' => 'Consulting (reverse charge)', 'quantity' => 1, 'unit_price' => 300, 'tax_id' => $this->vat->id, 'is_reverse_charge' => true],
+        ],
+    ]));
+    $this->actingAs($this->approver);
+    $sales->postInvoice($sales->approveInvoice($invoice));
+
+    $response = actingInCompany(companyUser(['finance.customer-invoices.view'], $this->company), $this->company)
+        ->get(route('finance.customer-invoices.e-invoice', $invoice->id))
+        ->assertOk()
+        ->assertHeader('Content-Type', 'application/xml');
+
+    $xml = simplexml_load_string($response->getContent());
+    $xml->registerXPathNamespace('cbc', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+    $xml->registerXPathNamespace('cac', 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+    $value = fn (string $path) => (string) ($xml->xpath($path)[0] ?? '');
+
+    expect($value('/*/cbc:CustomizationID'))->toBe('urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0')
+        ->and($value('/*/cbc:ID'))->toBe($invoice->invoice_number)
+        ->and($value('//cac:AccountingSupplierParty//cac:PartyTaxScheme/cbc:CompanyID'))->toBe('NL123456789B01')
+        ->and($value('//cac:AccountingCustomerParty//cac:Country/cbc:IdentificationCode'))->toBe('DE')
+        ->and($value("//cac:TaxTotal/cac:TaxSubtotal[cac:TaxCategory/cbc:ID='S']/cbc:TaxAmount"))->toBe('150.00')
+        ->and($value("//cac:TaxTotal/cac:TaxSubtotal[cac:TaxCategory/cbc:ID='S']/cac:TaxCategory/cbc:Percent"))->toBe('15.00')
+        ->and($value("//cac:TaxTotal/cac:TaxSubtotal[cac:TaxCategory/cbc:ID='AE']/cbc:TaxableAmount"))->toBe('300.00')
+        ->and($value('//cac:LegalMonetaryTotal/cbc:PayableAmount'))->toBe('1450.00')
+        ->and(count($xml->xpath('//cac:InvoiceLine')))->toBe(2);
+});
+
+test('only posted invoices are issued electronically', function () {
+    $sales = app(CustomerInvoiceService::class);
+    $invoice = $sales->createInvoice([
+        'company_id' => $this->company->id, 'customer_id' => $this->customer->id,
+        'invoice_date' => now()->toDateString(), 'due_date' => now()->addMonth()->toDateString(),
+        'lines' => [['account_id' => $this->revenue->id, 'description' => 'Draft', 'quantity' => 1, 'unit_price' => 10]],
+    ]);
+
+    actingInCompany(companyUser(['finance.customer-invoices.view'], $this->company), $this->company)
+        ->get(route('finance.customer-invoices.e-invoice', $invoice->id))
+        ->assertStatus(422);
+});
