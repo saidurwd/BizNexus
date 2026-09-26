@@ -9,6 +9,7 @@ export default defineConfig({
                 'resources/js/app.js',
                 'node_modules/admin-lte/dist/css/adminlte.min.css',
                 'node_modules/admin-lte/dist/js/adminlte.min.js',
+                'resources/js/erp.js',
             ],
             refresh: true,
         }),

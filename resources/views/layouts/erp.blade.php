@@ -189,6 +189,7 @@
 @stop
 
 @section('adminlte_js')
+    @vite('resources/js/erp.js')
     @stack('js')
     @yield('js')
 @stop

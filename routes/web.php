@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Modules\Core\Controllers\Web\ApprovalDelegationController;
@@ -14,7 +15,6 @@ use Modules\Core\Controllers\Web\PeriodClosingController;
 use Modules\Core\Controllers\Web\PermissionController;
 use Modules\Core\Controllers\Web\RoleController;
 use Modules\Core\Controllers\Web\UserController;
-use Modules\Finance\Controllers\DashboardController;
 use Modules\Finance\Controllers\Web\AccountController;
 use Modules\Finance\Controllers\Web\AccountMappingController;
 use Modules\Finance\Controllers\Web\BankAccountController;
@@ -137,15 +137,13 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
     Route::delete('/departments/{id}', [DepartmentController::class, 'destroy'])->middleware('permission:core.departments.delete')->name('core.departments.destroy');
 
     // Main Dashboard
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', HomeController::class)->name('dashboard');
 
     // Finance Module
     Route::prefix('finance')->name('finance.')->group(function () {
 
         // Finance Dashboard
-        Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('permission:finance.dashboard.view')->name('dashboard');
+        Route::redirect('/dashboard', '/dashboard')->middleware('permission:finance.dashboard.view')->name('dashboard');
 
         // Chart of Accounts
         Route::get('/accounts', [AccountController::class, 'index'])->middleware('permission:finance.accounts.view')->name('accounts.index');

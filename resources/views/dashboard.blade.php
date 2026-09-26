@@ -1,91 +1,185 @@
 @extends('layouts.erp')
 
-@section('title', 'Dashboard - BizNexus')
+@section('title', __('Dashboard'))
 
 @section('content_header')
-    <h1 class="m-0 text-dark">Dashboard</h1>
+    <div class="d-flex flex-wrap align-items-baseline gap-2">
+        <h1 class="m-0">{{ __('Welcome, :name', ['name' => auth()->user()->name]) }}</h1>
+        @if ($company)
+            <span class="text-body-secondary">{{ $company->name }} · {{ Formatter::date($today) }}</span>
+        @endif
+    </div>
 @endsection
 
 @section('content')
-    <div class="row">
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-info">
-                <div class="inner">
-                    <h3>150</h3>
-                    <p>New Orders</p>
+    @if ($summary)
+        <div class="row">
+            <div class="col-lg-3 col-6">
+                <div class="small-box text-bg-primary">
+                    <div class="inner">
+                        <h3>{{ Formatter::amount($summary['cash_and_equivalents']) }}</h3>
+                        <p>{{ __('Cash and bank') }} <small>({{ $currency }})</small></p>
+                    </div>
+                    <i class="small-box-icon bi bi-bank" aria-hidden="true"></i>
+                    @can('finance.reports.view')
+                        <a href="{{ route('finance.reports.cash-flow') }}" class="small-box-footer link-light link-underline-opacity-0">{{ __('Cash flow') }} <i class="bi bi-arrow-right-circle"></i></a>
+                    @endcan
                 </div>
-                <div class="icon"><i class="fas fa-shopping-cart"></i></div>
-                <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box text-bg-success">
+                    <div class="inner">
+                        <h3>{{ Formatter::amount($summary['accounts_receivable']) }}</h3>
+                        <p>{{ __('Receivables') }} · {{ __(':amount overdue', ['amount' => Formatter::amount($summary['overdue_receivables'])]) }}</p>
+                    </div>
+                    <i class="small-box-icon bi bi-box-arrow-in-down-left" aria-hidden="true"></i>
+                    @can('finance.reports.view')
+                        <a href="{{ route('finance.ar-aging') }}" class="small-box-footer link-light link-underline-opacity-0">{{ __('Receivables ageing') }} <i class="bi bi-arrow-right-circle"></i></a>
+                    @endcan
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box text-bg-warning">
+                    <div class="inner">
+                        <h3>{{ Formatter::amount($summary['accounts_payable']) }}</h3>
+                        <p>{{ __('Payables') }} · {{ __(':amount due in 7 days', ['amount' => Formatter::amount($summary['payables_due_soon'])]) }}</p>
+                    </div>
+                    <i class="small-box-icon bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                    @can('finance.reports.view')
+                        <a href="{{ route('finance.ap-aging') }}" class="small-box-footer link-dark link-underline-opacity-0">{{ __('Payables ageing') }} <i class="bi bi-arrow-right-circle"></i></a>
+                    @endcan
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box {{ bccomp($summary['net_profit'], '0', 4) < 0 ? 'text-bg-danger' : 'text-bg-info' }}">
+                    <div class="inner">
+                        <h3>{{ Formatter::amount($summary['net_profit']) }}</h3>
+                        <p>{{ __('Profit, fiscal year to date') }}</p>
+                    </div>
+                    <i class="small-box-icon bi bi-graph-up-arrow" aria-hidden="true"></i>
+                    @can('finance.reports.view')
+                        <a href="{{ route('finance.reports.profit-loss') }}" class="small-box-footer link-light link-underline-opacity-0">{{ __('Profit and loss') }} <i class="bi bi-arrow-right-circle"></i></a>
+                    @endcan
+                </div>
             </div>
         </div>
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-success">
-                <div class="inner">
-                    <h3>53<sup style="font-size: 20px">%</sup></h3>
-                    <p>Conversion Rate</p>
-                </div>
-                <div class="icon"><i class="fas fa-chart-line"></i></div>
-                <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-        </div>
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-warning">
-                <div class="inner">
-                    <h3>44</h3>
-                    <p>Pending Invoices</p>
-                </div>
-                <div class="icon"><i class="fas fa-file-invoice-dollar"></i></div>
-                <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-        </div>
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-danger">
-                <div class="inner">
-                    <h3>12</h3>
-                    <p>Open Tickets</p>
-                </div>
-                <div class="icon"><i class="fas fa-life-ring"></i></div>
-                <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-        </div>
-    </div>
+    @endif
 
     <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Recent Activity</h3>
-                    <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+        @if ($performance)
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ __('Revenue and expenses, last 12 months') }} <small class="text-body-secondary">({{ $currency }})</small></h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="performance-chart" height="110" aria-label="{{ __('Revenue and expenses, last 12 months') }}" role="img"></canvas>
                     </div>
                 </div>
-                <div class="card-body p-0">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><strong>Admin</strong> created a new invoice <span class="float-right text-muted text-sm">5 mins ago</span></li>
-                        <li class="list-group-item"><strong>Jane</strong> approved order <strong>#1042</strong> <span class="float-right text-muted text-sm">23 mins ago</span></li>
-                        <li class="list-group-item"><strong>System</strong> sent 12 notifications <span class="float-right text-muted text-sm">1 hour ago</span></li>
-                        <li class="list-group-item"><strong>Mark</strong> closed ticket <strong>#312</strong> <span class="float-right text-muted text-sm">2 hours ago</span></li>
-                        <li class="list-group-item"><strong>Lisa</strong> registered a new customer <span class="float-right text-muted text-sm">3 hours ago</span></li>
-                    </ul>
+            </div>
+        @endif
+
+        <div class="{{ $performance ? 'col-lg-4' : 'col-lg-6' }}">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="card-title">{{ __('Needs attention') }}</h3>
+                </div>
+                <ul class="list-group list-group-flush">
+                    @if ($myApprovalCount > 0)
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="{{ route('workflow.index') }}">{{ __('Your approvals') }}</a>
+                            <span class="badge text-bg-danger rounded-pill">{{ $myApprovalCount }}</span>
+                        </li>
+                    @endif
+                    @foreach ($attentionItems as $item)
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="{{ route($item['route'], $item['parameters']) }}">{{ __($item['label']) }}</a>
+                            <span class="badge text-bg-secondary rounded-pill">{{ $item['count'] }}</span>
+                        </li>
+                    @endforeach
+                    @if ($myApprovalCount === 0 && $attentionItems->isEmpty())
+                        <li class="list-group-item text-body-secondary">
+                            <i class="bi bi-check2-circle text-success"></i> {{ __('Nothing is waiting for you.') }}
+                        </li>
+                    @endif
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="card-title">{{ __('Quick actions') }}</h3>
+                </div>
+                <div class="card-body d-flex flex-wrap gap-2">
+                    @can('finance.customer-invoices.create')
+                        <a href="{{ route('finance.customer-invoices.create') }}" class="btn btn-outline-primary"><i class="bi bi-receipt"></i> {{ __('New customer invoice') }}</a>
+                    @endcan
+                    @can('finance.receipts.create')
+                        <a href="{{ route('finance.receipts.create') }}" class="btn btn-outline-primary"><i class="bi bi-cash-coin"></i> {{ __('Record a receipt') }}</a>
+                    @endcan
+                    @can('finance.supplier-invoices.create')
+                        <a href="{{ route('finance.supplier-invoices.create') }}" class="btn btn-outline-primary"><i class="bi bi-file-earmark-text"></i> {{ __('New supplier invoice') }}</a>
+                    @endcan
+                    @can('finance.journals.create')
+                        <a href="{{ route('finance.journals.create') }}" class="btn btn-outline-primary"><i class="bi bi-journal-plus"></i> {{ __('New journal') }}</a>
+                    @endcan
+                    @can('finance.reports.view')
+                        <a href="{{ route('finance.reports.trial-balance') }}" class="btn btn-outline-secondary"><i class="bi bi-table"></i> {{ __('Trial balance') }}</a>
+                    @endcan
+                    <a href="{{ route('profile.edit') }}" class="btn btn-outline-secondary"><i class="bi bi-person-gear"></i> {{ __('Your profile and security') }}</a>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Team Members</h3>
+        @if ($overdueCustomers->isNotEmpty())
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ __('Largest overdue customers') }} <small class="text-body-secondary">({{ $currency }})</small></h3>
+                    </div>
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ __('Customer') }}</th>
+                                <th class="text-end">{{ __('Invoices') }}</th>
+                                <th class="text-end">{{ __('Overdue') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($overdueCustomers as $row)
+                                <tr>
+                                    <td>{{ $row['customer'] }}</td>
+                                    <td class="text-end">{{ $row['invoices'] }}</td>
+                                    <td class="text-end">{{ Formatter::amount($row['amount']) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
-                <div class="card-body p-0">
-                    <ul class="users-list clearfix">
-                        <li><img src="https://ui-avatars.com/api/?name=Alice+Smith&background=0D8ABC&color=fff" alt="Alice" width="64"><span class="users-list-name">Alice</span><span class="users-list-date">Today</span></li>
-                        <li><img src="https://ui-avatars.com/api/?name=Bob+Lee&background=28a745&color=fff" alt="Bob" width="64"><span class="users-list-name">Bob</span><span class="users-list-date">Yesterday</span></li>
-                        <li><img src="https://ui-avatars.com/api/?name=Carla+Diaz&background=dc3545&color=fff" alt="Carla" width="64"><span class="users-list-name">Carla</span><span class="users-list-date">12 Jan</span></li>
-                        <li><img src="https://ui-avatars.com/api/?name=David+Kim&background=ffc107&color=fff" alt="David" width="64"><span class="users-list-name">David</span><span class="users-list-date">10 Jan</span></li>
-                    </ul>
-                </div>
-                <div class="card-footer text-center"><a href="#">View All Members</a></div>
             </div>
-        </div>
+        @endif
     </div>
 @endsection
+
+@if ($performance)
+    @push('js')
+        <script type="module">
+            new window.Chart(document.getElementById('performance-chart'), {
+                type: 'bar',
+                data: {
+                    labels: @json($performance['labels']),
+                    datasets: [
+                        { label: @json(__('Revenue')), data: @json($performance['revenue']), backgroundColor: 'rgba(25, 135, 84, 0.7)' },
+                        { label: @json(__('Expenses')), data: @json($performance['expenses']), backgroundColor: 'rgba(220, 53, 69, 0.7)' },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    locale: document.documentElement.lang || undefined,
+                    scales: { y: { beginAtZero: true } },
+                },
+            });
+        </script>
+    @endpush
+@endif

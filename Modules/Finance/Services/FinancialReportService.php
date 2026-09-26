@@ -3,9 +3,6 @@
 namespace Modules\Finance\Services;
 
 use Carbon\Carbon;
-use Modules\Core\Services\DefaultAccountService;
-use Modules\Finance\Enums\AccountPurpose;
-use Modules\Finance\Exceptions\MissingAccountMappingException;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\Journal;
 use Modules\Finance\Models\JournalLine;
@@ -225,70 +222,6 @@ class FinancialReportService
         return bcsub($totalCredit, $totalDebit, 4);
     }
 
-    public function getDashboardData(int $companyId): array
-    {
-        $asOfDate = Carbon::now();
-
-        $assetAccounts = Account::where('company_id', $companyId)
-            ->whereIn('account_type', ['ASSET'])
-            ->postable()
-            ->get();
-
-        $revenueAccounts = Account::where('company_id', $companyId)
-            ->where('account_type', 'REVENUE')
-            ->postable()
-            ->get();
-
-        $expenseAccounts = Account::where('company_id', $companyId)
-            ->where('account_type', 'EXPENSE')
-            ->postable()
-            ->get();
-
-        $liabilityAccounts = Account::where('company_id', $companyId)
-            ->whereIn('account_type', ['LIABILITY'])
-            ->postable()
-            ->get();
-
-        $totalAssets = 0;
-        $totalRevenue = 0;
-        $totalExpenses = 0;
-        $totalLiabilities = 0;
-
-        foreach ($assetAccounts as $account) {
-            $totalAssets = bcadd($totalAssets, $this->getAccountBalance($account->id, null, $asOfDate, null), 4);
-        }
-
-        foreach ($revenueAccounts as $account) {
-            $totalRevenue = bcadd($totalRevenue, $this->getAccountBalance($account->id, null, $asOfDate, null), 4);
-        }
-
-        foreach ($expenseAccounts as $account) {
-            $totalExpenses = bcadd($totalExpenses, $this->getAccountBalance($account->id, null, $asOfDate, null), 4);
-        }
-
-        foreach ($liabilityAccounts as $account) {
-            $totalLiabilities = bcadd($totalLiabilities, $this->getAccountBalance($account->id, null, $asOfDate, null), 4);
-        }
-
-        [$cashAccount, $bankAccount, $receivableAccount, $payableAccount] = array_map(
-            fn (AccountPurpose $purpose) => $this->mappedAccount($companyId, $purpose),
-            [AccountPurpose::Cash, AccountPurpose::Bank, AccountPurpose::Receivable, AccountPurpose::Payable]
-        );
-
-        return [
-            'total_revenue' => $totalRevenue,
-            'total_expenses' => $totalExpenses,
-            'net_profit' => bcsub($totalRevenue, $totalExpenses, 4),
-            'total_assets' => $totalAssets,
-            'total_liabilities' => $totalLiabilities,
-            'total_equity' => bcsub($totalAssets, $totalLiabilities, 4),
-            'cash_balance' => $cashAccount ? $this->getAccountBalance($cashAccount->id, null, $asOfDate, null) : 0,
-            'bank_balance' => $bankAccount ? $this->getAccountBalance($bankAccount->id, null, $asOfDate, null) : 0,
-            'accounts_receivable' => $receivableAccount ? $this->getAccountBalance($receivableAccount->id, null, $asOfDate, null) : 0,
-            'accounts_payable' => $payableAccount ? $this->getAccountBalance($payableAccount->id, null, $asOfDate, null) : 0,
-        ];
-    }
-
     public function getCashFlow(int $companyId, ?Carbon $startDate = null, ?Carbon $endDate = null): array
     {
         $startDate = $startDate ?: Carbon::now()->startOfMonth();
@@ -346,17 +279,5 @@ class FinancialReportService
             'financing_total' => $financingTotal,
             'net_change' => $operatingTotal + $investingTotal + $financingTotal,
         ];
-    }
-
-    /**
-     * The account determined for the purpose, or null when the company has not mapped one.
-     */
-    protected function mappedAccount(int $companyId, AccountPurpose $purpose): ?Account
-    {
-        try {
-            return Account::find(app(DefaultAccountService::class)->forPurpose($companyId, $purpose));
-        } catch (MissingAccountMappingException) {
-            return null;
-        }
     }
 }

@@ -5,6 +5,7 @@ namespace Modules\Finance\Controllers;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Modules\Core\Services\CompanyContextService;
+use Modules\Finance\Services\FinanceDashboardService;
 use Modules\Finance\Services\FinancialReportService;
 use Modules\Finance\Services\LedgerService;
 
@@ -87,7 +88,7 @@ class ReportController extends Controller
     {
         $companyId = $this->companyContext->getActiveCompanyId();
 
-        $dashboard = $this->financialReportService->getDashboardData($companyId);
+        $dashboard = app(FinanceDashboardService::class)->summary($companyId, $this->companyContext->today());
 
         return $this->successResponse($dashboard);
     }
