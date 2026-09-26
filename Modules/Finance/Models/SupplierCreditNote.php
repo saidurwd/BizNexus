@@ -67,6 +67,11 @@ class SupplierCreditNote extends Model
         return $this->belongsTo(Company::class);
     }
 
+    public function isDraft(): bool
+    {
+        return $this->status === self::STATUS_DRAFT;
+    }
+
     public function isPosted(): bool
     {
         return $this->status === self::STATUS_POSTED;

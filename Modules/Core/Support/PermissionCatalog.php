@@ -168,6 +168,7 @@ class PermissionCatalog
 
     /**
      * Create the granular permissions and grant each to every role holding one of its legacy equivalents.
+     * The super-admin role ("full system access") is kept holding every permission.
      *
      * @param  array<string, array{name: string, group: string}>  $permissions
      * @param  array<string, array<int, string>>  $legacyEquivalents
@@ -202,6 +203,22 @@ class PermissionCatalog
                 'created_at' => $now,
                 'updated_at' => $now,
             ])->values()->all());
+        }
+
+        self::grantEverythingToSuperAdmin($now);
+    }
+
+    protected static function grantEverythingToSuperAdmin(mixed $now): void
+    {
+        $permissionIds = DB::table('permissions')->pluck('id');
+
+        foreach (DB::table('roles')->where('slug', 'super-admin')->pluck('id') as $roleId) {
+            DB::table('permission_role')->insertOrIgnore($permissionIds->map(fn (int $permissionId) => [
+                'permission_id' => $permissionId,
+                'role_id' => $roleId,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])->all());
         }
     }
 }

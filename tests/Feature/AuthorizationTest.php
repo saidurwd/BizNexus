@@ -117,3 +117,12 @@ test('installing granular permissions preserves the access of roles holding the 
         ->toContain('finance.supplier-invoices.approve', 'finance.supplier-invoices.reject')
         ->and($viewer->permissions()->count())->toBe(0);
 });
+
+test('the super-admin role keeps every permission when new ones are installed', function () {
+    $superAdmin = Role::create(['name' => 'Super Admin', 'slug' => 'super-admin']);
+
+    PermissionCatalog::install(['finance.example.run' => ['name' => 'Run Example', 'group' => 'Finance']], []);
+
+    expect($superAdmin->permissions()->count())->toBe(Permission::count())
+        ->and($superAdmin->permissions()->pluck('slug'))->toContain('finance.example.run', 'core.users.update');
+});
