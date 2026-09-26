@@ -2,10 +2,13 @@
 
 namespace Modules\Finance\Services;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Modules\Finance\Models\Account;
+use Illuminate\Support\Facades\DB;
+use Modules\Core\Exceptions\InactiveAccountException;
+use Modules\Core\Exceptions\InvalidAccountingTransactionException;
+use Modules\Core\Exceptions\NonPostableAccountException;
 use Modules\Core\Services\AuditService;
+use Modules\Finance\Models\Account;
 
 class ChartOfAccountsService
 {
@@ -16,11 +19,19 @@ class ChartOfAccountsService
     public function create(array $data): Account
     {
         return DB::transaction(function () use ($data) {
+            // A child makes its parent a group (heading) account, which cannot carry postings of its own.
             if (isset($data['parent_id'])) {
                 $parent = Account::findOrFail($data['parent_id']);
+
+                if (! $parent->is_group) {
+                    if ($parent->journalLines()->exists()) {
+                        throw new InvalidAccountingTransactionException("Account {$parent->account_code} has postings and cannot become a parent account.");
+                    }
+
+                    $parent->update(['is_group' => true, 'is_postable' => false]);
+                }
+
                 $data['level'] = $parent->level + 1;
-                $data['is_group'] = true;
-                $data['is_postable'] = false;
             } else {
                 $data['level'] = 1;
             }
@@ -35,7 +46,9 @@ class ChartOfAccountsService
                 'normal_balance' => $data['normal_balance'] ?? $this->getDefaultNormalBalance($data['account_type']),
                 'level' => $data['level'],
                 'is_group' => $data['is_group'] ?? false,
-                'is_postable' => $data['is_postable'] ?? !$data['is_group'],
+                'is_postable' => $data['is_postable'] ?? ! ($data['is_group'] ?? false),
+                'is_control_account' => $data['is_control_account'] ?? false,
+                'cash_flow_category' => $data['cash_flow_category'] ?? null,
                 'currency_id' => $data['currency_id'] ?? null,
                 'status' => $data['status'] ?? 'active',
                 'description' => $data['description'] ?? null,
@@ -107,7 +120,7 @@ class ChartOfAccountsService
             ];
 
             $children = $this->buildTree($accounts, $account->id);
-            if (!empty($children)) {
+            if (! empty($children)) {
                 $node['children'] = $children;
             }
 
@@ -126,37 +139,6 @@ class ChartOfAccountsService
         };
     }
 
-    public function importAccounts(int $companyId, array $accounts): array
-    {
-        $results = [
-            'imported' => 0,
-            'failed' => 0,
-            'errors' => [],
-        ];
-
-        foreach ($accounts as $index => $accountData) {
-            try {
-                $accountData['company_id'] = $companyId;
-
-                if (!isset($accountData['normal_balance'])) {
-                    $accountData['normal_balance'] = $this->getDefaultNormalBalance($accountData['account_type']);
-                }
-
-                Account::create($accountData);
-                $results['imported']++;
-            } catch (\Exception $e) {
-                $results['failed']++;
-                $results['errors'][] = [
-                    'row' => $index + 1,
-                    'data' => $accountData,
-                    'error' => $e->getMessage(),
-                ];
-            }
-        }
-
-        return $results;
-    }
-
     public function validateAccountCode(int $companyId, string $code, ?int $excludeId = null): bool
     {
         $query = Account::where('company_id', $companyId)
@@ -166,17 +148,17 @@ class ChartOfAccountsService
             $query->where('id', '!=', $excludeId);
         }
 
-        return !$query->exists();
+        return ! $query->exists();
     }
 
     public function validateAccountForPosting(Account $account): void
     {
-        if (!$account->isActive()) {
-            throw new \Modules\Core\Exceptions\InactiveAccountException($account);
+        if (! $account->isActive()) {
+            throw new InactiveAccountException($account);
         }
 
-        if (!$account->isPostable()) {
-            throw new \Modules\Core\Exceptions\NonPostableAccountException($account);
+        if (! $account->isPostable()) {
+            throw new NonPostableAccountException($account);
         }
     }
 }

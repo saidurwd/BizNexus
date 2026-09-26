@@ -34,6 +34,7 @@ use Modules\Finance\Controllers\Web\CustomerController;
 use Modules\Finance\Controllers\Web\CustomerCreditNoteController;
 use Modules\Finance\Controllers\Web\CustomerInvoiceController;
 use Modules\Finance\Controllers\Web\CustomerStatementController;
+use Modules\Finance\Controllers\Web\DataImportController;
 use Modules\Finance\Controllers\Web\EInvoiceController;
 use Modules\Finance\Controllers\Web\FxRevaluationController;
 use Modules\Finance\Controllers\Web\IntercompanyController;
@@ -323,6 +324,14 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::get('/customer-invoices/{id}/e-invoice', [EInvoiceController::class, 'show'])->whereNumber('id')->middleware('permission:finance.customer-invoices.view')->name('customer-invoices.e-invoice');
         Route::get('/customer-invoices/{id}/pdf', [SalesDocumentPdfController::class, 'invoice'])->whereNumber('id')->middleware('permission:finance.customer-invoices.view')->name('customer-invoices.pdf');
         Route::get('/customer-credit-notes/{id}/pdf', [SalesDocumentPdfController::class, 'creditNote'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.view')->name('customer-credit-notes.pdf');
+
+        // Data Import: each kind of data needs its own create permission.
+        Route::get('/imports', [DataImportController::class, 'index'])->middleware('permission:finance.data-import.use')->name('imports.index');
+        foreach (DataImportController::TYPES as $importType => $definition) {
+            Route::get("/imports/{$importType}/template", [DataImportController::class, 'template'])->defaults('type', $importType)->middleware("permission:{$definition['permission']}")->name('imports.template.'.$importType);
+            Route::post("/imports/{$importType}", [DataImportController::class, 'preview'])->defaults('type', $importType)->middleware("permission:{$definition['permission']}")->name('imports.preview.'.$importType);
+            Route::post("/imports/{$importType}/{token}", [DataImportController::class, 'confirm'])->defaults('type', $importType)->middleware("permission:{$definition['permission']}")->name('imports.confirm.'.$importType);
+        }
 
         // Number Series
         Route::get('/number-series', [NumberSeriesController::class, 'index'])->middleware('permission:finance.number-series.view')->name('number-series.index');
