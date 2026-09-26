@@ -93,6 +93,7 @@
 
     <div class="d-flex flex-wrap gap-2 mb-3">
         <a href="{{ route('finance.customer-credit-notes.index') }}" class="btn btn-secondary">{{ __('Back') }}</a>
+        <a href="{{ route('finance.customer-credit-notes.pdf', $creditNote->id) }}" class="btn btn-outline-secondary" target="_blank" rel="noopener"><i class="bi bi-file-earmark-pdf"></i> {{ __('PDF') }}</a>
 
         @if (in_array($creditNote->status, ['DRAFT', 'REJECTED'], true))
             @can('finance.customer-credit-notes.update')

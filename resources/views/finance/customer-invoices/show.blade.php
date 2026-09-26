@@ -129,6 +129,7 @@
 
     <div class="mt-4 mb-3">
         <a href="{{ route('finance.customer-invoices.index') }}" class="btn btn-secondary">Back</a>
+        <a href="{{ route('finance.customer-invoices.pdf', $invoice->id) }}" class="btn btn-outline-secondary ms-2" target="_blank" rel="noopener"><i class="bi bi-file-earmark-pdf"></i> {{ __('PDF') }}</a>
 
         @if($invoice->isDraft())
             <form action="{{ route('finance.customer-invoices.submit', $invoice->id) }}" method="POST" class="d-inline ms-2">

@@ -13,7 +13,6 @@ use Modules\Core\Services\PermissionService;
 use Modules\Finance\Controllers\Controller;
 use Modules\Finance\Enums\AccountPurpose;
 use Modules\Finance\Exceptions\MissingAccountMappingException;
-use Modules\Finance\Jobs\GenerateReportJob;
 use Modules\Finance\Models\BankAccount;
 use Modules\Finance\Models\CashAccount;
 use Modules\Finance\Models\CustomerReceipt;
@@ -158,6 +157,7 @@ class ReportController extends Controller
             'title' => $side === 'receivables' ? __('Receivables ageing') : __('Payables ageing'),
             'partyLabel' => $side === 'receivables' ? __('Customer') : __('Supplier'),
             'routeName' => $request->route()->getName(),
+            'exportReport' => $side === 'receivables' ? 'ar-aging' : 'ap-aging',
         ]);
     }
 
@@ -269,26 +269,6 @@ class ReportController extends Controller
             'budgetData' => $budgetData,
             'fiscalYearId' => $fiscalYearId,
         ]);
-    }
-
-    public function generateAsync(Request $request)
-    {
-
-        $request->validate([
-            'report_type' => 'required|string|in:trial_balance,general_ledger,profit_loss,balance_sheet,cash_flow',
-            'filters' => 'array',
-            'format' => 'nullable|string|in:pdf,excel',
-        ]);
-
-        GenerateReportJob::dispatch(
-            $request->input('report_type'),
-            $request->input('filters', []),
-            auth()->id(),
-            $this->getActiveCompanyId(),
-            $request->input('format', 'pdf')
-        );
-
-        return back()->with('success', 'Report generation started. You will be notified when it\'s ready.');
     }
 
     /**

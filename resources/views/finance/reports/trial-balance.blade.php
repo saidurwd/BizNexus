@@ -3,7 +3,10 @@
 @section('title', 'Trial Balance')
 
 @section('content_header')
-    <h1>Trial Balance</h1>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h1 class="m-0">Trial Balance</h1>
+        <x-finance.export-button report="trial-balance" />
+    </div>
 @endsection
 
 @section('content')

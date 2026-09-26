@@ -38,6 +38,8 @@ use Modules\Finance\Controllers\Web\PaymentController;
 use Modules\Finance\Controllers\Web\ReceiptController;
 use Modules\Finance\Controllers\Web\RecurringJournalController;
 use Modules\Finance\Controllers\Web\ReportController;
+use Modules\Finance\Controllers\Web\ReportExportController;
+use Modules\Finance\Controllers\Web\SalesDocumentPdfController;
 use Modules\Finance\Controllers\Web\SupplierController;
 use Modules\Finance\Controllers\Web\SupplierCreditNoteController;
 use Modules\Finance\Controllers\Web\SupplierDebitNoteController;
@@ -232,7 +234,7 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
             Route::get('/cash-book', [ReportController::class, 'cashBook'])->middleware('permission:finance.reports.view')->name('cash-book');
             Route::get('/bank-book', [ReportController::class, 'bankBook'])->middleware('permission:finance.reports.view')->name('bank-book');
             Route::get('/management', [ReportController::class, 'management'])->middleware('permission:finance.reports.view')->name('management');
-            Route::post('/generate-async', [ReportController::class, 'generateAsync'])->middleware('permission:finance.reports.export')->name('generate-async');
+            Route::get('/export/{report}', ReportExportController::class)->whereIn('report', ReportExportController::REPORTS)->middleware('permission:finance.reports.export')->name('export');
         });
 
         // Payments
@@ -318,6 +320,8 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::post('/customer-invoices/{id}/post', [CustomerInvoiceController::class, 'post'])->middleware('permission:finance.customer-invoices.post')->name('customer-invoices.post');
         Route::post('/customer-invoices/{id}/cancel', [CustomerInvoiceController::class, 'cancel'])->middleware('permission:finance.customer-invoices.cancel')->name('customer-invoices.cancel');
         Route::get('/customer-invoices/{id}/e-invoice', [EInvoiceController::class, 'show'])->whereNumber('id')->middleware('permission:finance.customer-invoices.view')->name('customer-invoices.e-invoice');
+        Route::get('/customer-invoices/{id}/pdf', [SalesDocumentPdfController::class, 'invoice'])->whereNumber('id')->middleware('permission:finance.customer-invoices.view')->name('customer-invoices.pdf');
+        Route::get('/customer-credit-notes/{id}/pdf', [SalesDocumentPdfController::class, 'creditNote'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.view')->name('customer-credit-notes.pdf');
 
         // Customer Credit Notes
         Route::get('/customer-credit-notes', [CustomerCreditNoteController::class, 'index'])->middleware('permission:finance.customer-credit-notes.view')->name('customer-credit-notes.index');

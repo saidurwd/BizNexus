@@ -3,7 +3,10 @@
 @section('title', 'Income Statement')
 
 @section('content_header')
-    <h1>Income Statement</h1>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h1 class="m-0">Income Statement</h1>
+        <x-finance.export-button report="profit-loss" />
+    </div>
 @endsection
 
 @section('content')

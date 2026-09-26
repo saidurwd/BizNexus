@@ -151,3 +151,12 @@ test('the customer statement lists posted invoices and credit notes in date orde
             && $statement['entries'][1]['type'] === 'credit_note')
         ->assertSee('Credit note');
 });
+
+test('a posted credit note can be downloaded as a PDF', function () {
+    $creditNote = postedCredit(creditNoteFor($this->invoice, '100'));
+
+    $response = actingInCompany($this->clerk, $this->company)->get(route('finance.customer-credit-notes.pdf', $creditNote->id));
+
+    $response->assertOk()->assertHeader('content-type', 'application/pdf');
+    expect($response->getContent())->toStartWith('%PDF');
+});

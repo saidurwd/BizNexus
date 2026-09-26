@@ -15,6 +15,7 @@
             </div>
             <div class="col-sm-4 col-md-3">
                 <button type="submit" class="btn btn-primary">{{ __('Show') }}</button>
+                <x-finance.export-button report="balance-sheet" class="ms-2" />
             </div>
         </div>
     </form>

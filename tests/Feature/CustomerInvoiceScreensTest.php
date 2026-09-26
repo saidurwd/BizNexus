@@ -83,3 +83,13 @@ test('the new invoice form renders the line editor', function () {
         ->assertSee('data-add-line', false)
         ->assertSee($this->revenue->account_name);
 });
+
+test('an invoice can be downloaded as a PDF', function () {
+    actingInCompany($this->user, $this->company)->post(route('finance.customer-invoices.store'), invoiceForm());
+    $invoice = CustomerInvoice::withoutGlobalScopes()->sole();
+
+    $response = actingInCompany($this->user, $this->company)->get(route('finance.customer-invoices.pdf', $invoice->id));
+
+    $response->assertOk()->assertHeader('content-type', 'application/pdf');
+    expect($response->getContent())->toStartWith('%PDF');
+});
