@@ -63,7 +63,7 @@ class SupplierInvoiceController extends Controller
     public function show(int $id)
     {
 
-        $invoice = SupplierInvoice::with(['supplier', 'currency', 'lines.account', 'lines.tax'])
+        $invoice = SupplierInvoice::with(['supplier', 'currency', 'purchaseOrder', 'lines.account', 'lines.tax'])
             ->findOrFail($id);
 
         return view('finance.supplier-invoices.show', compact('invoice'));
@@ -78,6 +78,11 @@ class SupplierInvoiceController extends Controller
                 ->with('error', 'Only draft invoices can be edited.');
         }
 
+        if ($invoice->purchase_order_id) {
+            return redirect()->route('finance.supplier-invoices.show', $id)
+                ->with('error', __('This invoice is matched to a purchase order. Delete it and record it again from the order to change it.'));
+        }
+
         return view('finance.supplier-invoices.edit', ['invoice' => $invoice, ...$this->formData()]);
     }
 
@@ -85,9 +90,9 @@ class SupplierInvoiceController extends Controller
     {
         $invoice = SupplierInvoice::findOrFail($id);
 
-        if (! $invoice->isDraft()) {
+        if (! $invoice->isDraft() || $invoice->purchase_order_id) {
             return redirect()->route('finance.supplier-invoices.show', $id)
-                ->with('error', 'Only draft invoices can be edited.');
+                ->with('error', __('This invoice is matched to a purchase order. Delete it and record it again from the order to change it.'));
         }
 
         $this->supplierInvoiceService->updateInvoice($invoice, $request->validated());

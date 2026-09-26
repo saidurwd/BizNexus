@@ -7,9 +7,12 @@ use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Core\Concerns\BelongsToCompany;
 use Modules\Finance\Models\Account;
+use Modules\Finance\Models\CustomerInvoiceLine;
 use Modules\Finance\Models\Supplier;
+use Modules\Finance\Models\SupplierInvoiceLine;
 use Modules\Finance\Models\Tax;
 
 /**
@@ -119,12 +122,27 @@ class Product extends Model
      */
     public function isInUse(): bool
     {
-        return bccomp((string) $this->stock_quantity, '0', 4) !== 0 || bccomp((string) $this->stock_value, '0', 4) !== 0;
+        return bccomp((string) $this->stock_quantity, '0', 4) !== 0
+            || bccomp((string) $this->stock_value, '0', 4) !== 0
+            || StockMove::where('product_id', $this->id)->exists()
+            || PurchaseOrderLine::where('product_id', $this->id)->exists()
+            || CustomerInvoiceLine::where('product_id', $this->id)->exists()
+            || SupplierInvoiceLine::where('product_id', $this->id)->exists();
     }
 
     public function isBelowReorderLevel(): bool
     {
         return $this->isStocked() && $this->reorder_level !== null && bccomp((string) $this->stock_quantity, (string) $this->reorder_level, 4) <= 0;
+    }
+
+    public function stockBalances(): HasMany
+    {
+        return $this->hasMany(StockBalance::class);
+    }
+
+    public function stockMoves(): HasMany
+    {
+        return $this->hasMany(StockMove::class);
     }
 
     public function category(): BelongsTo

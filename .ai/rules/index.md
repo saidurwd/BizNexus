@@ -6,6 +6,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | --- | --- |
 | Modules/**/Controllers/** | .ai/rules/controllers.md |
 | Modules/Core/Models/** | .ai/rules/core-models.md |
+| Modules/Inventory/** | .ai/rules/inventory.md |
 | **/Migrations/** | .ai/rules/migrations.md |
 | Modules/*/Models/** | .ai/rules/models.md |
 | routes/** | .ai/rules/routes.md |

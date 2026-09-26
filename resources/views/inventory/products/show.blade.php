@@ -15,8 +15,11 @@
 @section('content_header')
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
         <h1 class="m-0">{{ $product->name }} <small class="text-body-secondary">{{ $product->sku }}</small> <x-status-badge :status="$product->status" class="fs-6" /></h1>
-        @can('inventory.products.manage')
-            <div class="d-flex gap-2">
+        <div class="d-flex gap-2">
+            @can('inventory.purchase-orders.create')
+                <a href="{{ route('inventory.purchase-orders.create', ['product' => $product->id]) }}" class="btn btn-outline-secondary"><i class="bi bi-cart-plus"></i> {{ __('Order more') }}</a>
+            @endcan
+            @can('inventory.products.manage')
                 <a href="{{ route('inventory.products.edit', $product->id) }}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> {{ __('Edit') }}</a>
                 @unless ($product->isInUse())
                     <form method="POST" action="{{ route('inventory.products.destroy', $product->id) }}" onsubmit="return confirm(@js(__('Delete this product?')))">
@@ -25,8 +28,8 @@
                         <button type="submit" class="btn btn-outline-danger"><i class="bi bi-trash"></i> {{ __('Delete') }}</button>
                     </form>
                 @endunless
-            </div>
-        @endcan
+            @endcan
+        </div>
     </div>
 @endsection
 
@@ -108,7 +111,61 @@
                     </table>
                     <div class="card-footer small text-body-secondary">{{ __('Weighted average cost in the functional currency (IAS 2).') }}</div>
                 </div>
+
+                <div class="card mb-3">
+                    <div class="card-header"><h3 class="card-title">{{ __('Quantities by warehouse') }}</h3></div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm mb-0">
+                            @forelse ($balances as $balance)
+                                <tr>
+                                    <td>{{ $balance->warehouse?->code }} — {{ $balance->warehouse?->name }}</td>
+                                    <td class="text-end">{{ Formatter::quantity($balance->quantity, $decimals) }}</td>
+                                </tr>
+                            @empty
+                                <tr><td class="text-body-secondary">{{ __('Not in stock.') }}</td></tr>
+                            @endforelse
+                        </table>
+                    </div>
+                </div>
             @endif
         </div>
     </div>
+    @if ($product->isStocked())
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <h3 class="card-title">{{ __('Latest stock movements') }}</h3>
+                @can('inventory.stock.view')
+                    <a href="{{ route('inventory.stock.movements', ['product' => $product->id]) }}">{{ __('All movements') }}</a>
+                @endcan
+            </div>
+            <div class="card-body table-responsive p-0">
+                <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{{ __('Date') }}</th>
+                            <th>{{ __('Document') }}</th>
+                            <th>{{ __('Warehouse') }}</th>
+                            <th class="text-end">{{ __('Quantity') }}</th>
+                            <th class="text-end">{{ __('Value') }}</th>
+                            <th class="text-end">{{ __('Balance') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($moves as $move)
+                            <tr>
+                                <td>{{ Formatter::date($move->move_date) }}</td>
+                                <td>{{ $move->sourceLabel() }} <a href="{{ $move->sourceUrl() }}">{{ $move->reference }}</a></td>
+                                <td>{{ $move->warehouse?->code }}</td>
+                                <td class="text-end">{{ Formatter::quantity($move->quantity, $decimals) }}</td>
+                                <td class="text-end">{{ Formatter::amount($move->value) }}</td>
+                                <td class="text-end">{{ Formatter::quantity($move->quantity_after, $decimals) }}</td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="6" class="text-center text-body-secondary py-3">{{ __('No stock movements found.') }}</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
 @endsection

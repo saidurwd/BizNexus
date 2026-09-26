@@ -39,7 +39,8 @@ class Warehouse extends Model
      */
     public function isInUse(): bool
     {
-        return false;
+        return StockMove::where('warehouse_id', $this->id)->exists()
+            || PurchaseOrder::where('warehouse_id', $this->id)->exists();
     }
 
     public function branch(): BelongsTo

@@ -12,6 +12,7 @@ use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
 use Modules\Core\Support\Formatter;
+use Modules\Finance\Contracts\SalesCostOfGoods;
 use Modules\Finance\Events\CustomerInvoiceApproved;
 use Modules\Finance\Models\Customer;
 use Modules\Finance\Models\CustomerInvoice;
@@ -51,6 +52,8 @@ class CustomerInvoiceService
 
             foreach ($data['lines'] ?? [] as $lineData) {
                 $invoice->lines()->create([
+                    'product_id' => $lineData['product_id'] ?? null,
+                    'warehouse_id' => $lineData['warehouse_id'] ?? null,
                     'account_id' => $lineData['account_id'],
                     'description' => $lineData['description'],
                     'quantity' => $lineData['quantity'] ?? 1,
@@ -126,6 +129,8 @@ class CustomerInvoiceService
                 'journal_id' => $journal->id,
             ]);
 
+            app(SalesCostOfGoods::class)->invoicePosted($invoice);
+
             $this->audit->logCustom('Finance', 'CustomerInvoice', $invoice->id, 'POST', [
                 'journal_id' => $journal->id,
             ]);
@@ -151,6 +156,7 @@ class CustomerInvoiceService
         }
 
         $this->ensureWithinCreditLimit($invoice);
+        app(SalesCostOfGoods::class)->check($invoice);
 
         $invoice->update(['status' => CustomerInvoice::STATUS_SUBMITTED]);
 
@@ -275,6 +281,8 @@ class CustomerInvoiceService
 
         foreach ($data['lines'] ?? [] as $lineData) {
             $invoice->lines()->create([
+                'product_id' => $lineData['product_id'] ?? null,
+                'warehouse_id' => $lineData['warehouse_id'] ?? null,
                 'account_id' => $lineData['account_id'],
                 'description' => $lineData['description'],
                 'quantity' => $lineData['quantity'] ?? 1,

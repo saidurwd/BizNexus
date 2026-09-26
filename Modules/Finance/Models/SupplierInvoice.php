@@ -13,6 +13,7 @@ use Modules\Core\Models\Company;
 use Modules\Core\Models\Currency;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Finance\Scopes\BranchScope;
+use Modules\Inventory\Models\PurchaseOrder;
 
 class SupplierInvoice extends Model
 {
@@ -22,6 +23,7 @@ class SupplierInvoice extends Model
         'company_id',
         'branch_id',
         'supplier_id',
+        'purchase_order_id',
         'invoice_number',
         'invoice_date',
         'due_date',
@@ -82,6 +84,11 @@ class SupplierInvoice extends Model
     public function currency(): BelongsTo
     {
         return $this->belongsTo(Currency::class);
+    }
+
+    public function purchaseOrder(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseOrder::class);
     }
 
     public function journal(): BelongsTo

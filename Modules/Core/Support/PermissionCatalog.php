@@ -99,6 +99,17 @@ class PermissionCatalog
         'inventory.products.manage' => ['name' => 'Create and Edit Products', 'group' => 'Inventory'],
         'inventory.setup.view' => ['name' => 'View Units, Categories and Warehouses', 'group' => 'Inventory'],
         'inventory.setup.manage' => ['name' => 'Manage Units, Categories and Warehouses', 'group' => 'Inventory'],
+        'inventory.purchase-orders.view' => ['name' => 'View Purchase Orders', 'group' => 'Purchasing'],
+        'inventory.purchase-orders.create' => ['name' => 'Create and Edit Purchase Orders', 'group' => 'Purchasing'],
+        'inventory.purchase-orders.submit' => ['name' => 'Submit Purchase Orders', 'group' => 'Purchasing'],
+        'inventory.purchase-orders.approve' => ['name' => 'Approve or Reject Purchase Orders', 'group' => 'Purchasing'],
+        'inventory.purchase-orders.cancel' => ['name' => 'Cancel or Close Purchase Orders', 'group' => 'Purchasing'],
+        'inventory.goods-receipts.view' => ['name' => 'View Goods Receipts', 'group' => 'Purchasing'],
+        'inventory.goods-receipts.create' => ['name' => 'Receive Goods', 'group' => 'Purchasing'],
+        'inventory.stock.view' => ['name' => 'View Stock Levels, Movements and Valuation', 'group' => 'Inventory'],
+        'inventory.adjustments.create' => ['name' => 'Prepare Stock Adjustments and Counts', 'group' => 'Inventory'],
+        'inventory.adjustments.post' => ['name' => 'Post Stock Adjustments and Counts', 'group' => 'Inventory'],
+        'inventory.transfers.create' => ['name' => 'Transfer Stock between Warehouses', 'group' => 'Inventory'],
     ];
 
     /**
@@ -200,6 +211,17 @@ class PermissionCatalog
         'inventory.products.manage' => ['finance.accounts.update'],
         'inventory.setup.view' => ['finance.accounts.view'],
         'inventory.setup.manage' => ['finance.accounts.update'],
+        'inventory.purchase-orders.view' => ['finance.suppliers.view'],
+        'inventory.purchase-orders.create' => ['finance.suppliers.create'],
+        'inventory.purchase-orders.submit' => ['finance.suppliers.submit'],
+        'inventory.purchase-orders.approve' => ['finance.suppliers.approve'],
+        'inventory.purchase-orders.cancel' => ['finance.suppliers.cancel'],
+        'inventory.goods-receipts.view' => ['finance.suppliers.view'],
+        'inventory.goods-receipts.create' => ['finance.suppliers.create'],
+        'inventory.stock.view' => ['finance.reports.view', 'inventory.products.view'],
+        'inventory.adjustments.create' => ['finance.journals.create'],
+        'inventory.adjustments.post' => ['finance.journals.post'],
+        'inventory.transfers.create' => ['inventory.products.manage'],
     ];
 
     /**

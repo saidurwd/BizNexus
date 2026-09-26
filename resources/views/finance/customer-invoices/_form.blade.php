@@ -1,6 +1,6 @@
 @php
     $invoice ??= null;
-    $lines = old('lines', $invoice?->lines->map->only(['account_id', 'description', 'quantity', 'unit_price', 'discount_amount', 'tax_id'])->all() ?? []);
+    $lines = old('lines', $invoice?->lines->map->only(['product_id', 'warehouse_id', 'account_id', 'description', 'quantity', 'unit_price', 'discount_amount', 'tax_id'])->all() ?? []);
 @endphp
 
 <div class="row g-3">
@@ -52,7 +52,7 @@
 </div>
 
 <h5 class="mt-4">{{ __('Lines') }}</h5>
-<x-finance.document-lines :accounts="$accounts" :taxes="$taxes" :lines="$lines" />
+<x-finance.document-lines :accounts="$accounts" :taxes="$taxes" :lines="$lines" :products="$products ?? null" :warehouses="$warehouses ?? null" />
 
 @once
     @push('js')

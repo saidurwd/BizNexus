@@ -820,10 +820,23 @@ return [
 
         ['header' => 'SUPPLY CHAIN'],
         [
+            'text' => 'Purchasing',
+            'icon' => 'bi bi-cart3',
+            'submenu' => [
+                ['text' => 'Purchase Orders', 'url' => 'inventory/purchase-orders', 'icon' => 'bi bi-file-earmark-text', 'can' => 'inventory.purchase-orders.view'],
+                ['text' => 'Goods Receipts', 'url' => 'inventory/goods-receipts', 'icon' => 'bi bi-box-arrow-in-down', 'can' => 'inventory.goods-receipts.view'],
+            ],
+        ],
+        [
             'text' => 'Inventory',
             'icon' => 'bi bi-box-seam',
             'submenu' => [
                 ['text' => 'Products', 'url' => 'inventory/products', 'icon' => 'bi bi-box', 'can' => 'inventory.products.view'],
+                ['text' => 'Stock on Hand', 'url' => 'inventory/stock', 'icon' => 'bi bi-boxes', 'can' => 'inventory.stock.view'],
+                ['text' => 'Stock Movements', 'url' => 'inventory/stock/movements', 'icon' => 'bi bi-arrow-left-right', 'can' => 'inventory.stock.view'],
+                ['text' => 'Adjustments & Counts', 'url' => 'inventory/adjustments', 'icon' => 'bi bi-clipboard-check', 'can' => 'inventory.stock.view'],
+                ['text' => 'Transfers', 'url' => 'inventory/transfers', 'icon' => 'bi bi-truck', 'can' => 'inventory.stock.view'],
+                ['text' => 'Inventory Valuation', 'url' => 'inventory/stock/valuation', 'icon' => 'bi bi-cash-stack', 'can' => 'inventory.stock.view'],
             ],
         ],
 

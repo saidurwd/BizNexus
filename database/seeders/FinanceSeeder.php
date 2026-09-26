@@ -174,6 +174,7 @@ class FinanceSeeder extends Seeder
             '2.1.1' => ['code' => '2110', 'name' => 'Accounts Payable', 'type' => 'LIABILITY', 'is_group' => false],
             '2.1.2' => ['code' => '2120', 'name' => 'Tax Payable', 'type' => 'LIABILITY', 'is_group' => false],
             '2.1.3' => ['code' => '2130', 'name' => 'Salary Payable', 'type' => 'LIABILITY', 'is_group' => false],
+            '2.1.4' => ['code' => '2140', 'name' => 'Goods Received Not Invoiced', 'type' => 'LIABILITY', 'is_group' => false],
             '2.2' => ['code' => '2200', 'name' => 'Long-term Liabilities', 'type' => 'LIABILITY', 'is_group' => true],
             '2.2.1' => ['code' => '2210', 'name' => 'Loans Payable', 'type' => 'LIABILITY', 'is_group' => false],
 
@@ -200,6 +201,8 @@ class FinanceSeeder extends Seeder
             '5.1.5' => ['code' => '5150', 'name' => 'Travel Expense', 'type' => 'EXPENSE', 'is_group' => false],
             '5.2' => ['code' => '5200', 'name' => 'Cost of Sales', 'type' => 'EXPENSE', 'is_group' => true],
             '5.2.1' => ['code' => '5210', 'name' => 'Cost of Goods Sold', 'type' => 'EXPENSE', 'is_group' => false],
+            '5.2.2' => ['code' => '5220', 'name' => 'Purchase Price Variance', 'type' => 'EXPENSE', 'is_group' => false],
+            '5.2.3' => ['code' => '5230', 'name' => 'Inventory Adjustments', 'type' => 'EXPENSE', 'is_group' => false],
             '5.3' => ['code' => '5300', 'name' => 'Financial Expenses', 'type' => 'EXPENSE', 'is_group' => true],
             '5.3.1' => ['code' => '5310', 'name' => 'Interest Expense', 'type' => 'EXPENSE', 'is_group' => false],
             '5.3.2' => ['code' => '5320', 'name' => 'Realised Exchange Loss', 'type' => 'EXPENSE', 'is_group' => false],
@@ -279,6 +282,11 @@ class FinanceSeeder extends Seeder
             AccountPurpose::UnrealizedFxLoss->value => '5330',
             AccountPurpose::RetainedEarnings->value => '3120',
             AccountPurpose::TranslationReserve->value => '3130',
+            AccountPurpose::Inventory->value => '1140',
+            AccountPurpose::CostOfGoodsSold->value => '5210',
+            AccountPurpose::GoodsReceivedNotInvoiced->value => '2140',
+            AccountPurpose::PurchasePriceVariance->value => '5220',
+            AccountPurpose::InventoryAdjustment->value => '5230',
         ];
 
         foreach ($mappings as $purpose => $accountCode) {

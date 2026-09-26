@@ -70,7 +70,11 @@ class ProductController extends Controller
         $product = Product::with(['category', 'unit', 'purchaseTax', 'salesTax', 'preferredSupplier', 'inventoryAccount', 'cogsAccount', 'revenueAccount', 'expenseAccount', 'category.inventoryAccount', 'category.cogsAccount', 'category.revenueAccount', 'category.expenseAccount'])
             ->findOrFail($id);
 
-        return view('inventory.products.show', compact('product'));
+        return view('inventory.products.show', [
+            'product' => $product,
+            'balances' => $product->stockBalances()->with('warehouse')->where('quantity', '!=', 0)->get(),
+            'moves' => $product->stockMoves()->with('warehouse')->latest('move_date')->latest('id')->limit(10)->get(),
+        ]);
     }
 
     public function edit(int $id): View
