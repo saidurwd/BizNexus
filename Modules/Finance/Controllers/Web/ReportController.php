@@ -109,12 +109,15 @@ class ReportController extends Controller
 
     public function cashFlow(Request $request)
     {
+        $filters = $request->validate([
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+        ]);
 
         $report = $this->financialReportService->getCashFlow(
             $this->getActiveCompanyId(),
-            $request->get('fiscal_period_id'),
-            $request->get('start_date') ? Carbon::parse($request->get('start_date')) : null,
-            $request->get('end_date') ? Carbon::parse($request->get('end_date')) : null
+            isset($filters['start_date']) ? Carbon::parse($filters['start_date']) : null,
+            isset($filters['end_date']) ? Carbon::parse($filters['end_date']) : null
         );
 
         return view('finance.reports.cash-flow', [
