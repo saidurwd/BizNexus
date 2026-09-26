@@ -10,6 +10,9 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar />
+    <x-print-document-header :title="__('Stock transfer')" :subtitle="$transfer->transfer_number" />
+
     <div class="card mb-3">
         <div class="card-body">
             <dl class="row mb-0">
@@ -48,4 +51,5 @@
     </div>
 
     <a href="{{ route('inventory.transfers.index') }}" class="btn btn-secondary">{{ __('Back') }}</a>
+    <x-print-signatures :labels="[__('Issued by'), __('Received by'), __('Approved by')]" />
 @endsection

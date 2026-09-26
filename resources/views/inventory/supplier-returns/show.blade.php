@@ -10,6 +10,9 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar />
+    <x-print-document-header :title="__('Supplier return')" :subtitle="$return->return_number" />
+
     <div class="card mb-3">
         <div class="card-body">
             <dl class="row mb-0">
@@ -54,4 +57,5 @@
     </div>
 
     <a href="{{ route('inventory.supplier-returns.index') }}" class="btn btn-secondary">{{ __('Back') }}</a>
+    <x-print-signatures :labels="[__('Issued by'), __('Checked by'), __('Received by (supplier)')]" />
 @endsection

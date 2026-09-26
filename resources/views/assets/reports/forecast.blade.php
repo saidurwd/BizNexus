@@ -8,6 +8,8 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar />
+    <x-report-letterhead :title="__('Depreciation Forecast')" :subtitle="__('12 months from :date', ['date' => Formatter::date($start)])" />
     <div class="card">
         <div class="card-body table-responsive p-0">
             <table class="table table-sm mb-0">

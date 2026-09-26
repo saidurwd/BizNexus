@@ -31,6 +31,9 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar />
+    <x-print-document-header :title="__('Fixed asset')" :subtitle="$asset->asset_number.' — '.$asset->name" />
+
     <div class="row">
         <div class="col-lg-7">
             <div class="card mb-3">

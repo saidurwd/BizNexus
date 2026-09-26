@@ -10,6 +10,9 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar />
+    <x-print-document-header :title="__('Depreciation run')" :subtitle="$run->period_end->translatedFormat('F Y')" />
+
     <div class="card mb-3">
         <div class="card-body">
             <dl class="row mb-0">
@@ -57,4 +60,5 @@
             @endcan
         @endif
     </div>
+    <x-print-signatures :labels="[__('Prepared by'), __('Approved by')]" />
 @endsection

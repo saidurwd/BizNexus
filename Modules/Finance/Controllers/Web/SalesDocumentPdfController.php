@@ -56,7 +56,7 @@ class SalesDocumentPdfController extends Controller
             ...$details,
             'document' => $document,
             'company' => $document->company,
-            'party' => $document->customer,
+            'party' => $details['party'] ?? $document->customer,
             'lines' => $document->lines,
             'currencyCode' => $document->currency?->code ?? $document->company->baseCurrency?->code ?? 'XXX',
             'taxSummary' => $this->taxSummary($document->lines),

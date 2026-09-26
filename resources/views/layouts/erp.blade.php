@@ -113,6 +113,11 @@
             .card { border: 0 !important; box-shadow: none !important; }
             .report-letterhead { border-bottom: 2px solid #333 !important; border-radius: 0 !important; }
             a { color: inherit !important; text-decoration: none !important; }
+            .badge { border: 1px solid #999; color: #000 !important; background: transparent !important; }
+            .table { font-size: 10pt; }
+            .card-header .card-tools, .collapse:not(.show) { display: none !important; }
+            .d-print-flex { display: flex !important; }
+            @page { margin: 12mm; }
         }
         .sidebar .sidebar-wrapper {
             display: flex;

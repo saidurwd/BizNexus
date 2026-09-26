@@ -7,6 +7,7 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar />
     <x-report-letterhead :title="$title" />
 
     <form method="GET" action="{{ route($routeName) }}" class="card mb-3">

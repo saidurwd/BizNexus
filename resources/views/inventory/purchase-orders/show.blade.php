@@ -15,6 +15,9 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar :pdf="route('inventory.purchase-orders.pdf', $order->id)" />
+    <x-print-document-header :title="__('Purchase order')" :subtitle="$order->order_number" />
+
     @if ($order->hasCreditDue())
         <div class="alert alert-warning">{{ __('Goods returned after they were invoiced are waiting for the supplier\'s credit note.') }}</div>
     @endif
@@ -231,4 +234,5 @@
             </div>
         </div>
     </div>
+    <x-print-signatures :labels="[__('Prepared by'), __('Approved by')]" />
 @endsection

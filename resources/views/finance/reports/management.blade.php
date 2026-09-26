@@ -7,6 +7,7 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar />
     <x-report-letterhead title="{{ __('Management Reports') }}" />
 
     <div class="row">
