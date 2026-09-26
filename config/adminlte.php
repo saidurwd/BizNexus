@@ -904,6 +904,18 @@ return [
             ],
         ],
         [
+            'text' => 'Fixed Assets',
+            'icon' => 'bi bi-building-gear',
+            'submenu' => [
+                ['text' => 'Asset Register', 'url' => 'assets/register', 'icon' => 'bi bi-list-ul', 'can' => 'assets.view'],
+                ['text' => 'Capitalise Purchases', 'url' => 'assets/capitalise', 'icon' => 'bi bi-box-arrow-in-down', 'can' => 'assets.manage'],
+                ['text' => 'Depreciation', 'url' => 'assets/depreciation', 'icon' => 'bi bi-graph-down', 'can' => 'assets.view'],
+                ['text' => 'Asset Movements', 'url' => 'assets/reports/movements', 'icon' => 'bi bi-arrow-down-up', 'can' => 'assets.view'],
+                ['text' => 'Fixed Asset Register', 'url' => 'assets/reports/register', 'icon' => 'bi bi-journal-text', 'can' => 'assets.view'],
+                ['text' => 'Depreciation Forecast', 'url' => 'assets/reports/forecast', 'icon' => 'bi bi-calendar3', 'can' => 'assets.view'],
+            ],
+        ],
+        [
             'text' => 'Tax',
             'icon' => 'bi bi-percent',
             'submenu' => [
@@ -961,6 +973,7 @@ return [
                 ['text' => 'Account Determination', 'url' => 'finance/account-mappings', 'icon' => 'bi bi-signpost-split', 'can' => 'finance.accounts.view'],
                 ['text' => 'Data Import', 'url' => 'finance/imports', 'icon' => 'bi bi-upload', 'can' => 'finance.data-import.use'],
                 ['text' => 'Number Series', 'url' => 'finance/number-series', 'icon' => 'bi bi-123', 'can' => 'finance.number-series.view'],
+                ['text' => 'Asset Categories', 'url' => 'assets/categories', 'icon' => 'bi bi-diagram-2', 'can' => 'assets.view'],
                 ['text' => 'Payment Terms', 'url' => 'finance/payment-terms', 'icon' => 'bi bi-calendar-check', 'can' => 'finance.payment-terms.view'],
                 ['text' => 'Exchange Rates', 'url' => 'exchange-rates', 'icon' => 'bi bi-currency-exchange', 'can' => 'core.exchange-rates.view'],
             ],
@@ -1031,15 +1044,6 @@ return [
         //         ['text' => 'Sales Orders', 'url' => 'sales/orders', 'icon' => 'bi bi-file-text'],
         //         ['text' => 'Delivery Notes', 'url' => 'sales/deliveries', 'icon' => 'bi bi-truck'],
         //         ['text' => 'Customer Returns', 'url' => 'sales/returns', 'icon' => 'bi bi-arrow-return-left'],
-        //     ],
-        // ],
-        // [
-        //     'text' => 'Fixed Assets',
-        //     'icon' => 'bi bi-building',
-        //     'submenu' => [
-        //         ['text' => 'Asset Register', 'url' => 'assets/register', 'icon' => 'bi bi-list-ul'],
-        //         ['text' => 'Depreciation', 'url' => 'assets/depreciation', 'icon' => 'bi bi-graph-down'],
-        //         ['text' => 'Asset Disposal', 'url' => 'assets/disposal', 'icon' => 'bi bi-trash'],
         //     ],
         // ],
         // [

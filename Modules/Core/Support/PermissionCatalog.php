@@ -119,6 +119,11 @@ class PermissionCatalog
         'sales.deliveries.view' => ['name' => 'View Deliveries', 'group' => 'Sales'],
         'sales.deliveries.create' => ['name' => 'Deliver Goods', 'group' => 'Sales'],
         'inventory.supplier-returns.create' => ['name' => 'Return Goods to Suppliers', 'group' => 'Purchasing'],
+        'assets.view' => ['name' => 'View Fixed Assets and Reports', 'group' => 'Fixed Assets'],
+        'assets.manage' => ['name' => 'Register, Edit and Transfer Fixed Assets', 'group' => 'Fixed Assets'],
+        'assets.dispose' => ['name' => 'Impair and Dispose of Fixed Assets', 'group' => 'Fixed Assets'],
+        'assets.depreciate' => ['name' => 'Run and Reverse Depreciation', 'group' => 'Fixed Assets'],
+        'assets.setup' => ['name' => 'Manage Asset Categories', 'group' => 'Fixed Assets'],
     ];
 
     /**
@@ -240,6 +245,11 @@ class PermissionCatalog
         'sales.deliveries.view' => ['finance.customers.view'],
         'sales.deliveries.create' => ['finance.customer-invoices.create'],
         'inventory.supplier-returns.create' => ['inventory.goods-receipts.create'],
+        'assets.view' => ['finance.accounts.view'],
+        'assets.manage' => ['finance.journals.create'],
+        'assets.dispose' => ['finance.journals.post'],
+        'assets.depreciate' => ['finance.journals.post'],
+        'assets.setup' => ['finance.accounts.update'],
     ];
 
     /**

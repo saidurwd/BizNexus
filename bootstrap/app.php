@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use JeroenNoten\LaravelAdminLte\AdminLteServiceProvider;
+use Modules\Assets\AssetsServiceProvider;
 use Modules\Core\CoreServiceProvider;
 use Modules\Core\Http\Middleware\BranchAccess;
 use Modules\Core\Http\Middleware\CompanyAccess;
@@ -30,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
         WorkflowServiceProvider::class,
         InventoryServiceProvider::class,
         SalesServiceProvider::class,
+        AssetsServiceProvider::class,
         EventServiceProvider::class,
         AdminLteServiceProvider::class,
     ])

@@ -461,6 +461,7 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
 
     require __DIR__.'/inventory.php';
     require __DIR__.'/sales.php';
+    require __DIR__.'/assets.php';
 
     // Approval delegation (self-service; users delegate only their own approval authority)
     Route::post('/approval-delegations', [ApprovalDelegationController::class, 'store'])->name('core.approval-delegations.store');

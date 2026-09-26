@@ -23,6 +23,8 @@ class SystemSchedule
 
     public const PRUNE_FAILED_JOBS = 'Prune failed jobs older than 30 days';
 
+    public const ASSET_DEPRECIATION = 'Post last month\'s fixed asset depreciation';
+
     public static function define(Schedule $schedule): void
     {
         $schedule->job(new GenerateRecurringJournalsJob)->hourly()->withoutOverlapping()->name(self::RECURRING_JOURNALS);
@@ -33,5 +35,9 @@ class SystemSchedule
             ->dailyAt('03:00')->name(self::PRUNE_LOGS);
 
         $schedule->command('queue:prune-failed', ['--hours' => 24 * 30])->dailyAt('03:30')->name(self::PRUNE_FAILED_JOBS);
+
+        if (config('assets.auto_depreciation')) {
+            $schedule->command('assets:depreciate')->monthlyOn(1, '04:00')->withoutOverlapping()->name(self::ASSET_DEPRECIATION);
+        }
     }
 }

@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Modules\Assets\Support\StandardAssetSetup;
 use Modules\Core\Models\Company;
 use Modules\Core\Models\Currency;
 use Modules\Core\Models\FiscalPeriod;
@@ -78,6 +79,7 @@ class FinanceSeeder extends Seeder
             $this->createChartOfAccounts($company);
             $this->classifyAccounts();
             $this->mapAutomaticPostingAccounts($company);
+            StandardAssetSetup::installFor($company->id);
         });
     }
 
@@ -200,6 +202,7 @@ class FinanceSeeder extends Seeder
             '5.1.3' => ['code' => '5130', 'name' => 'Utilities Expense', 'type' => 'EXPENSE', 'is_group' => false],
             '5.1.4' => ['code' => '5140', 'name' => 'Office Supplies', 'type' => 'EXPENSE', 'is_group' => false],
             '5.1.5' => ['code' => '5150', 'name' => 'Travel Expense', 'type' => 'EXPENSE', 'is_group' => false],
+            '5.1.6' => ['code' => '5160', 'name' => 'Depreciation Expense', 'type' => 'EXPENSE', 'is_group' => false],
             '5.2' => ['code' => '5200', 'name' => 'Cost of Sales', 'type' => 'EXPENSE', 'is_group' => true],
             '5.2.1' => ['code' => '5210', 'name' => 'Cost of Goods Sold', 'type' => 'EXPENSE', 'is_group' => false],
             '5.2.2' => ['code' => '5220', 'name' => 'Purchase Price Variance', 'type' => 'EXPENSE', 'is_group' => false],
@@ -209,6 +212,7 @@ class FinanceSeeder extends Seeder
             '5.3.2' => ['code' => '5320', 'name' => 'Realised Exchange Loss', 'type' => 'EXPENSE', 'is_group' => false],
             '5.3.3' => ['code' => '5330', 'name' => 'Unrealised Exchange Loss', 'type' => 'EXPENSE', 'is_group' => false],
             '5.3.4' => ['code' => '5340', 'name' => 'Currency Rounding Differences', 'type' => 'EXPENSE', 'is_group' => false],
+            '5.3.5' => ['code' => '5350', 'name' => 'Gain / Loss on Disposal of Assets', 'type' => 'EXPENSE', 'is_group' => false],
         ];
 
         $accountIds = [];
