@@ -4,13 +4,17 @@ namespace Modules\Finance\Controllers\Web;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Modules\Core\Models\Currency;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
 use Modules\Finance\Controllers\Concerns\FiltersDocumentLists;
 use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\Account;
 use Modules\Finance\Models\Supplier;
 use Modules\Finance\Models\SupplierInvoice;
 use Modules\Finance\Models\Tax;
+use Modules\Finance\Requests\StoreSupplierInvoiceRequest;
 use Modules\Finance\Services\SupplierInvoiceService;
 
 class SupplierInvoiceController extends Controller
@@ -41,44 +45,25 @@ class SupplierInvoiceController extends Controller
 
     public function create()
     {
-
-        $suppliers = Supplier::where('status', 'active')->get();
-        $taxes = Tax::where('status', 'active')->get();
-
-        return view('finance.supplier-invoices.create', compact('suppliers', 'taxes'));
+        return view('finance.supplier-invoices.create', $this->formData());
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreSupplierInvoiceRequest $request): RedirectResponse
     {
-
-        $validated = $request->validate([
-            'supplier_id' => 'required|exists:suppliers,id',
-            'invoice_number' => 'required|string|max:50|unique:supplier_invoices,invoice_number',
-            'invoice_date' => 'required|date',
-            'due_date' => 'nullable|date',
-            'tax_id' => 'nullable|exists:taxes,id',
-            'subtotal' => 'required|numeric|min:0',
-            'total_amount' => 'required|numeric|min:0',
-            'description' => 'nullable|string',
+        $invoice = $this->supplierInvoiceService->createInvoice([
+            ...$request->validated(),
+            'company_id' => $this->getActiveCompanyId(),
         ]);
 
-        $validated['company_id'] = $this->getActiveCompanyId();
-        $validated['branch_id'] = $this->getActiveBranchId();
-        $validated['status'] = SupplierInvoice::STATUS_DRAFT;
-        $validated['created_by'] = auth()->id();
-        $validated['updated_by'] = auth()->id();
-        $validated['outstanding_amount'] = $validated['total_amount'];
-
-        SupplierInvoice::create($validated);
-
-        return redirect()->route('finance.supplier-invoices.index')
-            ->with('success', 'Supplier invoice created successfully.');
+        return redirect()
+            ->route('finance.supplier-invoices.show', $invoice->id)
+            ->with('success', __('Supplier invoice :number recorded.', ['number' => $invoice->invoice_number]));
     }
 
     public function show(int $id)
     {
 
-        $invoice = SupplierInvoice::with(['supplier', 'tax', 'lines.account', 'lines.tax'])
+        $invoice = SupplierInvoice::with(['supplier', 'currency', 'lines.account', 'lines.tax'])
             ->findOrFail($id);
 
         return view('finance.supplier-invoices.show', compact('invoice'));
@@ -86,23 +71,18 @@ class SupplierInvoiceController extends Controller
 
     public function edit(int $id)
     {
-
-        $invoice = SupplierInvoice::findOrFail($id);
+        $invoice = SupplierInvoice::with('lines')->findOrFail($id);
 
         if (! $invoice->isDraft()) {
             return redirect()->route('finance.supplier-invoices.show', $id)
                 ->with('error', 'Only draft invoices can be edited.');
         }
 
-        $suppliers = Supplier::where('status', 'active')->get();
-        $taxes = Tax::where('status', 'active')->get();
-
-        return view('finance.supplier-invoices.edit', compact('invoice', 'suppliers', 'taxes'));
+        return view('finance.supplier-invoices.edit', ['invoice' => $invoice, ...$this->formData()]);
     }
 
-    public function update(Request $request, int $id): RedirectResponse
+    public function update(StoreSupplierInvoiceRequest $request, int $id): RedirectResponse
     {
-
         $invoice = SupplierInvoice::findOrFail($id);
 
         if (! $invoice->isDraft()) {
@@ -110,24 +90,25 @@ class SupplierInvoiceController extends Controller
                 ->with('error', 'Only draft invoices can be edited.');
         }
 
-        $validated = $request->validate([
-            'supplier_id' => 'required|exists:suppliers,id',
-            'invoice_number' => 'required|string|max:50|unique:supplier_invoices,invoice_number,'.$id,
-            'invoice_date' => 'required|date',
-            'due_date' => 'nullable|date',
-            'tax_id' => 'nullable|exists:taxes,id',
-            'subtotal' => 'required|numeric|min:0',
-            'total_amount' => 'required|numeric|min:0',
-            'description' => 'nullable|string',
-        ]);
-
-        $validated['updated_by'] = auth()->id();
-        $validated['outstanding_amount'] = $validated['total_amount'];
-
-        $invoice->update($validated);
+        $this->supplierInvoiceService->updateInvoice($invoice, $request->validated());
 
         return redirect()->route('finance.supplier-invoices.show', $id)
             ->with('success', 'Invoice updated successfully.');
+    }
+
+    /**
+     * Suppliers, postable accounts, tax codes and currencies for the invoice form.
+     *
+     * @return array<string, Collection<int, mixed>>
+     */
+    protected function formData(): array
+    {
+        return [
+            'suppliers' => Supplier::where('status', 'active')->orderBy('name')->get(),
+            'accounts' => Account::postable()->active()->orderBy('account_code')->get(['id', 'account_code', 'account_name']),
+            'taxes' => Tax::where('status', 'active')->orderBy('tax_code')->get(),
+            'currencies' => Currency::where('status', 'active')->orderBy('code')->get(),
+        ];
     }
 
     public function destroy(int $id): RedirectResponse

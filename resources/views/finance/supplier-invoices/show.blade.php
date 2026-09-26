@@ -44,8 +44,8 @@
                     <td>{{ $invoice->supplier?->name ?? '-' }}</td>
                 </tr>
                 <tr>
-                    <th>Tax</th>
-                    <td>{{ $invoice->tax?->tax_name ?? '-' }} ({{ $invoice->tax?->rate ?? 0 }}%)</td>
+                    <th>{{ __('Currency') }}</th>
+                    <td>{{ $invoice->currency?->code ?? __('Company currency') }}@if ($invoice->currency) · {{ __('rate :rate', ['rate' => Formatter::rate($invoice->exchange_rate)]) }}@endif</td>
                 </tr>
                 <tr>
                     <th>Subtotal</th>

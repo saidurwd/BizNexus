@@ -46,7 +46,6 @@ use Modules\Finance\Controllers\Web\SalesDocumentPdfController;
 use Modules\Finance\Controllers\Web\SupplierController;
 use Modules\Finance\Controllers\Web\SupplierCreditNoteController;
 use Modules\Finance\Controllers\Web\SupplierInvoiceController;
-use Modules\Finance\Controllers\Web\SupplierInvoiceLineController;
 use Modules\Finance\Controllers\Web\SupplierStatementController;
 use Modules\Finance\Controllers\Web\TaxController;
 use Modules\Finance\Controllers\Web\TaxReturnController;
@@ -281,9 +280,6 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::post('/supplier-invoices/{id}/reject', [SupplierInvoiceController::class, 'reject'])->middleware('permission:finance.supplier-invoices.reject')->name('supplier-invoices.reject');
         Route::post('/supplier-invoices/{id}/post', [SupplierInvoiceController::class, 'post'])->middleware('permission:finance.supplier-invoices.post')->name('supplier-invoices.post');
         Route::post('/supplier-invoices/{id}/cancel', [SupplierInvoiceController::class, 'cancel'])->middleware('permission:finance.supplier-invoices.cancel')->name('supplier-invoices.cancel');
-        Route::post('/supplier-invoices/{invoiceId}/lines', [SupplierInvoiceLineController::class, 'store'])->middleware('permission:finance.supplier-invoices.update')->name('supplier-invoices.lines.store');
-        Route::put('/supplier-invoices/{invoiceId}/lines/{lineId}', [SupplierInvoiceLineController::class, 'update'])->middleware('permission:finance.supplier-invoices.update')->name('supplier-invoices.lines.update');
-        Route::delete('/supplier-invoices/{invoiceId}/lines/{lineId}', [SupplierInvoiceLineController::class, 'destroy'])->middleware('permission:finance.supplier-invoices.update')->name('supplier-invoices.lines.destroy');
 
         // Supplier Credit Notes
         Route::get('/supplier-credit-notes', [SupplierCreditNoteController::class, 'index'])->middleware('permission:finance.supplier-credit-notes.view')->name('supplier-credit-notes.index');
