@@ -1,12 +1,12 @@
 <?php
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Schedule;
-use Modules\Finance\Jobs\GenerateRecurringJournalsJob;
+use Modules\Core\Support\SystemSchedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::job(new GenerateRecurringJournalsJob)->hourly()->withoutOverlapping();
+SystemSchedule::define(app(Schedule::class));

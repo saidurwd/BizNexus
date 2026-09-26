@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Modules\Core\Models\Company;
 use Modules\Core\Services\CompanyContextService;
+use Modules\Core\Support\SystemSchedule;
 use Modules\Finance\Jobs\GenerateRecurringJournalsJob;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\Journal;
@@ -108,6 +109,6 @@ class GenerateRecurringJournalsJobTest extends TestCase
     {
         $events = collect(app(Schedule::class)->events());
 
-        $this->assertTrue($events->contains(fn ($event) => str_contains((string) $event->description, GenerateRecurringJournalsJob::class)));
+        $this->assertTrue($events->contains(fn ($event) => $event->description === SystemSchedule::RECURRING_JOURNALS));
     }
 }

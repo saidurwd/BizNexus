@@ -2,8 +2,11 @@
 
 namespace Modules\Core;
 
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Modules\Core\Listeners\RecordScheduledTaskRuns;
+use Modules\Core\Listeners\RecordSecurityActivity;
 use Modules\Core\Services\BranchAccessService;
 use Modules\Core\Services\CompanyAccessService;
 use Modules\Core\Services\CompanyContextService;
@@ -37,6 +40,9 @@ class CoreServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Event::subscribe(RecordSecurityActivity::class);
+        Event::subscribe(RecordScheduledTaskRuns::class);
+
         Gate::before(function ($user, string $ability) {
             if (str_contains($ability, '.') && app(PermissionService::class)->hasPermission($ability, $user->id)) {
                 return true;

@@ -13,6 +13,7 @@ use Modules\Core\Http\Middleware\DepartmentAccess;
 use Modules\Core\Http\Middleware\EnsureCompanyAndBranchSelected;
 use Modules\Core\Http\Middleware\EnsureTwoFactorEnrolment;
 use Modules\Core\Http\Middleware\Permission;
+use Modules\Core\Http\Middleware\RecordUserActivity;
 use Modules\Core\Http\Middleware\SetCompanyContext;
 use Modules\Core\Http\Middleware\SetLocale;
 use Modules\Core\Http\Middleware\SetTokenCompanyContext;
@@ -41,6 +42,7 @@ return Application::configure(basePath: dirname(__DIR__))
             EnsureTwoFactorEnrolment::class,
             SetLocale::class,
             ShareAdminLte::class,
+            RecordUserActivity::class,
         ]);
 
         $middleware->alias([

@@ -14,6 +14,8 @@ use Modules\Core\Controllers\Web\NotificationController;
 use Modules\Core\Controllers\Web\PeriodClosingController;
 use Modules\Core\Controllers\Web\PermissionController;
 use Modules\Core\Controllers\Web\RoleController;
+use Modules\Core\Controllers\Web\SecurityLogController;
+use Modules\Core\Controllers\Web\SystemController;
 use Modules\Core\Controllers\Web\UserController;
 use Modules\Finance\Controllers\Web\AccountController;
 use Modules\Finance\Controllers\Web\AccountMappingController;
@@ -91,6 +93,20 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
     // Audit
     Route::get('/audit', [AuditController::class, 'index'])->middleware('permission:core.audit.view')->name('core.audit.index');
     Route::get('/audit/{id}', [AuditController::class, 'show'])->middleware('permission:core.audit.view')->name('core.audit.show');
+
+    // Security & Audit
+    Route::get('/security/activity', [SecurityLogController::class, 'activity'])->middleware('permission:core.activity-logs.view')->name('core.activity-logs.index');
+    Route::get('/security/events', [SecurityLogController::class, 'events'])->middleware('permission:core.security-events.view')->name('core.security-events.index');
+    Route::get('/security/logins', [SecurityLogController::class, 'logins'])->middleware('permission:core.login-history.view')->name('core.login-history.index');
+
+    // System
+    Route::get('/system/health', [SystemController::class, 'health'])->middleware('permission:core.system.view')->name('core.system.health');
+    Route::get('/system/queue', [SystemController::class, 'queue'])->middleware('permission:core.system.view')->name('core.system.queue');
+    Route::post('/system/queue/failed/retry-all', [SystemController::class, 'retryAllFailedJobs'])->middleware('permission:core.system.manage')->name('core.system.queue.retry-all');
+    Route::post('/system/queue/failed/{uuid}/retry', [SystemController::class, 'retryFailedJob'])->middleware('permission:core.system.manage')->name('core.system.queue.retry');
+    Route::delete('/system/queue/failed/{uuid}', [SystemController::class, 'forgetFailedJob'])->middleware('permission:core.system.manage')->name('core.system.queue.forget');
+    Route::get('/system/schedule', [SystemController::class, 'schedule'])->middleware('permission:core.system.view')->name('core.system.schedule');
+    Route::get('/system/about', [SystemController::class, 'about'])->middleware('permission:core.system.view')->name('core.system.about');
 
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('core.notifications.index');

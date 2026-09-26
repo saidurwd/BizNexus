@@ -209,7 +209,7 @@ return [
     'register_url' => false,
     'password_reset_url' => 'password/reset',
     'password_email_url' => 'password/email',
-    'profile_url' => false,
+    'profile_url' => 'profile',
 
     /*
     |--------------------------------------------------------------------------
@@ -899,6 +899,36 @@ return [
 
         ['header' => 'SETTINGS'],
         [
+            'text' => 'Users & Access',
+            'icon' => 'bi bi-people',
+            'submenu' => [
+                ['text' => 'Users', 'url' => 'users', 'icon' => 'bi bi-person', 'can' => 'core.users.view'],
+                ['text' => 'Roles', 'url' => 'roles', 'icon' => 'bi bi-shield-check', 'can' => 'core.roles.view'],
+                ['text' => 'Permissions', 'url' => 'permissions', 'icon' => 'bi bi-key', 'can' => 'core.permissions.view'],
+                ['text' => 'Approval Workflows', 'url' => 'workflows/definitions', 'icon' => 'bi bi-diagram-3', 'can' => 'core.workflow.manage'],
+            ],
+        ],
+        [
+            'text' => 'Security & Audit',
+            'icon' => 'bi bi-shield-lock',
+            'submenu' => [
+                ['text' => 'Audit Logs', 'url' => 'audit', 'icon' => 'bi bi-journal-check', 'can' => 'core.audit.view'],
+                ['text' => 'Activity Logs', 'url' => 'security/activity', 'icon' => 'bi bi-activity', 'can' => 'core.activity-logs.view'],
+                ['text' => 'Security Events', 'url' => 'security/events', 'icon' => 'bi bi-exclamation-shield', 'can' => 'core.security-events.view'],
+                ['text' => 'Login History', 'url' => 'security/logins', 'icon' => 'bi bi-box-arrow-in-right', 'can' => 'core.login-history.view'],
+            ],
+        ],
+        [
+            'text' => 'System',
+            'icon' => 'bi bi-cpu',
+            'submenu' => [
+                ['text' => 'System Health', 'url' => 'system/health', 'icon' => 'bi bi-heart-pulse', 'can' => 'core.system.view'],
+                ['text' => 'Queue Monitor', 'url' => 'system/queue', 'icon' => 'bi bi-stack', 'can' => 'core.system.view'],
+                ['text' => 'Scheduled Jobs', 'url' => 'system/schedule', 'icon' => 'bi bi-clock-history', 'can' => 'core.system.view'],
+                ['text' => 'About', 'url' => 'system/about', 'icon' => 'bi bi-info-circle', 'can' => 'core.system.view'],
+            ],
+        ],
+        [
             'text' => 'Organisation',
             'icon' => 'bi bi-buildings',
             'submenu' => [
@@ -914,17 +944,6 @@ return [
             'submenu' => [
                 ['text' => 'Account Determination', 'url' => 'finance/account-mappings', 'icon' => 'bi bi-signpost-split', 'can' => 'finance.accounts.view'],
                 ['text' => 'Exchange Rates', 'url' => 'exchange-rates', 'icon' => 'bi bi-currency-exchange', 'can' => 'core.exchange-rates.view'],
-                ['text' => 'Approval Workflows', 'url' => 'workflows/definitions', 'icon' => 'bi bi-diagram-3', 'can' => 'core.workflow.manage'],
-            ],
-        ],
-        [
-            'text' => 'Security',
-            'icon' => 'bi bi-shield-lock',
-            'submenu' => [
-                ['text' => 'Users', 'url' => 'users', 'icon' => 'bi bi-person', 'can' => 'core.users.view'],
-                ['text' => 'Roles', 'url' => 'roles', 'icon' => 'bi bi-shield-check', 'can' => 'core.roles.view'],
-                ['text' => 'Permissions', 'url' => 'permissions', 'icon' => 'bi bi-key', 'can' => 'core.permissions.view'],
-                ['text' => 'Audit Log', 'url' => 'audit', 'icon' => 'bi bi-journal-text', 'can' => 'core.audit.view'],
             ],
         ],
 
@@ -999,24 +1018,18 @@ return [
         // ============================================================
         // FINANCE MODULE
         // ============================================================
-                // Dashboard Menu
-                // Chart of Accounts
-                // Journals
-                // General Ledger
-                // Accounts Payable
-                // Accounts Receivable
-                // Cash & Bank
-                // Budget
-                // Tax
-                // Cost Centers
-                // Reports
+        // Dashboard Menu
+        // Chart of Accounts
+        // Journals
+        // General Ledger
+        // Accounts Payable
+        // Accounts Receivable
+        // Cash & Bank
+        // Budget
+        // Tax
+        // Cost Centers
+        // Reports
 
-        ['header' => 'account_settings'],
-        [
-            'text' => 'profile',
-            'url' => 'profile',
-            'icon' => 'bi bi-person',
-        ],
     ],
 
     /*

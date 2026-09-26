@@ -3,6 +3,7 @@
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Route as Router;
 use Illuminate\Support\Str;
+use Modules\Core\Models\Company;
 
 /**
  * @return list<array{text: string, url: string, can?: string}>
@@ -35,4 +36,15 @@ test('every menu link opens a screen guarded by the same permission as the link'
         ->filter();
 
     expect($mismatches->all())->toBe([]);
+});
+
+test('profile sits in the top user menu next to logout, not in the sidebar', function () {
+    $company = Company::factory()->create();
+
+    expect(collect(menuLinks(config('adminlte.menu')))->pluck('url'))->not->toContain('profile');
+
+    actingInCompany(companyUser([], $company), $company)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSeeInOrder(['user-footer', route('profile.edit'), 'logout-form'], false);
 });
