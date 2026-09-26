@@ -163,6 +163,14 @@
             </form>
         @endif
 
+        @if(in_array($invoice->status, ['POSTED', 'PARTIALLY_PAID', 'PAID'], true))
+            @can('finance.supplier-credit-notes.create')
+                <a href="{{ route('finance.supplier-credit-notes.create', ['invoice' => $invoice->id]) }}" class="btn btn-outline-primary ms-2">
+                    <i class="bi bi-arrow-counterclockwise"></i> {{ __('Record credit note') }}
+                </a>
+            @endcan
+        @endif
+
         @if(!$invoice->isPosted() && !$invoice->isPaid())
             <form action="{{ route('finance.supplier-invoices.cancel', $invoice->id) }}" method="POST" class="d-inline ms-2">
                 @csrf

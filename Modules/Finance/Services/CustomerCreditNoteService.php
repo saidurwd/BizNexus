@@ -9,7 +9,6 @@ use Modules\Core\Services\AuditService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
-use Modules\Core\Support\Money;
 use Modules\Finance\Models\CustomerCreditNote;
 use Modules\Finance\Models\CustomerInvoice;
 use Modules\Finance\Services\Concerns\EnforcesSegregationOfDuties;
@@ -120,35 +119,12 @@ class CustomerCreditNoteService
             $this->requireStatus($creditNote, [CustomerCreditNote::STATUS_APPROVED], 'posted');
 
             $customer = $creditNote->customer;
-            $calculations = $this->documentTax->calculations($creditNote);
-            $currency = $creditNote->currency?->code ?? $creditNote->company->baseCurrency?->code ?? 'XXX';
-            $receivable = Money::zero($currency);
-            $journalLines = [];
-
-            foreach ($creditNote->lines as $line) {
-                $calculation = $calculations[$line->id];
-                $journalLines[] = ['account_id' => $line->account_id, 'description' => $line->description, 'debit' => $calculation->net->amount, 'credit' => 0];
-
-                if (! $line->is_reverse_charge) {
-                    foreach ($calculation->components as $component) {
-                        $journalLines[] = [
-                            'account_id' => $this->documentTax->requireAccount($component->tax->output_account_id, $component->tax->tax_code, 'output'),
-                            'description' => "Output {$component->tax->tax_code} credited on {$line->description}",
-                            'debit' => $component->amount->amount,
-                            'credit' => 0,
-                        ];
-                    }
-                }
-
-                $receivable = $receivable->plus($line->is_reverse_charge ? $calculation->net : $calculation->gross());
-            }
-
-            $journalLines[] = [
-                'account_id' => $customer->receivable_account_id ?? app(DefaultAccountService::class)->getReceivableAccount($creditNote->company_id),
-                'description' => "Credit note {$creditNote->note_number} to {$customer->name}",
-                'debit' => 0,
-                'credit' => $receivable->amount,
-            ];
+            $journalLines = app(DocumentJournalBuilder::class)->sales(
+                $creditNote,
+                $customer->receivable_account_id ?? app(DefaultAccountService::class)->getReceivableAccount($creditNote->company_id),
+                "Credit note {$creditNote->note_number} to {$customer->name}",
+                isCredit: true,
+            )['lines'];
 
             $journal = $this->journalService->postFromSource([
                 'company_id' => $creditNote->company_id,

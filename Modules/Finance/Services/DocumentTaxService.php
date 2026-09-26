@@ -8,6 +8,7 @@ use Modules\Core\Support\Money;
 use Modules\Finance\Contracts\TaxCalculator;
 use Modules\Finance\Models\CustomerCreditNote;
 use Modules\Finance\Models\CustomerInvoice;
+use Modules\Finance\Models\SupplierCreditNote;
 use Modules\Finance\Models\SupplierInvoice;
 use Modules\Finance\Models\TaxRule;
 use Modules\Finance\Models\TaxTransaction;
@@ -28,7 +29,7 @@ class DocumentTaxService
     /**
      * Determine tax codes, recalculate every line and the invoice totals, and save them.
      */
-    public function recalculate(SupplierInvoice|CustomerInvoice|CustomerCreditNote $invoice): void
+    public function recalculate(SupplierInvoice|CustomerInvoice|CustomerCreditNote|SupplierCreditNote $invoice): void
     {
         $this->determineMissingTaxCodes($invoice);
 
@@ -57,7 +58,7 @@ class DocumentTaxService
             'total_amount' => $subtotal->plus($chargedTax)->amount,
         ]);
 
-        if (! $invoice instanceof CustomerCreditNote) {
+        if (! $invoice instanceof CustomerCreditNote && ! $invoice instanceof SupplierCreditNote) {
             $invoice->outstanding_amount = $subtotal->plus($chargedTax)->amount;
         }
 
@@ -69,7 +70,7 @@ class DocumentTaxService
      *
      * @return array<int, TaxCalculation>
      */
-    public function calculations(SupplierInvoice|CustomerInvoice|CustomerCreditNote $invoice): array
+    public function calculations(SupplierInvoice|CustomerInvoice|CustomerCreditNote|SupplierCreditNote $invoice): array
     {
         $currency = $this->currencyCode($invoice);
         $lines = $invoice->lines()->with('tax.components')->get();
@@ -95,10 +96,10 @@ class DocumentTaxService
      * self-assessed output tax), sales as output tax (reverse charge with no tax charged), and customer credit
      * notes as negative output tax against the invoice they credit.
      */
-    public function recordTransactions(SupplierInvoice|CustomerInvoice|CustomerCreditNote $invoice, ?int $journalId = null): void
+    public function recordTransactions(SupplierInvoice|CustomerInvoice|CustomerCreditNote|SupplierCreditNote $invoice, ?int $journalId = null): void
     {
-        $isPurchase = $invoice instanceof SupplierInvoice;
-        $isCredit = $invoice instanceof CustomerCreditNote;
+        $isPurchase = $invoice instanceof SupplierInvoice || $invoice instanceof SupplierCreditNote;
+        $isCredit = $invoice instanceof CustomerCreditNote || $invoice instanceof SupplierCreditNote;
 
         foreach ($this->calculations($invoice) as $lineId => $calculation) {
             $line = $invoice->lines->firstWhere('id', $lineId);
@@ -118,19 +119,28 @@ class DocumentTaxService
                         'transaction_type' => $type,
                         'is_reverse_charge' => (bool) $line->is_reverse_charge,
                         'is_recoverable' => $component->isRecoverable(),
-                        'invoice_id' => $isPurchase ? $invoice->id : null,
+                        'invoice_id' => match (true) {
+                            $invoice instanceof SupplierCreditNote => $invoice->supplier_invoice_id,
+                            $isPurchase => $invoice->id,
+                            default => null,
+                        },
                         'customer_invoice_id' => match (true) {
                             $isPurchase => null,
                             $isCredit => $invoice->customer_invoice_id,
                             default => $invoice->id,
                         },
-                        'customer_credit_note_id' => $isCredit ? $invoice->id : null,
+                        'customer_credit_note_id' => $invoice instanceof CustomerCreditNote ? $invoice->id : null,
+                        'supplier_credit_note_id' => $invoice instanceof SupplierCreditNote ? $invoice->id : null,
                         'taxable_amount' => bcmul($component->taxableBase->amount, $sign, 4),
                         'tax_amount' => ! $isPurchase && $line->is_reverse_charge ? '0' : bcmul($component->amount->amount, $sign, 4),
                         'exchange_rate' => $invoice->exchange_rate ?? 1,
                         'currency_code' => $calculation->net->currency,
                         'tax_date' => $this->documentDate($invoice),
-                        'reference_number' => $isCredit ? $invoice->note_number : $invoice->invoice_number,
+                        'reference_number' => match (true) {
+                            $invoice instanceof CustomerCreditNote => $invoice->note_number,
+                            $invoice instanceof SupplierCreditNote => $invoice->credit_note_number,
+                            default => $invoice->invoice_number,
+                        },
                         'notes' => $journalId ? "Journal #{$journalId}" : null,
                     ]);
                 }
@@ -143,9 +153,9 @@ class DocumentTaxService
         return $accountId ?? throw new InvalidAccountingTransactionException("Tax {$taxCode} has no {$side} tax account.");
     }
 
-    protected function determineMissingTaxCodes(SupplierInvoice|CustomerInvoice|CustomerCreditNote $invoice): void
+    protected function determineMissingTaxCodes(SupplierInvoice|CustomerInvoice|CustomerCreditNote|SupplierCreditNote $invoice): void
     {
-        $isPurchase = $invoice instanceof SupplierInvoice;
+        $isPurchase = $invoice instanceof SupplierInvoice || $invoice instanceof SupplierCreditNote;
         $party = $isPurchase ? $invoice->supplier : $invoice->customer;
 
         foreach ($invoice->lines()->whereNull('tax_id')->get() as $line) {
@@ -193,12 +203,16 @@ class DocumentTaxService
         return $allocated;
     }
 
-    protected function documentDate(SupplierInvoice|CustomerInvoice|CustomerCreditNote $invoice): mixed
+    protected function documentDate(SupplierInvoice|CustomerInvoice|CustomerCreditNote|SupplierCreditNote $invoice): mixed
     {
-        return $invoice instanceof CustomerCreditNote ? $invoice->note_date : $invoice->invoice_date;
+        return match (true) {
+            $invoice instanceof CustomerCreditNote => $invoice->note_date,
+            $invoice instanceof SupplierCreditNote => $invoice->credit_note_date,
+            default => $invoice->invoice_date,
+        };
     }
 
-    protected function currencyCode(SupplierInvoice|CustomerInvoice|CustomerCreditNote $invoice): string
+    protected function currencyCode(SupplierInvoice|CustomerInvoice|CustomerCreditNote|SupplierCreditNote $invoice): string
     {
         return $invoice->currency?->code ?? $invoice->company->baseCurrency?->code ?? 'XXX';
     }

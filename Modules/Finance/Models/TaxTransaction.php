@@ -19,6 +19,7 @@ class TaxTransaction extends Model
         'invoice_id',
         'customer_invoice_id',
         'customer_credit_note_id',
+        'supplier_credit_note_id',
         'is_reverse_charge',
         'is_recoverable',
         'payment_id',

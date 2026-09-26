@@ -18,6 +18,7 @@ class DocumentNumberService
         'SI' => ['prefix' => 'SI', 'format' => '{PREFIX}-{YEAR}-{SEQUENCE:6}'],
         'CI' => ['prefix' => 'CI', 'format' => '{PREFIX}-{YEAR}-{SEQUENCE:6}'],
         'CN' => ['prefix' => 'CN', 'format' => '{PREFIX}-{YEAR}-{SEQUENCE:6}'],
+        'SCN' => ['prefix' => 'SCN', 'format' => '{PREFIX}-{YEAR}-{SEQUENCE:6}'],
         'SP' => ['prefix' => 'SP', 'format' => '{PREFIX}-{YEAR}-{SEQUENCE:6}'],
         'CR' => ['prefix' => 'CR', 'format' => '{PREFIX}-{YEAR}-{SEQUENCE:6}'],
     ];

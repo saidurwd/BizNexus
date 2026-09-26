@@ -143,6 +143,14 @@ class SupplierInvoice extends Model
         return bccomp($this->outstanding_amount, 0, 4) === 0;
     }
 
+    /**
+     * Credit notes received against this invoice.
+     */
+    public function creditNotes(): HasMany
+    {
+        return $this->hasMany(SupplierCreditNote::class);
+    }
+
     public function getPaidAmount(): float
     {
         return (float) bcsub($this->total_amount, $this->outstanding_amount, 4);
@@ -153,8 +161,11 @@ class SupplierInvoice extends Model
         $paidAmount = $this->allocations()
             ->whereHas('payment', fn ($q) => $q->where('status', 'POSTED'))
             ->sum('amount');
+        $creditedAmount = $this->creditNotes()
+            ->where('status', SupplierCreditNote::STATUS_POSTED)
+            ->sum('applied_amount');
 
-        $this->outstanding_amount = (float) bcsub($this->total_amount, $paidAmount, 4);
+        $this->outstanding_amount = (float) bcsub(bcsub((string) $this->total_amount, (string) $paidAmount, 4), (string) $creditedAmount, 4);
 
         if (bccomp($this->outstanding_amount, 0, 4) <= 0) {
             $this->status = self::STATUS_PAID;

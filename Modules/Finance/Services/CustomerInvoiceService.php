@@ -9,7 +9,6 @@ use Modules\Core\Services\AuditService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
-use Modules\Core\Support\Money;
 use Modules\Finance\Events\CustomerInvoiceApproved;
 use Modules\Finance\Models\CustomerInvoice;
 use Modules\Finance\Services\Concerns\EnforcesSegregationOfDuties;
@@ -99,41 +98,11 @@ class CustomerInvoiceService
             $company = $invoice->company;
 
             $documentTax = app(DocumentTaxService::class);
-            $calculations = $documentTax->calculations($invoice);
-            $currency = $invoice->currency?->code ?? $company->baseCurrency?->code ?? 'XXX';
-            $receivable = Money::zero($currency);
-            $journalLines = [];
-
-            foreach ($invoice->lines as $line) {
-                $calculation = $calculations[$line->id];
-
-                $journalLines[] = [
-                    'account_id' => $line->account_id,
-                    'description' => $line->description,
-                    'debit' => 0,
-                    'credit' => $calculation->net->amount,
-                ];
-
-                if (! $line->is_reverse_charge) {
-                    foreach ($calculation->components as $component) {
-                        $journalLines[] = [
-                            'account_id' => $documentTax->requireAccount($component->tax->output_account_id, $component->tax->tax_code, 'output'),
-                            'description' => "Output {$component->tax->tax_code} on {$line->description}",
-                            'debit' => 0,
-                            'credit' => $component->amount->amount,
-                        ];
-                    }
-                }
-
-                $receivable = $receivable->plus($line->is_reverse_charge ? $calculation->net : $calculation->gross());
-            }
-
-            array_unshift($journalLines, [
-                'account_id' => $customer->receivable_account_id ?? $this->getDefaultReceivableAccount($company->id),
-                'description' => "Invoice {$invoice->invoice_number} to {$customer->name}",
-                'debit' => $receivable->amount,
-                'credit' => 0,
-            ]);
+            $journalLines = app(DocumentJournalBuilder::class)->sales(
+                $invoice,
+                $customer->receivable_account_id ?? $this->getDefaultReceivableAccount($company->id),
+                "Invoice {$invoice->invoice_number} to {$customer->name}",
+            )['lines'];
 
             $journal = $this->journalService->postFromSource([
                 'company_id' => $invoice->company_id,

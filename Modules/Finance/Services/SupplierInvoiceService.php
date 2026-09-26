@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
 use Modules\Core\Services\AuditService;
 use Modules\Core\Services\CompanyContextService;
-use Modules\Core\Support\Money;
 use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
 use Modules\Finance\Events\SupplierInvoiceApproved;
@@ -47,7 +46,6 @@ class SupplierInvoiceService
                 'created_by' => Auth::id(),
             ]);
 
-
             foreach ($data['lines'] ?? [] as $lineData) {
                 $invoice->lines()->create([
                     'account_id' => $lineData['account_id'],
@@ -58,8 +56,8 @@ class SupplierInvoiceService
                     'tax_id' => $lineData['tax_id'] ?? null,
                     'supply_type' => $lineData['supply_type'] ?? null,
                     'is_reverse_charge' => (bool) ($lineData['is_reverse_charge'] ?? false),
-                'supply_type' => $lineData['supply_type'] ?? null,
-                'is_reverse_charge' => (bool) ($lineData['is_reverse_charge'] ?? false),
+                    'supply_type' => $lineData['supply_type'] ?? null,
+                    'is_reverse_charge' => (bool) ($lineData['is_reverse_charge'] ?? false),
                     'tax_amount' => 0,
                     'discount_amount' => $lineData['discount_amount'] ?? 0,
                     'total_amount' => 0,
@@ -103,51 +101,11 @@ class SupplierInvoiceService
             $company = $invoice->company;
 
             $documentTax = app(DocumentTaxService::class);
-            $calculations = $documentTax->calculations($invoice);
-            $currency = $invoice->currency?->code ?? $company->baseCurrency?->code ?? 'XXX';
-            $payable = Money::zero($currency);
-            $journalLines = [];
-
-            foreach ($invoice->lines as $line) {
-                $calculation = $calculations[$line->id];
-
-                // Cost: net amount plus tax that cannot be reclaimed.
-                $journalLines[] = [
-                    'account_id' => $line->account_id,
-                    'description' => $line->description,
-                    'debit' => $calculation->net->plus($calculation->nonRecoverableTax())->amount,
-                    'credit' => 0,
-                ];
-
-                foreach ($calculation->components as $component) {
-                    if ($component->isRecoverable()) {
-                        $journalLines[] = [
-                            'account_id' => $documentTax->requireAccount($component->tax->input_account_id, $component->tax->tax_code, 'input'),
-                            'description' => "Input {$component->tax->tax_code} on {$line->description}",
-                            'debit' => $component->amount->amount,
-                            'credit' => 0,
-                        ];
-                    }
-
-                    if ($line->is_reverse_charge) {
-                        $journalLines[] = [
-                            'account_id' => $documentTax->requireAccount($component->tax->output_account_id, $component->tax->tax_code, 'output'),
-                            'description' => "Reverse charge {$component->tax->tax_code} on {$line->description}",
-                            'debit' => 0,
-                            'credit' => $component->amount->amount,
-                        ];
-                    }
-                }
-
-                $payable = $payable->plus($line->is_reverse_charge ? $calculation->net : $calculation->gross());
-            }
-
-            $journalLines[] = [
-                'account_id' => $supplier->payable_account_id ?? $this->defaultAccounts->getPayableAccount($company->id),
-                'description' => "Payable to {$supplier->name}",
-                'debit' => 0,
-                'credit' => $payable->amount,
-            ];
+            $journalLines = app(DocumentJournalBuilder::class)->purchase(
+                $invoice,
+                $supplier->payable_account_id ?? $this->defaultAccounts->getPayableAccount($company->id),
+                "Payable to {$supplier->name}",
+            )['lines'];
 
             $journal = $this->journalService->postFromSource([
                 'company_id' => $invoice->company_id,
@@ -305,7 +263,6 @@ class SupplierInvoiceService
         ]);
 
         $invoice->lines()->delete();
-
 
         foreach ($data['lines'] ?? [] as $lineData) {
             $invoice->lines()->create([

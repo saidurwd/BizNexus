@@ -283,6 +283,7 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::delete('/supplier-credit-notes/{id}', [SupplierCreditNoteController::class, 'destroy'])->middleware('permission:finance.supplier-credit-notes.delete')->name('supplier-credit-notes.destroy');
         Route::post('/supplier-credit-notes/{id}/submit', [SupplierCreditNoteController::class, 'submit'])->middleware('permission:finance.supplier-credit-notes.submit')->name('supplier-credit-notes.submit');
         Route::post('/supplier-credit-notes/{id}/approve', [SupplierCreditNoteController::class, 'approve'])->middleware('permission:finance.supplier-credit-notes.approve')->name('supplier-credit-notes.approve');
+        Route::post('/supplier-credit-notes/{id}/reject', [SupplierCreditNoteController::class, 'reject'])->middleware('permission:finance.supplier-credit-notes.reject')->name('supplier-credit-notes.reject');
         Route::post('/supplier-credit-notes/{id}/post', [SupplierCreditNoteController::class, 'post'])->middleware('permission:finance.supplier-credit-notes.post')->name('supplier-credit-notes.post');
         Route::post('/supplier-credit-notes/{id}/cancel', [SupplierCreditNoteController::class, 'cancel'])->middleware('permission:finance.supplier-credit-notes.cancel')->name('supplier-credit-notes.cancel');
 
