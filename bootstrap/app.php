@@ -19,6 +19,7 @@ use Modules\Core\Http\Middleware\SetLocale;
 use Modules\Core\Http\Middleware\SetTokenCompanyContext;
 use Modules\Core\Http\Middleware\ShareAdminLte;
 use Modules\Finance\FinanceServiceProvider;
+use Modules\Inventory\InventoryServiceProvider;
 use Modules\Workflow\WorkflowServiceProvider;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -26,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
         CoreServiceProvider::class,
         FinanceServiceProvider::class,
         WorkflowServiceProvider::class,
+        InventoryServiceProvider::class,
         EventServiceProvider::class,
         AdminLteServiceProvider::class,
     ])

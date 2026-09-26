@@ -55,6 +55,25 @@ class Formatter
         return self::variableDecimals($rate ?? 0, 4, 8, $locale);
     }
 
+    /**
+     * A quantity with as many decimals as its unit of measure allows.
+     */
+    public static function quantity(string|int|float|null $quantity, int $decimals = 0, ?string $locale = null): string
+    {
+        return self::number($quantity ?? 0, $decimals, $locale);
+    }
+
+    /**
+     * A unit price or cost: the currency's minor units, plus up to four decimals when the value has them.
+     */
+    public static function unitPrice(string|int|float|null $price, ?string $currency = null, ?string $locale = null): string
+    {
+        $currency ??= app(CompanyContextService::class)->getBaseCurrency()?->code;
+        $minimum = $currency ? CurrencyPrecision::for($currency) : 2;
+
+        return self::variableDecimals($price ?? 0, $minimum, max($minimum, 4), $locale);
+    }
+
     public static function number(string|int|float $value, int $decimals = 2, ?string $locale = null): string
     {
         $formatter = new NumberFormatter($locale ?? app()->getLocale(), NumberFormatter::DECIMAL);

@@ -95,6 +95,10 @@ class PermissionCatalog
         'finance.customer-credit-notes.reject' => ['name' => 'Reject Customer Credit Notes', 'group' => 'Finance'],
         'finance.customer-credit-notes.post' => ['name' => 'Post Customer Credit Notes', 'group' => 'Finance'],
         'finance.customer-credit-notes.cancel' => ['name' => 'Cancel Customer Credit Notes', 'group' => 'Finance'],
+        'inventory.products.view' => ['name' => 'View Products', 'group' => 'Inventory'],
+        'inventory.products.manage' => ['name' => 'Create and Edit Products', 'group' => 'Inventory'],
+        'inventory.setup.view' => ['name' => 'View Units, Categories and Warehouses', 'group' => 'Inventory'],
+        'inventory.setup.manage' => ['name' => 'Manage Units, Categories and Warehouses', 'group' => 'Inventory'],
     ];
 
     /**
@@ -192,6 +196,10 @@ class PermissionCatalog
         'finance.customer-credit-notes.reject' => ['finance.customer-invoices.reject'],
         'finance.customer-credit-notes.post' => ['finance.customer-invoices.post'],
         'finance.customer-credit-notes.cancel' => ['finance.customer-invoices.cancel'],
+        'inventory.products.view' => ['finance.suppliers.view', 'finance.customers.view'],
+        'inventory.products.manage' => ['finance.accounts.update'],
+        'inventory.setup.view' => ['finance.accounts.view'],
+        'inventory.setup.manage' => ['finance.accounts.update'],
     ];
 
     /**
