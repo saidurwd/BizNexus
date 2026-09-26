@@ -3,7 +3,9 @@
 namespace Modules\Finance\Controllers\Web;
 
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Modules\Core\Models\FiscalYear;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DefaultAccountService;
@@ -95,11 +97,15 @@ class ReportController extends Controller
 
     public function balanceSheet(Request $request)
     {
+        $filters = $request->validate([
+            'as_of_date' => ['nullable', 'date'],
+            'fiscal_period_id' => ['nullable', 'integer'],
+        ]);
 
         $report = $this->financialReportService->getBalanceSheet(
             $this->getActiveCompanyId(),
-            $request->get('as_of_date') ? Carbon::parse($request->get('as_of_date')) : null,
-            $request->get('fiscal_period_id')
+            isset($filters['as_of_date']) ? Carbon::parse($filters['as_of_date']) : null,
+            isset($filters['fiscal_period_id']) ? (int) $filters['fiscal_period_id'] : null
         );
 
         return view('finance.reports.balance-sheet', [
@@ -125,46 +131,91 @@ class ReportController extends Controller
         ]);
     }
 
-    public function apAging()
+    public function apAging(Request $request)
     {
+        return $this->agingReport($request, 'payables');
+    }
 
-        $aging = $this->paymentService->getAPAging($this->getActiveCompanyId());
+    public function arAging(Request $request)
+    {
+        return $this->agingReport($request, 'receivables');
+    }
 
-        return view('finance.reports.ap', [
-            'apAging' => $aging,
+    /**
+     * Open invoices by days past due at the chosen date, one row per customer or supplier.
+     */
+    protected function agingReport(Request $request, string $side)
+    {
+        $filters = $request->validate(['as_of_date' => ['nullable', 'date']]);
+        $asOf = isset($filters['as_of_date']) ? CarbonImmutable::parse($filters['as_of_date']) : app(CompanyContextService::class)->today();
+
+        $aging = $side === 'receivables'
+            ? $this->receiptService->getARAging($this->getActiveCompanyId(), null, $asOf)
+            : $this->paymentService->getAPAging($this->getActiveCompanyId(), null, $asOf);
+
+        return view('finance.reports.aging', [
+            'aging' => $aging,
+            'title' => $side === 'receivables' ? __('Receivables ageing') : __('Payables ageing'),
+            'partyLabel' => $side === 'receivables' ? __('Customer') : __('Supplier'),
+            'routeName' => $request->route()->getName(),
         ]);
     }
 
-    public function arAging()
+    public function paymentRegister(Request $request)
     {
-
-        $aging = $this->receiptService->getARAging($this->getActiveCompanyId());
-
-        return view('finance.reports.ar', [
-            'arAging' => $aging,
-        ]);
-    }
-
-    public function paymentRegister()
-    {
+        [$startDate, $endDate] = $this->registerPeriod($request);
 
         $payments = SupplierPayment::where('company_id', $this->getActiveCompanyId())
-            ->with('supplier')
+            ->with(['supplier', 'currency'])
+            ->whereDate('payment_date', '>=', $startDate)
+            ->whereDate('payment_date', '<=', $endDate)
             ->orderBy('payment_date', 'desc')
             ->get();
+        $totalAmount = $this->postedFunctionalTotal($payments, SupplierPayment::STATUS_POSTED);
 
-        return view('finance.reports.payment-register', compact('payments'));
+        return view('finance.reports.payment-register', compact('payments', 'startDate', 'endDate', 'totalAmount'));
     }
 
-    public function receiptRegister()
+    public function receiptRegister(Request $request)
     {
+        [$startDate, $endDate] = $this->registerPeriod($request);
 
         $receipts = CustomerReceipt::where('company_id', $this->getActiveCompanyId())
-            ->with('customer')
+            ->with(['customer', 'currency'])
+            ->whereDate('receipt_date', '>=', $startDate)
+            ->whereDate('receipt_date', '<=', $endDate)
             ->orderBy('receipt_date', 'desc')
             ->get();
+        $totalAmount = $this->postedFunctionalTotal($receipts, CustomerReceipt::STATUS_POSTED);
 
-        return view('finance.reports.receipt-register', compact('receipts'));
+        return view('finance.reports.receipt-register', compact('receipts', 'startDate', 'endDate', 'totalAmount'));
+    }
+
+    /**
+     * The register period from the request, defaulting to the current month to date.
+     *
+     * @return array{0: string, 1: string}
+     */
+    protected function registerPeriod(Request $request): array
+    {
+        $filters = $request->validate([
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+        ]);
+        $today = app(CompanyContextService::class)->today();
+
+        return [$filters['start_date'] ?? $today->startOfMonth()->toDateString(), $filters['end_date'] ?? $today->toDateString()];
+    }
+
+    /**
+     * Total of the posted documents in the functional currency.
+     *
+     * @param  Collection<int, SupplierPayment|CustomerReceipt>  $documents
+     */
+    protected function postedFunctionalTotal($documents, string $postedStatus): string
+    {
+        return $documents->where('status', $postedStatus)
+            ->reduce(fn (string $total, $document) => bcadd($total, bcmul((string) $document->amount, (string) ($document->exchange_rate ?: 1), 4), 4), '0.0000');
     }
 
     public function cashBook(Request $request)

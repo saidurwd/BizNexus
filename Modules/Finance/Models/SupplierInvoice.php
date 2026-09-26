@@ -3,12 +3,14 @@
 namespace Modules\Finance\Models;
 
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Core\Concerns\BelongsToCompany;
 use Modules\Core\Models\Company;
 use Modules\Core\Models\Currency;
+use Modules\Core\Services\CompanyContextService;
 use Modules\Finance\Scopes\BranchScope;
 
 class SupplierInvoice extends Model
@@ -162,13 +164,18 @@ class SupplierInvoice extends Model
         }
     }
 
-    public function getDaysOutstanding(): int
+    /**
+     * Days past the due date at the given date (the company's business date by default); 0 when not yet due or paid.
+     */
+    public function getDaysOutstanding(?CarbonInterface $asOf = null): int
     {
         if ($this->isPaid()) {
             return 0;
         }
 
-        return (int) abs(now()->diffInDays($this->due_date));
+        $asOf ??= app(CompanyContextService::class)->today();
+
+        return max(0, (int) $this->due_date->copy()->startOfDay()->diffInDays($asOf->copy()->startOfDay(), false));
     }
 
     public function scopePending($query)

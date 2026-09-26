@@ -39,7 +39,7 @@
                             <td>{{ $payment->supplier?->name ?? '-' }}</td>
                             <td>{{ $payment->payment_method }}</td>
                             <td>{{ $payment->reference ?? '-' }}</td>
-                            <td class="text-end">{{ Formatter::amount($payment->amount) }}</td>
+                            <td class="text-end">{{ Formatter::amount($payment->amount, $payment->currency?->code) }} <small class="text-body-secondary">{{ $payment->currency?->code }}</small></td>
                             <td>
                                 <span class="badge bg-{{ $payment->status === 'POSTED' ? 'success' : ($payment->status === 'PENDING' ? 'warning' : 'secondary') }}">
                                     {{ $payment->status }}
@@ -54,7 +54,7 @@
                 </tbody>
                 <tfoot>
                     <tr class="table-active">
-                        <td colspan="5" class="text-end"><strong>Total</strong></td>
+                        <td colspan="5" class="text-end"><strong>{{ __('Total posted, functional currency') }}</strong></td>
                         <td class="text-end"><strong>{{ Formatter::amount($totalAmount) }}</strong></td>
                         <td></td>
                     </tr>

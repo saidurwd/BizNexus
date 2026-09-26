@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Services;
 
+use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -19,11 +20,13 @@ use Modules\Finance\Models\SupplierInvoice;
 use Modules\Finance\Models\SupplierPayment;
 use Modules\Finance\Models\Tax;
 use Modules\Finance\Models\TaxTransaction;
+use Modules\Finance\Services\Concerns\AgesOpenInvoices;
 use Modules\Finance\Services\Concerns\EnforcesSegregationOfDuties;
 use Modules\Workflow\Services\WorkflowService;
 
 class PaymentService
 {
+    use AgesOpenInvoices;
     use EnforcesSegregationOfDuties;
 
     public function __construct(
@@ -356,60 +359,18 @@ class PaymentService
         return $allocation;
     }
 
-    public function getAPAging(int $companyId, ?int $supplierId = null): array
+    /**
+     * Open supplier invoices aged by days past due, in the functional currency, with a row per supplier.
+     */
+    public function getAPAging(int $companyId, ?int $supplierId = null, ?CarbonInterface $asOf = null): array
     {
-        $query = SupplierInvoice::with('supplier')
+        $invoices = SupplierInvoice::with(['supplier', 'currency'])
             ->where('company_id', $companyId)
-            ->pending();
+            ->pending()
+            ->when($supplierId, fn ($query) => $query->where('supplier_id', $supplierId))
+            ->get();
 
-        if ($supplierId) {
-            $query->where('supplier_id', $supplierId);
-        }
-
-        $invoices = $query->get();
-
-        $aging = [
-            'current' => 0,
-            'days_1_30' => 0,
-            'days_31_60' => 0,
-            'days_61_90' => 0,
-            'days_91_180' => 0,
-            'days_180_plus' => 0,
-            'total' => 0,
-            'invoices' => [],
-        ];
-
-        foreach ($invoices as $invoice) {
-            $days = $invoice->getDaysOutstanding();
-            $outstanding = $invoice->outstanding_amount;
-            $aging['total'] = bcadd($aging['total'], $outstanding, 4);
-
-            if ($days <= 0) {
-                $aging['current'] = bcadd($aging['current'], $outstanding, 4);
-            } elseif ($days <= 30) {
-                $aging['days_1_30'] = bcadd($aging['days_1_30'], $outstanding, 4);
-            } elseif ($days <= 60) {
-                $aging['days_31_60'] = bcadd($aging['days_31_60'], $outstanding, 4);
-            } elseif ($days <= 90) {
-                $aging['days_61_90'] = bcadd($aging['days_61_90'], $outstanding, 4);
-            } elseif ($days <= 180) {
-                $aging['days_91_180'] = bcadd($aging['days_91_180'], $outstanding, 4);
-            } else {
-                $aging['days_180_plus'] = bcadd($aging['days_180_plus'], $outstanding, 4);
-            }
-
-            $aging['invoices'][] = [
-                'invoice_number' => $invoice->invoice_number,
-                'supplier_name' => $invoice->supplier->name,
-                'invoice_date' => $invoice->invoice_date->format('Y-m-d'),
-                'due_date' => $invoice->due_date->format('Y-m-d'),
-                'total_amount' => $invoice->total_amount,
-                'outstanding_amount' => $outstanding,
-                'days_outstanding' => $days,
-            ];
-        }
-
-        return $aging;
+        return $this->ageOpenInvoices($invoices, 'supplier', $asOf);
     }
 
     public function updatePayment(SupplierPayment $payment, array $data): SupplierPayment

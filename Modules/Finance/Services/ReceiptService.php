@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Services;
 
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
@@ -13,11 +14,13 @@ use Modules\Finance\Events\ReceiptApproved;
 use Modules\Finance\Models\CustomerInvoice;
 use Modules\Finance\Models\CustomerReceipt;
 use Modules\Finance\Models\ReceiptAllocation;
+use Modules\Finance\Services\Concerns\AgesOpenInvoices;
 use Modules\Finance\Services\Concerns\EnforcesSegregationOfDuties;
 use Modules\Workflow\Services\WorkflowService;
 
 class ReceiptService
 {
+    use AgesOpenInvoices;
     use EnforcesSegregationOfDuties;
 
     public function __construct(
@@ -321,60 +324,18 @@ class ReceiptService
         return $allocation;
     }
 
-    public function getARAging(int $companyId, ?int $customerId = null): array
+    /**
+     * Open customer invoices aged by days past due, in the functional currency, with a row per customer.
+     */
+    public function getARAging(int $companyId, ?int $customerId = null, ?CarbonInterface $asOf = null): array
     {
-        $query = CustomerInvoice::with('customer')
+        $invoices = CustomerInvoice::with(['customer', 'currency'])
             ->where('company_id', $companyId)
-            ->pending();
+            ->pending()
+            ->when($customerId, fn ($query) => $query->where('customer_id', $customerId))
+            ->get();
 
-        if ($customerId) {
-            $query->where('customer_id', $customerId);
-        }
-
-        $invoices = $query->get();
-
-        $aging = [
-            'current' => 0,
-            'days_1_30' => 0,
-            'days_31_60' => 0,
-            'days_61_90' => 0,
-            'days_91_180' => 0,
-            'days_180_plus' => 0,
-            'total' => 0,
-            'invoices' => [],
-        ];
-
-        foreach ($invoices as $invoice) {
-            $days = $invoice->getDaysOutstanding();
-            $outstanding = $invoice->outstanding_amount;
-            $aging['total'] = bcadd($aging['total'], $outstanding, 4);
-
-            if ($days <= 0) {
-                $aging['current'] = bcadd($aging['current'], $outstanding, 4);
-            } elseif ($days <= 30) {
-                $aging['days_1_30'] = bcadd($aging['days_1_30'], $outstanding, 4);
-            } elseif ($days <= 60) {
-                $aging['days_31_60'] = bcadd($aging['days_31_60'], $outstanding, 4);
-            } elseif ($days <= 90) {
-                $aging['days_61_90'] = bcadd($aging['days_61_90'], $outstanding, 4);
-            } elseif ($days <= 180) {
-                $aging['days_91_180'] = bcadd($aging['days_91_180'], $outstanding, 4);
-            } else {
-                $aging['days_180_plus'] = bcadd($aging['days_180_plus'], $outstanding, 4);
-            }
-
-            $aging['invoices'][] = [
-                'invoice_number' => $invoice->invoice_number,
-                'customer_name' => $invoice->customer->name,
-                'invoice_date' => $invoice->invoice_date->format('Y-m-d'),
-                'due_date' => $invoice->due_date->format('Y-m-d'),
-                'total_amount' => $invoice->total_amount,
-                'outstanding_amount' => $outstanding,
-                'days_outstanding' => $days,
-            ];
-        }
-
-        return $aging;
+        return $this->ageOpenInvoices($invoices, 'customer', $asOf);
     }
 
     protected function getDefaultReceivableAccount(int $companyId): int
