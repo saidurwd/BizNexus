@@ -25,6 +25,10 @@
                         <dd class="col-sm-8">{{ $creditNote->supplier?->name }}</dd>
                         <dt class="col-sm-4">{{ __('Date') }}</dt>
                         <dd class="col-sm-8">{{ Formatter::date($creditNote->credit_note_date) }}</dd>
+                        @if ($creditNote->purchaseOrder)
+                            <dt class="col-sm-4">{{ __('Purchase order') }}</dt>
+                            <dd class="col-sm-8"><a href="{{ route('inventory.purchase-orders.show', $creditNote->purchase_order_id) }}">{{ $creditNote->purchaseOrder->order_number }}</a> <span class="text-body-secondary small">· {{ __('for returned goods') }}</span></dd>
+                        @endif
                         <dt class="col-sm-4">{{ __('Invoice credited') }}</dt>
                         <dd class="col-sm-8">
                             @if ($creditNote->invoice)
@@ -94,7 +98,7 @@
     <div class="d-flex flex-wrap gap-2 mb-3">
         <a href="{{ route('finance.supplier-credit-notes.index') }}" class="btn btn-secondary">{{ __('Back') }}</a>
 
-        @if (in_array($creditNote->status, ['DRAFT', 'REJECTED'], true))
+        @if (in_array($creditNote->status, ['DRAFT', 'REJECTED'], true) && ! $creditNote->purchase_order_id)
             @can('finance.supplier-credit-notes.update')
                 <a href="{{ route('finance.supplier-credit-notes.edit', $creditNote->id) }}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> {{ __('Edit') }}</a>
             @endcan

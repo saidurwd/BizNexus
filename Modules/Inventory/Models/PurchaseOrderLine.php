@@ -46,6 +46,16 @@ class PurchaseOrderLine extends Model
         return bcsub((string) $this->quantity, (string) $this->received_quantity, 4);
     }
 
+    /**
+     * Invoiced goods that have since been returned: a credit note from the supplier is due for them.
+     */
+    public function creditDueQuantity(): string
+    {
+        $due = bcsub((string) $this->invoiced_quantity, (string) $this->received_quantity, 4);
+
+        return bccomp($due, '0', 4) > 0 ? $due : '0';
+    }
+
     public function uninvoicedQuantity(): string
     {
         return bcsub((string) $this->received_quantity, (string) $this->invoiced_quantity, 4);

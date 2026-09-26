@@ -14,6 +14,7 @@ return [
     'Purchasing' => 'المشتريات',
     'Purchase Orders' => 'أوامر الشراء',
     'Goods Receipts' => 'استلامات البضائع',
+    'Supplier Returns' => 'مرتجعات الموردين',
     'Reorder Suggestions' => 'اقتراحات إعادة الطلب',
     'Inventory' => 'المخزون',
     'Products' => 'المنتجات',

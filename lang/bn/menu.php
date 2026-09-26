@@ -14,6 +14,7 @@ return [
     'Purchasing' => 'ক্রয়',
     'Purchase Orders' => 'ক্রয় অর্ডার',
     'Goods Receipts' => 'পণ্য গ্রহণ',
+    'Supplier Returns' => 'সরবরাহকারী ফেরত',
     'Reorder Suggestions' => 'পুনঃঅর্ডার প্রস্তাব',
     'Inventory' => 'মজুদ',
     'Products' => 'পণ্যসমূহ',

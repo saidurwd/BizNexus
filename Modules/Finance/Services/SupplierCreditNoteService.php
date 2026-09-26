@@ -10,6 +10,7 @@ use Modules\Core\Services\AuditService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
+use Modules\Finance\Contracts\PurchaseMatching;
 use Modules\Finance\Models\SupplierCreditNote;
 use Modules\Finance\Models\SupplierInvoice;
 use Modules\Finance\Services\Concerns\EnforcesSegregationOfDuties;
@@ -82,6 +83,8 @@ class SupplierCreditNoteService
             throw new InvalidAccountingTransactionException('A credit note needs at least one line and a positive total.');
         }
 
+        app(PurchaseMatching::class)->checkCredit($creditNote);
+
         $submitted = $this->transition($creditNote, SupplierCreditNote::STATUS_SUBMITTED, 'SUBMIT');
         app(ApprovalNotifier::class)->documentSubmitted($submitted->company_id, 'finance.supplier-credit-notes.approve', __('Supplier credit note'), $submitted->credit_note_number, route('finance.supplier-credit-notes.show', $submitted->id), (string) $submitted->total_amount, $submitted->currency?->code);
 
@@ -125,11 +128,14 @@ class SupplierCreditNoteService
             $this->requireStatus($creditNote, [SupplierCreditNote::STATUS_APPROVED], 'posted');
 
             $supplier = $creditNote->supplier;
+            $matching = app(PurchaseMatching::class);
+            $matching->checkCredit($creditNote);
             $journalLines = app(DocumentJournalBuilder::class)->purchase(
                 $creditNote,
                 $supplier->payable_account_id ?? app(DefaultAccountService::class)->getPayableAccount($creditNote->company_id),
                 "Credit note {$creditNote->credit_note_number} from {$supplier->name}",
                 isCredit: true,
+                costLines: fn ($line, $cost) => $matching->creditCostLines($creditNote, $line, $cost),
             )['lines'];
 
             $journal = $this->journalService->postFromSource([
@@ -152,6 +158,7 @@ class SupplierCreditNoteService
                 'posted_at' => now(),
             ])->save();
             $this->applyToInvoice($creditNote);
+            $matching->creditNotePosted($creditNote);
 
             $this->audit->logCustom('Finance', 'SupplierCreditNote', $creditNote->id, 'POST', ['journal_id' => $journal->id]);
 
@@ -199,6 +206,7 @@ class SupplierCreditNoteService
         return [
             'supplier_id' => $data['supplier_id'],
             'supplier_invoice_id' => $invoice?->id,
+            'purchase_order_id' => $data['purchase_order_id'] ?? null,
             'credit_note_date' => $data['credit_note_date'],
             'currency_id' => $currencyId,
             'exchange_rate' => $invoice
@@ -218,6 +226,7 @@ class SupplierCreditNoteService
 
         foreach ($lines as $line) {
             $creditNote->lines()->create([
+                'purchase_order_line_id' => $line['purchase_order_line_id'] ?? null,
                 'account_id' => $line['account_id'],
                 'description' => $line['description'],
                 'quantity' => $line['quantity'] ?? 1,

@@ -4,12 +4,14 @@ use Illuminate\Support\Facades\Route;
 use Modules\Inventory\Controllers\Web\GoodsReceiptController;
 use Modules\Inventory\Controllers\Web\ProductCategoryController;
 use Modules\Inventory\Controllers\Web\ProductController;
+use Modules\Inventory\Controllers\Web\PurchaseCreditNoteController;
 use Modules\Inventory\Controllers\Web\PurchaseInvoiceMatchController;
 use Modules\Inventory\Controllers\Web\PurchaseOrderController;
 use Modules\Inventory\Controllers\Web\ReorderController;
 use Modules\Inventory\Controllers\Web\StockAdjustmentController;
 use Modules\Inventory\Controllers\Web\StockController;
 use Modules\Inventory\Controllers\Web\StockTransferController;
+use Modules\Inventory\Controllers\Web\SupplierReturnController;
 use Modules\Inventory\Controllers\Web\UnitController;
 use Modules\Inventory\Controllers\Web\WarehouseController;
 
@@ -63,6 +65,14 @@ Route::prefix('inventory')->name('inventory.')->group(function () {
     Route::post('/purchase-orders/{id}/close', [PurchaseOrderController::class, 'close'])->whereNumber('id')->middleware('permission:inventory.purchase-orders.cancel')->name('purchase-orders.close');
     Route::get('/purchase-orders/{id}/invoice', [PurchaseInvoiceMatchController::class, 'create'])->whereNumber('id')->middleware('permission:finance.supplier-invoices.create')->name('purchase-orders.invoice.create');
     Route::post('/purchase-orders/{id}/invoice', [PurchaseInvoiceMatchController::class, 'store'])->whereNumber('id')->middleware('permission:finance.supplier-invoices.create')->name('purchase-orders.invoice.store');
+
+    // Supplier returns and the credit notes that settle them
+    Route::get('/supplier-returns', [SupplierReturnController::class, 'index'])->middleware('permission:inventory.goods-receipts.view')->name('supplier-returns.index');
+    Route::get('/purchase-orders/{id}/return', [SupplierReturnController::class, 'create'])->whereNumber('id')->middleware('permission:inventory.supplier-returns.create')->name('supplier-returns.create');
+    Route::post('/purchase-orders/{id}/return', [SupplierReturnController::class, 'store'])->whereNumber('id')->middleware('permission:inventory.supplier-returns.create')->name('supplier-returns.store');
+    Route::get('/supplier-returns/{id}', [SupplierReturnController::class, 'show'])->whereNumber('id')->middleware('permission:inventory.goods-receipts.view')->name('supplier-returns.show');
+    Route::get('/purchase-orders/{id}/credit-note', [PurchaseCreditNoteController::class, 'create'])->whereNumber('id')->middleware('permission:finance.supplier-credit-notes.create')->name('purchase-orders.credit-note.create');
+    Route::post('/purchase-orders/{id}/credit-note', [PurchaseCreditNoteController::class, 'store'])->whereNumber('id')->middleware('permission:finance.supplier-credit-notes.create')->name('purchase-orders.credit-note.store');
 
     // Reorder suggestions
     Route::get('/reorder', [ReorderController::class, 'index'])->middleware('permission:inventory.purchase-orders.create')->name('reorder.index');

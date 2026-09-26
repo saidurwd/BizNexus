@@ -61,7 +61,7 @@ class PurchaseOrderController extends Controller
 
     public function show(int $id): View
     {
-        $order = PurchaseOrder::with(['supplier', 'currency', 'warehouse', 'lines.product.unit', 'lines.tax', 'receipts', 'invoices', 'createdBy', 'approvedBy'])->findOrFail($id);
+        $order = PurchaseOrder::with(['supplier', 'currency', 'warehouse', 'lines.product.unit', 'lines.tax', 'receipts', 'returns', 'invoices', 'creditNotes', 'createdBy', 'approvedBy'])->findOrFail($id);
 
         return view('inventory.purchase-orders.show', compact('order'));
     }

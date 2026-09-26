@@ -66,11 +66,19 @@ class SupplierCreditNoteController extends Controller
             return redirect()->route('finance.supplier-credit-notes.show', $id)->with('error', __('Only draft or rejected credit notes can be edited.'));
         }
 
+        if ($creditNote->purchase_order_id) {
+            return redirect()->route('finance.supplier-credit-notes.show', $id)->with('error', __('This credit note is matched to a purchase order. Delete it and record it again from the order to change it.'));
+        }
+
         return view('finance.supplier-credit-notes.edit', ['creditNote' => $creditNote, ...$this->formData()]);
     }
 
     public function update(StoreSupplierCreditNoteRequest $request, int $id, SupplierCreditNoteService $service): RedirectResponse
     {
+        if (SupplierCreditNote::whereKey($id)->whereNotNull('purchase_order_id')->exists()) {
+            return redirect()->route('finance.supplier-credit-notes.show', $id)->with('error', __('This credit note is matched to a purchase order. Delete it and record it again from the order to change it.'));
+        }
+
         return $this->act($id, fn (SupplierCreditNote $creditNote) => $service->update($creditNote, $request->validated()), __('Credit note updated.'));
     }
 

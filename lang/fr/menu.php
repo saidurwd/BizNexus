@@ -14,6 +14,7 @@ return [
     'Purchasing' => 'Achats',
     'Purchase Orders' => 'Commandes d\'achat',
     'Goods Receipts' => 'Réceptions de marchandises',
+    'Supplier Returns' => 'Retours fournisseurs',
     'Reorder Suggestions' => 'Suggestions de réapprovisionnement',
     'Inventory' => 'Stocks',
     'Products' => 'Produits',
