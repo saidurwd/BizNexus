@@ -25,6 +25,16 @@ const SELF_SERVICE_ROUTES = [
 ];
 
 /**
+ * A value the route accepts for the parameter: the first option of a whereIn() constraint, otherwise 1.
+ */
+function routeParameterSample(RouteDefinition $route, string $parameter): string
+{
+    $pattern = $route->wheres[$parameter] ?? null;
+
+    return $pattern && preg_match('/^[a-z0-9_-]+(\|[a-z0-9_-]+)*$/i', $pattern) ? explode('|', $pattern)[0] : '1';
+}
+
+/**
  * @return array<string, RouteDefinition>
  */
 function protectedWebRoutes(): array
@@ -49,7 +59,7 @@ test('a user without permissions is refused on every protected route', function 
     $user = companyUser([], $company);
 
     foreach (protectedWebRoutes() as $key => $route) {
-        $uri = preg_replace('/\{[^}]+\}/', '1', $route->uri());
+        $uri = preg_replace_callback('/\{([^}?]+)\??\}/', fn (array $match) => routeParameterSample($route, $match[1]), $route->uri());
 
         actingInCompany($user, $company)
             ->call($route->methods()[0], '/'.$uri)
