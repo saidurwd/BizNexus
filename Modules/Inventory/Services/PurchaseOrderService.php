@@ -120,6 +120,10 @@ class PurchaseOrderService
             throw new InvalidAccountingTransactionException(__('Goods received on this order are still waiting for the supplier\'s invoice.'));
         }
 
+        if ($order->hasCreditDue()) {
+            throw new InvalidAccountingTransactionException(__('Returned goods on this order are still waiting for the supplier\'s credit note.'));
+        }
+
         return $this->transition($order, PurchaseOrder::STATUS_CLOSED, 'CLOSE');
     }
 

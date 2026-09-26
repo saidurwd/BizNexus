@@ -9,6 +9,7 @@ class SupplierCreditNoteLine extends Model
 {
     protected $fillable = [
         'supplier_credit_note_id',
+        'purchase_order_line_id',
         'account_id',
         'description',
         'quantity',

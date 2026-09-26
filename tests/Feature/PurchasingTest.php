@@ -13,8 +13,10 @@ use Modules\Finance\Models\Account;
 use Modules\Finance\Models\AccountMapping;
 use Modules\Finance\Models\JournalLine;
 use Modules\Finance\Models\Supplier;
+use Modules\Finance\Models\SupplierCreditNote;
 use Modules\Finance\Models\SupplierInvoice;
 use Modules\Finance\Services\ExchangeRateService;
+use Modules\Finance\Services\SupplierCreditNoteService;
 use Modules\Finance\Services\SupplierInvoiceService;
 use Modules\Inventory\Models\GoodsReceipt;
 use Modules\Inventory\Models\Product;
@@ -23,6 +25,8 @@ use Modules\Inventory\Models\StockBalance;
 use Modules\Inventory\Models\Warehouse;
 use Modules\Inventory\Services\GoodsReceiptService;
 use Modules\Inventory\Services\PurchaseInvoiceMatcher;
+use Modules\Inventory\Services\ReorderService;
+use Modules\Inventory\Services\SupplierReturnService;
 
 beforeEach(function () {
     $this->company = Company::factory()->create();
@@ -232,4 +236,86 @@ test('the invoice form on an order records a draft supplier invoice for what was
 
     actingInCompany(companyUser(['finance.supplier-invoices.update'], $this->company), $this->company)->get(route('finance.supplier-invoices.edit', $invoice->id))->assertRedirect(route('finance.supplier-invoices.show', $invoice->id));
     actingInCompany($this->buyer, $this->company)->get(route('finance.supplier-invoices.show', $invoice->id))->assertOk()->assertSee($order->order_number);
+});
+
+test('products at or below their reorder level become draft purchase orders per supplier', function () {
+    $this->chair->update(['reorder_level' => 10, 'reorder_quantity' => 20, 'preferred_supplier_id' => $this->supplier->id]);
+    $desk = Product::factory()->create(['company_id' => $this->company->id, 'sku' => 'DESK', 'purchase_price' => 200, 'reorder_level' => 2]);
+    $lamp = Product::factory()->create(['company_id' => $this->company->id, 'sku' => 'LAMP', 'reorder_level' => 1]);
+    $lamp->forceFill(['stock_quantity' => 5, 'stock_value' => 50])->save();
+    approvedOrder([[$this->chair, 4, 50]]);
+    $otherSupplier = Supplier::factory()->create(['company_id' => $this->company->id]);
+    $planner = companyUser(['inventory.purchase-orders.create', 'inventory.purchase-orders.view'], $this->company);
+
+    $rows = app(ReorderService::class)->suggestions()->keyBy(fn ($row) => $row['product']->sku);
+    expect($rows->keys()->all())->toBe(['CHAIR', 'DESK'])
+        ->and($rows['CHAIR'])->on_order->toBe('4.0000')->projected->toBe('4.0000')->suggested->toBe('20.0000')
+        ->and($rows['DESK']['suggested'])->toBe('2.0000');
+
+    actingInCompany($planner, $this->company)->get(route('inventory.reorder.index'))->assertOk()->assertSee('CHAIR')->assertDontSee('LAMP');
+    actingInCompany($planner, $this->company)->post(route('inventory.reorder.store'), [
+        'warehouse_id' => $this->warehouse->id,
+        'lines' => [
+            $this->chair->id => ['selected' => 1, 'quantity' => 20, 'supplier_id' => $this->supplier->id],
+            $desk->id => ['selected' => 1, 'quantity' => 3, 'supplier_id' => $otherSupplier->id],
+        ],
+    ])->assertRedirect()->assertSessionHas('success');
+
+    $drafts = PurchaseOrder::with('lines')->where('status', 'DRAFT')->get()->keyBy('supplier_id');
+    expect($drafts)->toHaveCount(2)
+        ->and($drafts[$this->supplier->id]->lines->first())->product_id->toBe($this->chair->id)->quantity->toBe('20.0000')->unit_price->toBe('50.0000')
+        ->and($drafts[$otherSupplier->id]->total_amount)->toBe('600.0000');
+});
+
+test('returning invoiced goods reverses the receipt and the supplier credit note settles it', function () {
+    $order = approvedOrder([[$this->chair, 10, 50]]);
+    receiveGoods($order, [10]);
+    postMatchedInvoice($order, [[10, 50]]);
+    expect($order->fresh()->status)->toBe('CLOSED');
+
+    $storeman = companyUser(['inventory.supplier-returns.create', 'inventory.goods-receipts.view', 'inventory.purchase-orders.view', 'finance.supplier-credit-notes.create', 'finance.supplier-credit-notes.view'], $this->company);
+    actingInCompany($storeman, $this->company)->post(route('inventory.supplier-returns.store', $order->id), [
+        'return_date' => now()->toDateString(), 'warehouse_id' => $this->warehouse->id, 'reason' => 'Damaged', 'lines' => [$order->lines[0]->id => 3],
+    ])->assertRedirect()->assertSessionHas('success');
+
+    $line = $order->lines[0]->fresh();
+    expect($this->chair->fresh()->stock_quantity)->toBe('7.0000')
+        ->and($line->received_quantity)->toBe('7.0000')
+        ->and($line->creditDueQuantity())->toBe('3.0000')
+        ->and(purchasingLedger($this->accounts['grni']))->toBe('150.0000')
+        ->and(purchasingLedger($this->accounts['inventory']))->toBe('350.0000')
+        ->and($order->fresh()->status)->toBe('PARTIALLY_RECEIVED');
+
+    actingInCompany($storeman, $this->company)->get(route('inventory.purchase-orders.show', $order->id))->assertOk()->assertSee('Record supplier credit note');
+    actingInCompany($storeman, $this->company)->post(route('inventory.purchase-orders.credit-note.store', $order->id), [
+        'credit_note_number' => 'CR-9', 'credit_note_date' => now()->toDateString(), 'lines' => [$order->lines[0]->id => ['quantity' => 4, 'unit_price' => 50]],
+    ])->assertSessionHas('error');
+    actingInCompany($storeman, $this->company)->post(route('inventory.purchase-orders.credit-note.store', $order->id), [
+        'credit_note_number' => 'CR-9', 'credit_note_date' => now()->toDateString(), 'lines' => [$order->lines[0]->id => ['quantity' => 3, 'unit_price' => 50]],
+    ])->assertRedirect();
+
+    $credits = app(SupplierCreditNoteService::class);
+    $creditNote = SupplierCreditNote::sole();
+    $this->actingAs($this->buyer);
+    $credits->submit($creditNote);
+    $this->actingAs($this->manager);
+    $credits->post($credits->approve($creditNote->fresh()));
+
+    expect(purchasingLedger($this->accounts['grni']))->toBe('0.0000')
+        ->and(purchasingLedger($this->accounts['payable']))->toBe('-350.0000')
+        ->and($order->lines[0]->fresh()->invoiced_quantity)->toBe('7.0000')
+        ->and($order->fresh()->hasCreditDue())->toBeFalse();
+});
+
+test('returning goods not yet invoiced just lowers what the invoice may bill', function () {
+    $order = approvedOrder([[$this->chair, 10, 50]]);
+    receiveGoods($order, [10]);
+    $this->actingAs($this->buyer);
+    app(SupplierReturnService::class)->return($order, ['return_date' => now()->toDateString(), 'lines' => [$order->lines[0]->id => 4]]);
+
+    expect(purchasingLedger($this->accounts['grni']))->toBe('-300.0000')
+        ->and($order->lines[0]->fresh()->uninvoicedQuantity())->toBe('6.0000');
+
+    postMatchedInvoice($order, [[6, 50]]);
+    expect(purchasingLedger($this->accounts['grni']))->toBe('0.0000');
 });

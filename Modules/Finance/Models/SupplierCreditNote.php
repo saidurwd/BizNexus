@@ -10,6 +10,7 @@ use Modules\Core\Concerns\BelongsToCompany;
 use Modules\Core\Concerns\HasAttachments;
 use Modules\Core\Models\Company;
 use Modules\Core\Models\Currency;
+use Modules\Inventory\Models\PurchaseOrder;
 
 /**
  * A credit received from a supplier (returns, price corrections): a purchase document with lines and tax codes
@@ -36,6 +37,7 @@ class SupplierCreditNote extends Model
         'company_id',
         'supplier_id',
         'supplier_invoice_id',
+        'purchase_order_id',
         'credit_note_number',
         'credit_note_date',
         'currency_id',
@@ -80,6 +82,11 @@ class SupplierCreditNote extends Model
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(SupplierInvoice::class, 'supplier_invoice_id');
+    }
+
+    public function purchaseOrder(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseOrder::class);
     }
 
     public function currency(): BelongsTo

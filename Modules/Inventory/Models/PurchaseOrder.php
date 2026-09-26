@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Core\Concerns\BelongsToCompany;
 use Modules\Core\Models\Currency;
 use Modules\Finance\Models\Supplier;
+use Modules\Finance\Models\SupplierCreditNote;
 use Modules\Finance\Models\SupplierInvoice;
 
 /**
@@ -92,7 +93,24 @@ class PurchaseOrder extends Model
     }
 
     /**
-     * Order status after a receipt: fully or partly received.
+     * Whether goods returned after they were invoiced still wait for the supplier's credit note.
+     */
+    public function hasCreditDue(): bool
+    {
+        return $this->lines->contains(fn (PurchaseOrderLine $line) => bccomp($line->creditDueQuantity(), '0', 4) > 0);
+    }
+
+    /**
+     * Whether received goods can be sent back to the supplier.
+     */
+    public function canReturn(): bool
+    {
+        return ! in_array($this->status, [self::STATUS_DRAFT, self::STATUS_SUBMITTED, self::STATUS_REJECTED, self::STATUS_CANCELLED], true)
+            && $this->lines->contains(fn (PurchaseOrderLine $line) => bccomp((string) $line->received_quantity, '0', 4) > 0);
+    }
+
+    /**
+     * Order status after a receipt, return or invoice: fully or partly received, or closed once settled.
      */
     public function refreshReceiptStatus(): void
     {
@@ -100,10 +118,13 @@ class PurchaseOrder extends Model
         $allReceived = $lines->every(fn (PurchaseOrderLine $line) => bccomp($line->outstandingQuantity(), '0', 4) <= 0);
         $anyReceived = $lines->contains(fn (PurchaseOrderLine $line) => bccomp((string) $line->received_quantity, '0', 4) > 0);
 
+        $settled = $lines->every(fn (PurchaseOrderLine $line) => bccomp((string) $line->invoiced_quantity, (string) $line->received_quantity, 4) === 0);
+
         $this->update(['status' => match (true) {
-            $allReceived && $lines->every(fn (PurchaseOrderLine $line) => bccomp($line->uninvoicedQuantity(), '0', 4) <= 0) => self::STATUS_CLOSED,
+            $allReceived && $settled => self::STATUS_CLOSED,
             $allReceived => self::STATUS_RECEIVED,
-            $anyReceived => self::STATUS_PARTIALLY_RECEIVED,
+            $anyReceived || ! $settled => self::STATUS_PARTIALLY_RECEIVED,
+            in_array($this->status, [self::STATUS_PARTIALLY_RECEIVED, self::STATUS_RECEIVED, self::STATUS_CLOSED], true) => self::STATUS_APPROVED,
             default => $this->status,
         }]);
     }
@@ -131,6 +152,16 @@ class PurchaseOrder extends Model
     public function lines(): HasMany
     {
         return $this->hasMany(PurchaseOrderLine::class)->orderBy('id');
+    }
+
+    public function returns(): HasMany
+    {
+        return $this->hasMany(SupplierReturn::class);
+    }
+
+    public function creditNotes(): HasMany
+    {
+        return $this->hasMany(SupplierCreditNote::class);
     }
 
     public function receipts(): HasMany

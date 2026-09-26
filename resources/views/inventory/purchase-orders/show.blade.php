@@ -15,6 +15,9 @@
 @endsection
 
 @section('content')
+    @if ($order->hasCreditDue())
+        <div class="alert alert-warning">{{ __('Goods returned after they were invoiced are waiting for the supplier\'s credit note.') }}</div>
+    @endif
     @if ($order->status === 'REJECTED' && $order->rejection_reason)
         <div class="alert alert-warning">{{ __('Rejected: :reason', ['reason' => $order->rejection_reason]) }}</div>
     @endif
@@ -140,6 +143,18 @@
             @endcan
         @endif
 
+        @if ($order->canReturn())
+            @can('inventory.supplier-returns.create')
+                <a href="{{ route('inventory.supplier-returns.create', $order->id) }}" class="btn btn-outline-primary"><i class="bi bi-arrow-return-left"></i> {{ __('Return goods') }}</a>
+            @endcan
+        @endif
+
+        @if ($order->hasCreditDue())
+            @can('finance.supplier-credit-notes.create')
+                <a href="{{ route('inventory.purchase-orders.credit-note.create', $order->id) }}" class="btn btn-warning"><i class="bi bi-file-earmark-minus"></i> {{ __('Record supplier credit note') }}</a>
+            @endcan
+        @endif
+
         @if ($order->hasUninvoicedReceipts())
             @can('finance.supplier-invoices.create')
                 <a href="{{ route('inventory.purchase-orders.invoice.create', $order->id) }}" class="btn btn-primary"><i class="bi bi-receipt"></i> {{ __('Record supplier invoice') }}</a>
@@ -153,7 +168,7 @@
                     <button type="submit" class="btn btn-outline-danger">{{ __('Cancel order') }}</button>
                 </form>
             @endif
-            @if (in_array($order->status, ['PARTIALLY_RECEIVED', 'RECEIVED'], true) && ! $order->hasUninvoicedReceipts())
+            @if (in_array($order->status, ['PARTIALLY_RECEIVED', 'RECEIVED'], true) && ! $order->hasUninvoicedReceipts() && ! $order->hasCreditDue())
                 <form method="POST" action="{{ route('inventory.purchase-orders.close', $order->id) }}" onsubmit="return confirm(@js(__('Close this order? Quantities not yet received will not be delivered.')))">
                     @csrf
                     <button type="submit" class="btn btn-outline-secondary">{{ __('Close order') }}</button>
@@ -177,6 +192,13 @@
                         @empty
                             <tr><td class="text-body-secondary">{{ __('Nothing received yet.') }}</td></tr>
                         @endforelse
+                        @foreach ($order->returns as $return)
+                            <tr class="table-light">
+                                <td><a href="{{ route('inventory.supplier-returns.show', $return->id) }}">{{ $return->return_number }}</a> <span class="badge text-bg-secondary">{{ __('Return') }}</span></td>
+                                <td>{{ Formatter::date($return->return_date) }}</td>
+                                <td>{{ $return->reason }}</td>
+                            </tr>
+                        @endforeach
                     </table>
                 </div>
             </div>
@@ -196,6 +218,14 @@
                         @empty
                             <tr><td class="text-body-secondary">{{ __('No invoices yet.') }}</td></tr>
                         @endforelse
+                        @foreach ($order->creditNotes as $creditNote)
+                            <tr class="table-light">
+                                <td><a href="{{ route('finance.supplier-credit-notes.show', $creditNote->id) }}">{{ $creditNote->credit_note_number }}</a> <span class="badge text-bg-secondary">{{ __('Credit note') }}</span></td>
+                                <td>{{ Formatter::date($creditNote->credit_note_date) }}</td>
+                                <td class="text-end">-{{ Formatter::amount($creditNote->total_amount, $currencyCode) }}</td>
+                                <td><x-status-badge :status="$creditNote->status" /></td>
+                            </tr>
+                        @endforeach
                     </table>
                 </div>
             </div>

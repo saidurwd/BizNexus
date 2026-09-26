@@ -10,7 +10,7 @@
                     @if ($progress)
                         <th class="text-end">{{ __('Delivered') }}</th>
                         <th class="text-end">{{ __('Invoiced') }}</th>
-                        @isset($available)<th class="text-end">{{ __('In stock') }}</th>@endisset
+                        @isset($available)<th class="text-end" title="{{ __('On hand in the warehouse, less what other confirmed orders have reserved') }}">{{ __('Available') }}</th>@endisset
                     @endif
                     <th class="text-end">{{ __('Unit price') }}</th>
                     <th class="text-end">{{ __('Discount') }}</th>

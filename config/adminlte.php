@@ -823,6 +823,7 @@ return [
             'text' => 'Sales',
             'icon' => 'bi bi-cart-check',
             'submenu' => [
+                ['text' => 'Sales Dashboard', 'url' => 'sales/dashboard', 'icon' => 'bi bi-speedometer2', 'can' => 'sales.orders.view'],
                 ['text' => 'Quotations', 'url' => 'sales/quotations', 'icon' => 'bi bi-file-earmark-richtext', 'can' => 'sales.quotations.view'],
                 ['text' => 'Sales Orders', 'url' => 'sales/orders', 'icon' => 'bi bi-clipboard-check', 'can' => 'sales.orders.view'],
                 ['text' => 'Delivery Notes', 'url' => 'sales/deliveries', 'icon' => 'bi bi-truck', 'can' => 'sales.deliveries.view'],
@@ -834,12 +835,15 @@ return [
             'submenu' => [
                 ['text' => 'Purchase Orders', 'url' => 'inventory/purchase-orders', 'icon' => 'bi bi-file-earmark-text', 'can' => 'inventory.purchase-orders.view'],
                 ['text' => 'Goods Receipts', 'url' => 'inventory/goods-receipts', 'icon' => 'bi bi-box-arrow-in-down', 'can' => 'inventory.goods-receipts.view'],
+                ['text' => 'Supplier Returns', 'url' => 'inventory/supplier-returns', 'icon' => 'bi bi-arrow-return-left', 'can' => 'inventory.goods-receipts.view'],
+                ['text' => 'Reorder Suggestions', 'url' => 'inventory/reorder', 'icon' => 'bi bi-arrow-repeat', 'can' => 'inventory.purchase-orders.create'],
             ],
         ],
         [
             'text' => 'Inventory',
             'icon' => 'bi bi-box-seam',
             'submenu' => [
+                ['text' => 'Inventory Dashboard', 'url' => 'inventory/dashboard', 'icon' => 'bi bi-speedometer2', 'can' => 'inventory.stock.view'],
                 ['text' => 'Products', 'url' => 'inventory/products', 'icon' => 'bi bi-box', 'can' => 'inventory.products.view'],
                 ['text' => 'Stock on Hand', 'url' => 'inventory/stock', 'icon' => 'bi bi-boxes', 'can' => 'inventory.stock.view'],
                 ['text' => 'Stock Movements', 'url' => 'inventory/stock/movements', 'icon' => 'bi bi-arrow-left-right', 'can' => 'inventory.stock.view'],

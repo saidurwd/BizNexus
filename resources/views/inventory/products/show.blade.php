@@ -93,6 +93,14 @@
                             <td class="text-end fw-bold">{{ Formatter::quantity($product->stock_quantity, $decimals) }} {{ $product->unit?->code }}</td>
                         </tr>
                         <tr>
+                            <th>{{ __('Reserved for sales orders') }}</th>
+                            <td class="text-end">{{ Formatter::quantity($reserved, $decimals) }}</td>
+                        </tr>
+                        <tr>
+                            <th>{{ __('Available') }}</th>
+                            <td class="text-end">{{ Formatter::quantity(bcsub((string) $product->stock_quantity, $reserved, 4), $decimals) }}</td>
+                        </tr>
+                        <tr>
                             <th>{{ __('Average cost') }}</th>
                             <td class="text-end">{{ Formatter::unitPrice($product->averageCost()) }}</td>
                         </tr>

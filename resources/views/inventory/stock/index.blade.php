@@ -62,6 +62,8 @@
                             <th class="text-end">{{ $warehouse->code }}</th>
                         @endforeach
                         <th class="text-end">{{ __('Total') }}</th>
+                        <th class="text-end">{{ __('Reserved') }}</th>
+                        <th class="text-end">{{ __('Available') }}</th>
                         <th class="text-end">{{ __('Average cost') }}</th>
                         <th class="text-end">{{ __('Value') }}</th>
                         @can('inventory.purchase-orders.create')<th></th>@endcan
@@ -78,6 +80,9 @@
                                 <td class="text-end">{{ $quantity !== null && bccomp((string) $quantity, '0', 4) !== 0 ? Formatter::quantity($quantity, $decimals) : '—' }}</td>
                             @endforeach
                             <td class="text-end fw-bold">{{ Formatter::quantity($product->stock_quantity, $decimals) }} {{ $product->unit?->code }}</td>
+                            @php $productReserved = $reserved[$product->id] ?? '0'; $productAvailable = bcsub((string) $product->stock_quantity, $productReserved, 4); @endphp
+                            <td class="text-end">{{ bccomp($productReserved, '0', 4) > 0 ? Formatter::quantity($productReserved, $decimals) : '—' }}</td>
+                            <td class="text-end {{ bccomp($productAvailable, '0', 4) < 0 ? 'text-danger fw-bold' : '' }}">{{ Formatter::quantity($productAvailable, $decimals) }}</td>
                             <td class="text-end">{{ Formatter::unitPrice($product->averageCost()) }}</td>
                             <td class="text-end">{{ Formatter::amount($product->stock_value) }}</td>
                             @can('inventory.purchase-orders.create')
@@ -89,7 +94,7 @@
                             @endcan
                         </tr>
                     @empty
-                        <tr><td colspan="{{ 6 + $warehouses->count() }}" class="text-center text-body-secondary py-4">{{ __('No stock items found.') }}</td></tr>
+                        <tr><td colspan="{{ 8 + $warehouses->count() }}" class="text-center text-body-secondary py-4">{{ __('No stock items found.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

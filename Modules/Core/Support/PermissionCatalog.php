@@ -118,6 +118,7 @@ class PermissionCatalog
         'sales.orders.cancel' => ['name' => 'Cancel or Close Sales Orders', 'group' => 'Sales'],
         'sales.deliveries.view' => ['name' => 'View Deliveries', 'group' => 'Sales'],
         'sales.deliveries.create' => ['name' => 'Deliver Goods', 'group' => 'Sales'],
+        'inventory.supplier-returns.create' => ['name' => 'Return Goods to Suppliers', 'group' => 'Purchasing'],
     ];
 
     /**
@@ -238,6 +239,7 @@ class PermissionCatalog
         'sales.orders.cancel' => ['finance.customer-invoices.cancel'],
         'sales.deliveries.view' => ['finance.customers.view'],
         'sales.deliveries.create' => ['finance.customer-invoices.create'],
+        'inventory.supplier-returns.create' => ['inventory.goods-receipts.create'],
     ];
 
     /**

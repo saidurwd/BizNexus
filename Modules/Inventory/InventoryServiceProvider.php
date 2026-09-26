@@ -6,9 +6,11 @@ use Illuminate\Support\ServiceProvider;
 use Modules\Core\Models\Company;
 use Modules\Finance\Contracts\PurchaseMatching;
 use Modules\Finance\Contracts\SalesCostOfGoods;
+use Modules\Inventory\Contracts\StockReservations;
 use Modules\Inventory\Models\Unit;
 use Modules\Inventory\Services\PurchaseInvoiceMatcher;
 use Modules\Inventory\Services\SalesCostService;
+use Modules\Inventory\Support\NoStockReservations;
 
 class InventoryServiceProvider extends ServiceProvider
 {
@@ -16,6 +18,7 @@ class InventoryServiceProvider extends ServiceProvider
     {
         $this->app->bind(PurchaseMatching::class, PurchaseInvoiceMatcher::class);
         $this->app->bind(SalesCostOfGoods::class, SalesCostService::class);
+        $this->app->bindIf(StockReservations::class, NoStockReservations::class);
     }
 
     public function boot(): void

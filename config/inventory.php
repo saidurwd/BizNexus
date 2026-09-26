@@ -29,4 +29,18 @@ return [
 
     'price_tolerance_percent' => env('INVENTORY_PRICE_TOLERANCE_PERCENT', 5),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Reservations When Confirming Sales Orders
+    |--------------------------------------------------------------------------
+    |
+    | Confirmed sales orders reserve the stock they have not shipped. "warn"
+    | confirms an order that needs more than is available (on hand less what
+    | other orders reserved) with a backorder warning, "block" refuses it,
+    | "off" does not check.
+    |
+    */
+
+    'reservation_check' => env('INVENTORY_RESERVATION_CHECK', 'warn'),
+
 ];

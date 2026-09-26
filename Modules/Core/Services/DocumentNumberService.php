@@ -35,6 +35,7 @@ class DocumentNumberService
         'QT' => ['label' => 'Sales quotations', 'prefix' => 'QT'],
         'SO' => ['label' => 'Sales orders', 'prefix' => 'SO'],
         'DN' => ['label' => 'Delivery notes', 'prefix' => 'DN'],
+        'RTN' => ['label' => 'Supplier returns', 'prefix' => 'RTN'],
     ];
 
     /**

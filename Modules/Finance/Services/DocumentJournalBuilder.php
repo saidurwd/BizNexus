@@ -98,7 +98,9 @@ class DocumentJournalBuilder
      */
     protected function mirrored(array $lines): array
     {
-        return array_map(fn (array $line) => [...$line, 'debit' => $line['credit'], 'credit' => $line['debit']], $lines);
+        return array_map(fn (array $line) => isset($line['functional_amount'])
+            ? [...$line, 'functional_amount' => bcmul((string) $line['functional_amount'], '-1', 4)]
+            : [...$line, 'debit' => $line['credit'], 'credit' => $line['debit']], $lines);
     }
 
     protected function currencyCode(Model $document): string

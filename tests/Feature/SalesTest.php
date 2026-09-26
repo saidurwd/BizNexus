@@ -14,6 +14,7 @@ use Modules\Finance\Models\CustomerInvoice;
 use Modules\Finance\Models\JournalLine;
 use Modules\Finance\Services\CustomerCreditNoteService;
 use Modules\Finance\Services\CustomerInvoiceService;
+use Modules\Inventory\Contracts\StockReservations;
 use Modules\Inventory\Models\Product;
 use Modules\Inventory\Models\Warehouse;
 use Modules\Inventory\Services\StockService;
@@ -21,6 +22,7 @@ use Modules\Sales\Models\DeliveryNote;
 use Modules\Sales\Models\Quotation;
 use Modules\Sales\Models\SalesOrder;
 use Modules\Sales\Services\DeliveryService;
+use Modules\Sales\Services\SalesDashboardService;
 use Modules\Sales\Services\SalesOrderCostService;
 
 beforeEach(function () {
@@ -224,4 +226,57 @@ test('the sales screens list quotations, orders and deliveries', function () {
     actingInCompany($this->seller, $this->company)->get(route('sales.deliveries.create', $order->id))->assertOk()->assertSee('CHAIR');
     actingInCompany($this->seller, $this->company)->get(route('sales.quotations.index'))->assertOk();
     actingInCompany($this->seller, $this->company)->get(route('sales.deliveries.index'))->assertOk();
+});
+
+test('confirmed orders reserve their undelivered stock until it ships', function () {
+    $order = confirmedOrder([[$this->chair, 6, 100]]);
+    $reservations = app(StockReservations::class);
+
+    expect($reservations->reserved([$this->chair->id]))->toBe([$this->chair->id => '6.0000']);
+
+    $this->actingAs($this->seller);
+    app(DeliveryService::class)->deliver($order, ['delivery_date' => now()->toDateString(), 'lines' => [$order->lines[0]->id => 4]]);
+
+    expect($reservations->reserved([$this->chair->id], $this->warehouse->id))->toBe([$this->chair->id => '2.0000'])
+        ->and($reservations->reserved([$this->chair->id], null, $order->id))->toBe([]);
+
+    $viewer = companyUser(['inventory.stock.view', 'inventory.products.view'], $this->company);
+    actingInCompany($viewer, $this->company)->get(route('inventory.stock.index'))->assertOk()->assertSeeInOrder(['CHAIR', '6', '2', '4']);
+    actingInCompany($viewer, $this->company)->get(route('inventory.products.show', $this->chair->id))->assertOk()->assertSee('Reserved for sales orders');
+});
+
+test('confirming an order that needs more than is free warns of a backorder, or refuses it when set to block', function () {
+    confirmedOrder([[$this->chair, 8, 100]]);
+
+    actingInCompany($this->seller, $this->company)->post(route('sales.orders.store'), [
+        'customer_id' => $this->customer->id, 'order_date' => now()->toDateString(), 'warehouse_id' => $this->warehouse->id,
+        'lines' => [['product_id' => $this->chair->id, 'quantity' => 3, 'unit_price' => 100]],
+    ]);
+    $second = SalesOrder::latest('id')->first();
+
+    config(['inventory.reservation_check' => 'block']);
+    actingInCompany($this->seller, $this->company)->post(route('sales.orders.confirm', $second->id))
+        ->assertSessionHas('error', 'Not enough stock is free in MAIN, so part of the order will be on backorder (CHAIR: 2 available, 3 ordered).');
+    expect($second->fresh()->status)->toBe('DRAFT');
+
+    config(['inventory.reservation_check' => 'warn']);
+    actingInCompany($this->seller, $this->company)->post(route('sales.orders.confirm', $second->id))->assertSessionHas('warning');
+    expect($second->fresh()->status)->toBe('CONFIRMED');
+});
+
+test('the sales dashboard shows the pipeline, this month\'s sales and margins', function () {
+    $order = confirmedOrder([[$this->chair, 5, 100]]);
+    $this->actingAs($this->seller);
+    app(DeliveryService::class)->deliver($order, ['delivery_date' => now()->toDateString(), 'lines' => [$order->lines[0]->id => 3]]);
+    $invoice = app(SalesOrderCostService::class)->createInvoice($order->fresh(), ['invoice_date' => now()->toDateString(), 'lines' => [$order->lines[0]->id => 2]]);
+    postSalesInvoice($invoice);
+
+    $summary = app(SalesDashboardService::class)->summary($this->company->id, app(CompanyContextService::class)->today());
+
+    expect($summary)->backlog_value->toBe('200.00000000')->to_invoice_value->toBe('100.00000000')
+        ->and(bccomp($summary['sales_this_month'], '200', 4))->toBe(0)
+        ->and(bccomp($summary['margin_this_month'], '120', 4))->toBe(0)
+        ->and($summary['margin_percent'])->toBe('60.00');
+
+    actingInCompany($this->seller, $this->company)->get(route('sales.dashboard'))->assertOk()->assertSee('CHAIR')->assertSee($this->customer->name);
 });

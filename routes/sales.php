@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Sales\Controllers\Web\DeliveryNoteController;
 use Modules\Sales\Controllers\Web\QuotationController;
+use Modules\Sales\Controllers\Web\SalesDashboardController;
 use Modules\Sales\Controllers\Web\SalesOrderController;
 use Modules\Sales\Controllers\Web\SalesOrderInvoiceController;
 use Modules\Sales\Controllers\Web\SalesPdfController;
@@ -13,6 +14,8 @@ use Modules\Sales\Controllers\Web\SalesPdfController;
 */
 
 Route::prefix('sales')->name('sales.')->group(function () {
+    Route::get('/dashboard', SalesDashboardController::class)->middleware('permission:sales.orders.view')->name('dashboard');
+
     // Quotations
     Route::get('/quotations', [QuotationController::class, 'index'])->middleware('permission:sales.quotations.view')->name('quotations.index');
     Route::get('/quotations/create', [QuotationController::class, 'create'])->middleware('permission:sales.quotations.manage')->name('quotations.create');

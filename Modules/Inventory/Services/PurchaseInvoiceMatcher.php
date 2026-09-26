@@ -10,8 +10,11 @@ use Modules\Core\Support\Money;
 use Modules\Finance\Contracts\PurchaseMatching;
 use Modules\Finance\Enums\AccountPurpose;
 use Modules\Finance\Models\JournalLine;
+use Modules\Finance\Models\SupplierCreditNote;
+use Modules\Finance\Models\SupplierCreditNoteLine;
 use Modules\Finance\Models\SupplierInvoice;
 use Modules\Finance\Models\SupplierInvoiceLine;
+use Modules\Finance\Services\SupplierCreditNoteService;
 use Modules\Finance\Services\SupplierInvoiceService;
 use Modules\Inventory\Models\PurchaseOrder;
 use Modules\Inventory\Models\PurchaseOrderLine;
@@ -198,6 +201,170 @@ class PurchaseInvoiceMatcher implements PurchaseMatching
         PurchaseOrder::whereKey($matched->map(fn (SupplierInvoiceLine $line) => $line->purchaseOrderLine?->purchase_order_id)->filter()->unique())
             ->get()
             ->each(fn (PurchaseOrder $order) => $order->refreshReceiptStatus());
+    }
+
+    /**
+     * Create a draft supplier credit note for goods returned after they were invoiced.
+     *
+     * @param  array{credit_note_number: string, credit_note_date: string, reason?: string|null, lines: array<int|string, array{quantity?: string|int|float|null, unit_price?: string|int|float|null, tax_id?: int|string|null}>}  $data  lines keyed by order line id
+     */
+    public function createCreditNote(PurchaseOrder $order, array $data): SupplierCreditNote
+    {
+        $orderLines = $order->lines()->get()->keyBy('id');
+        $grniAccount = $this->defaultAccounts->forPurpose($order->company_id, AccountPurpose::GoodsReceivedNotInvoiced);
+
+        $lines = collect($data['lines'])
+            ->filter(fn (array $line) => bccomp((string) ($line['quantity'] ?? '0') ?: '0', '0', 4) > 0)
+            ->map(function (array $line, int|string $orderLineId) use ($orderLines, $grniAccount) {
+                $orderLine = $orderLines->get((int) $orderLineId) ?? throw new InvalidAccountingTransactionException(__('A matched line does not belong to this order.'));
+
+                return [
+                    'purchase_order_line_id' => $orderLine->id,
+                    'account_id' => $grniAccount,
+                    'description' => $orderLine->description,
+                    'quantity' => $line['quantity'],
+                    'unit_price' => $line['unit_price'] ?? $orderLine->unit_price,
+                    'tax_id' => ($line['tax_id'] ?? null) ?: null,
+                ];
+            })
+            ->values()
+            ->all();
+
+        if ($lines === []) {
+            throw new InvalidAccountingTransactionException(__('Enter the quantity credited on at least one line.'));
+        }
+
+        return DB::transaction(function () use ($order, $data, $lines) {
+            $creditNote = app(SupplierCreditNoteService::class)->create([
+                'company_id' => $order->company_id,
+                'supplier_id' => $order->supplier_id,
+                'purchase_order_id' => $order->id,
+                'credit_note_number' => $data['credit_note_number'],
+                'credit_note_date' => $data['credit_note_date'],
+                'currency_id' => $order->currency_id,
+                'reason' => ($data['reason'] ?? '') !== '' ? $data['reason'] : __('Goods returned on :order', ['order' => $order->order_number]),
+                'lines' => $lines,
+            ]);
+
+            $this->checkCredit($creditNote);
+
+            return $creditNote;
+        });
+    }
+
+    public function checkCredit(SupplierCreditNote $creditNote): void
+    {
+        $matched = $creditNote->lines()->whereNotNull('purchase_order_line_id')->get();
+
+        if ($matched->isEmpty()) {
+            return;
+        }
+
+        $orderLines = PurchaseOrderLine::with(['purchaseOrder', 'product'])->whereKey($matched->pluck('purchase_order_line_id')->unique())->get()->keyBy('id');
+        $pendingElsewhere = SupplierCreditNoteLine::query()
+            ->whereIn('purchase_order_line_id', $orderLines->keys())
+            ->where('supplier_credit_note_id', '!=', $creditNote->id)
+            ->whereIn('supplier_credit_note_id', SupplierCreditNote::whereIn('status', [SupplierCreditNote::STATUS_SUBMITTED, SupplierCreditNote::STATUS_APPROVED])->select('id'))
+            ->selectRaw('purchase_order_line_id, SUM(quantity) AS pending_quantity')
+            ->groupBy('purchase_order_line_id')
+            ->pluck('pending_quantity', 'purchase_order_line_id');
+
+        foreach ($matched->groupBy('purchase_order_line_id') as $orderLineId => $creditLines) {
+            $orderLine = $orderLines->get($orderLineId);
+            $order = $orderLine?->purchaseOrder;
+
+            if (! $order || (int) $order->supplier_id !== (int) $creditNote->supplier_id || (int) $order->currency_id !== (int) $creditNote->currency_id) {
+                throw new InvalidAccountingTransactionException(__('A matched line belongs to another supplier\'s order or to an order in another currency.'));
+            }
+
+            $creditable = bcsub($orderLine->creditDueQuantity(), (string) ($pendingElsewhere[$orderLineId] ?? '0'), 4);
+            $credited = $creditLines->reduce(fn (string $sum, SupplierCreditNoteLine $line) => bcadd($sum, (string) $line->quantity, 4), '0');
+
+            if (bccomp($credited, $creditable, 4) > 0) {
+                throw new InvalidAccountingTransactionException(__(':product: the credit note credits :credited but only :creditable was returned after being invoiced on :order.', [
+                    'product' => $orderLine->product->sku,
+                    'credited' => $this->plain($credited),
+                    'creditable' => $this->plain(bccomp($creditable, '0', 4) > 0 ? $creditable : '0'),
+                    'order' => $order->order_number,
+                ]));
+            }
+        }
+    }
+
+    /**
+     * Lines are written as for an invoice (debits); the journal builder mirrors them for the credit note.
+     */
+    public function creditCostLines(SupplierCreditNote $creditNote, SupplierCreditNoteLine $line, Money $cost): array
+    {
+        if ($line->purchase_order_line_id === null) {
+            return [['account_id' => $line->account_id, 'description' => $line->description, 'debit' => $cost->amount, 'credit' => 0]];
+        }
+
+        $orderLine = PurchaseOrderLine::whereKey($line->purchase_order_line_id)->lockForUpdate()->firstOrFail();
+        $companyId = $creditNote->company_id;
+        $grniAccount = $this->defaultAccounts->forPurpose($companyId, AccountPurpose::GoodsReceivedNotInvoiced);
+        $functional = $this->functionalCurrency($cost->currency);
+        $cleared = Money::of($this->creditedFunctionalValue($orderLine, (string) $line->quantity, $functional), $functional);
+        $isForeign = $cost->currency !== $functional;
+        $returned = $isForeign ? Money::of((string) $line->quantity, $cost->currency)->multipliedBy((string) $orderLine->unit_price) : $cleared;
+        $variance = $cost->minus($returned);
+
+        $lines = [['account_id' => $grniAccount, 'description' => $line->description, 'debit' => $returned->amount, 'credit' => 0]];
+
+        if (! $variance->isZero()) {
+            $lines[] = [
+                'account_id' => $this->defaultAccounts->forPurpose($companyId, AccountPurpose::PurchasePriceVariance),
+                'description' => "Price variance on {$line->description}",
+                'debit' => $variance->isPositive() ? $variance->amount : 0,
+                'credit' => $variance->isNegative() ? $variance->abs()->amount : 0,
+            ];
+        }
+
+        $exchangeDifference = $isForeign ? $cleared->minus($returned->convertedTo($functional, $creditNote->exchange_rate)) : Money::zero($functional);
+
+        if (! $exchangeDifference->isZero()) {
+            // Mirrored for the credit note, a positive difference ends up as a debit to the offsetting account: a loss.
+            $lines[] = ['account_id' => $grniAccount, 'description' => "Exchange difference on {$line->description}", 'line_type' => JournalLine::TYPE_FX_REALIZED, 'functional_amount' => $exchangeDifference->amount];
+            $lines[] = [
+                'account_id' => $this->defaultAccounts->forPurpose($companyId, $exchangeDifference->isPositive() ? AccountPurpose::RealizedFxLoss : AccountPurpose::RealizedFxGain),
+                'description' => "Exchange difference on {$line->description}",
+                'line_type' => JournalLine::TYPE_FX_REALIZED,
+                'functional_amount' => $exchangeDifference->negated()->amount,
+            ];
+        }
+
+        return $lines;
+    }
+
+    public function creditNotePosted(SupplierCreditNote $creditNote): void
+    {
+        $matched = $creditNote->lines()->whereNotNull('purchase_order_line_id')->get();
+        $functional = $this->functionalCurrency($creditNote->currency?->code);
+
+        foreach ($matched as $line) {
+            $orderLine = PurchaseOrderLine::whereKey($line->purchase_order_line_id)->lockForUpdate()->firstOrFail();
+            $orderLine->update([
+                'invoiced_functional_value' => bcsub((string) $orderLine->invoiced_functional_value, $this->creditedFunctionalValue($orderLine, (string) $line->quantity, $functional), 4),
+                'invoiced_quantity' => bcsub((string) $orderLine->invoiced_quantity, (string) $line->quantity, 4),
+            ]);
+        }
+
+        PurchaseOrder::whereKey($matched->map(fn (SupplierCreditNoteLine $line) => PurchaseOrderLine::whereKey($line->purchase_order_line_id)->value('purchase_order_id'))->filter()->unique())
+            ->get()
+            ->each(fn (PurchaseOrder $order) => $order->refreshReceiptStatus());
+    }
+
+    /**
+     * The functional value a credit for this quantity takes off the invoiced side; the last credit due clears
+     * whatever was invoiced beyond what is still received.
+     */
+    protected function creditedFunctionalValue(PurchaseOrderLine $orderLine, string $quantity, string $functional): string
+    {
+        if (bccomp($quantity, $orderLine->creditDueQuantity(), 4) >= 0) {
+            return Money::of(bcsub((string) $orderLine->invoiced_functional_value, (string) $orderLine->received_functional_value, 4), $functional)->amount;
+        }
+
+        return Money::of(bcdiv(bcmul((string) $orderLine->invoiced_functional_value, $quantity, 8), (string) $orderLine->invoiced_quantity, 8), $functional)->amount;
     }
 
     /**

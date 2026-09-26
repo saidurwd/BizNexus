@@ -42,7 +42,7 @@ class CustomerInvoiceLine extends Model
 
     public function invoice(): BelongsTo
     {
-        return $this->belongsTo(CustomerInvoice::class);
+        return $this->belongsTo(CustomerInvoice::class, 'customer_invoice_id');
     }
 
     public function salesOrderLine(): BelongsTo
