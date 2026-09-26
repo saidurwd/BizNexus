@@ -25,6 +25,10 @@ class StockMove extends Model
 
     public const SOURCE_CUSTOMER_INVOICE = 'customer_invoice';
 
+    public const SOURCE_DELIVERY = 'delivery_note';
+
+    public const SOURCE_CUSTOMER_RETURN = 'customer_credit_note';
+
     protected $fillable = [
         'company_id',
         'product_id',
@@ -59,6 +63,8 @@ class StockMove extends Model
             self::SOURCE_ADJUSTMENT => __('Stock adjustment'),
             self::SOURCE_TRANSFER => __('Stock transfer'),
             self::SOURCE_CUSTOMER_INVOICE => __('Customer invoice'),
+            self::SOURCE_DELIVERY => __('Delivery note'),
+            self::SOURCE_CUSTOMER_RETURN => __('Customer return'),
         ];
     }
 
@@ -77,6 +83,8 @@ class StockMove extends Model
             self::SOURCE_ADJUSTMENT => route('inventory.adjustments.show', $this->source_id),
             self::SOURCE_TRANSFER => route('inventory.transfers.show', $this->source_id),
             self::SOURCE_CUSTOMER_INVOICE => route('finance.customer-invoices.show', $this->source_id),
+            self::SOURCE_DELIVERY => route('sales.deliveries.show', $this->source_id),
+            self::SOURCE_CUSTOMER_RETURN => route('finance.customer-credit-notes.show', $this->source_id),
             default => null,
         };
     }

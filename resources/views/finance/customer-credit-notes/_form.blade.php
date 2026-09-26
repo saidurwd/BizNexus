@@ -1,8 +1,8 @@
 @php
     $creditNote ??= null;
     $invoice ??= null;
-    $lines = old('lines', $creditNote?->lines->map->only(['account_id', 'description', 'quantity', 'unit_price', 'discount_amount', 'tax_id'])->all()
-        ?? $invoice?->lines->map->only(['account_id', 'description', 'quantity', 'unit_price', 'discount_amount', 'tax_id'])->all()
+    $lines = old('lines', $creditNote?->lines->map->only(['product_id', 'warehouse_id', 'account_id', 'description', 'quantity', 'unit_price', 'discount_amount', 'tax_id'])->all()
+        ?? $invoice?->lines->map->only(['product_id', 'account_id', 'description', 'quantity', 'unit_price', 'discount_amount', 'tax_id'])->all()
         ?? []);
     $customerId = old('customer_id', $creditNote?->customer_id ?? $invoice?->customer_id);
     $invoiceId = old('customer_invoice_id', $creditNote?->customer_invoice_id ?? $invoice?->id);
@@ -64,4 +64,5 @@
 </div>
 
 <h5 class="mt-4">{{ __('Lines credited') }}</h5>
-<x-finance.document-lines :accounts="$accounts" :taxes="$taxes" :lines="$lines" />
+<x-finance.document-lines :accounts="$accounts" :taxes="$taxes" :lines="$lines" :products="$products ?? null" :warehouses="$warehouses ?? null" />
+<div class="form-text">{{ __('To take returned goods back into stock, choose the warehouse on the product line. Lines without a warehouse only credit the amount.') }}</div>

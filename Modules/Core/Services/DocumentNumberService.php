@@ -32,6 +32,9 @@ class DocumentNumberService
         'GRN' => ['label' => 'Goods receipts', 'prefix' => 'GRN'],
         'ADJ' => ['label' => 'Stock adjustments', 'prefix' => 'ADJ'],
         'TRF' => ['label' => 'Stock transfers', 'prefix' => 'TRF'],
+        'QT' => ['label' => 'Sales quotations', 'prefix' => 'QT'],
+        'SO' => ['label' => 'Sales orders', 'prefix' => 'SO'],
+        'DN' => ['label' => 'Delivery notes', 'prefix' => 'DN'],
     ];
 
     /**

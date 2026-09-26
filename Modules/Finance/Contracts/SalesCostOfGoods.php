@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Contracts;
 
+use Modules\Finance\Models\CustomerCreditNote;
 use Modules\Finance\Models\CustomerInvoice;
 
 /**
@@ -19,4 +20,9 @@ interface SalesCostOfGoods
      * Issue the invoice's stock and post its cost, inside the posting transaction.
      */
     public function invoicePosted(CustomerInvoice $invoice): void;
+
+    /**
+     * Take returned goods back into stock and reverse their cost, inside the credit note's posting transaction.
+     */
+    public function creditNotePosted(CustomerCreditNote $creditNote): void;
 }

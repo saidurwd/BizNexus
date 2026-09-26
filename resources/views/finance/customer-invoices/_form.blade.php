@@ -52,7 +52,7 @@
 </div>
 
 <h5 class="mt-4">{{ __('Lines') }}</h5>
-<x-finance.document-lines :accounts="$accounts" :taxes="$taxes" :lines="$lines" :products="$products ?? null" :warehouses="$warehouses ?? null" />
+<x-finance.document-lines :accounts="$accounts" :taxes="$taxes" :lines="$lines" :products="$products ?? null" :warehouses="$warehouses ?? null" :default-warehouse="$warehouses?->first()?->id" />
 
 @once
     @push('js')

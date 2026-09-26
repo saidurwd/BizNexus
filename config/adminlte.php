@@ -818,7 +818,16 @@ return [
         ['text' => 'Approvals', 'url' => 'workflows', 'icon' => 'bi bi-inbox', 'can' => 'core.workflow.view'],
         ['text' => 'Notifications', 'url' => 'notifications', 'icon' => 'bi bi-bell', 'can' => 'core.notifications.view'],
 
-        ['header' => 'SUPPLY CHAIN'],
+        ['header' => 'OPERATIONS'],
+        [
+            'text' => 'Sales',
+            'icon' => 'bi bi-cart-check',
+            'submenu' => [
+                ['text' => 'Quotations', 'url' => 'sales/quotations', 'icon' => 'bi bi-file-earmark-richtext', 'can' => 'sales.quotations.view'],
+                ['text' => 'Sales Orders', 'url' => 'sales/orders', 'icon' => 'bi bi-clipboard-check', 'can' => 'sales.orders.view'],
+                ['text' => 'Delivery Notes', 'url' => 'sales/deliveries', 'icon' => 'bi bi-truck', 'can' => 'sales.deliveries.view'],
+            ],
+        ],
         [
             'text' => 'Purchasing',
             'icon' => 'bi bi-cart3',

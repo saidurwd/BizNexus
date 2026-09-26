@@ -25,6 +25,7 @@ enum AccountPurpose: string
     case GoodsReceivedNotInvoiced = 'goods_received_not_invoiced';
     case PurchasePriceVariance = 'purchase_price_variance';
     case InventoryAdjustment = 'inventory_adjustment';
+    case GoodsDeliveredNotInvoiced = 'goods_delivered_not_invoiced';
 
     public function label(): string
     {
@@ -47,6 +48,7 @@ enum AccountPurpose: string
             self::GoodsReceivedNotInvoiced => 'Goods received not invoiced (GRNI)',
             self::PurchasePriceVariance => 'Purchase price variance',
             self::InventoryAdjustment => 'Inventory adjustments and count differences',
+            self::GoodsDeliveredNotInvoiced => 'Goods delivered not invoiced (cost awaiting the invoice)',
         };
     }
 

@@ -13,6 +13,7 @@ use Modules\Core\Models\Company;
 use Modules\Core\Models\Currency;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Finance\Scopes\BranchScope;
+use Modules\Sales\Models\SalesOrder;
 
 class CustomerInvoice extends Model
 {
@@ -21,6 +22,7 @@ class CustomerInvoice extends Model
     protected $fillable = [
         'company_id',
         'customer_id',
+        'sales_order_id',
         'invoice_number',
         'invoice_date',
         'due_date',
@@ -92,6 +94,11 @@ class CustomerInvoice extends Model
     public function tax(): BelongsTo
     {
         return $this->belongsTo(Tax::class);
+    }
+
+    public function salesOrder(): BelongsTo
+    {
+        return $this->belongsTo(SalesOrder::class);
     }
 
     public function costJournal(): BelongsTo

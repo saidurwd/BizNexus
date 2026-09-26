@@ -5,6 +5,7 @@
     'currency' => null,
     'products' => null,
     'warehouses' => null,
+    'defaultWarehouse' => null,
 ])
 
 {{--
@@ -18,7 +19,7 @@
     $lineErrors = $errors->has('lines') ? $errors->first('lines') : null;
 @endphp
 
-<div class="document-lines" data-next-index="{{ count($lines) }}">
+<div class="document-lines" data-next-index="{{ count($lines) }}" data-default-warehouse="{{ $defaultWarehouse }}">
     @if ($lineErrors)
         <div class="alert alert-danger py-2">{{ $lineErrors }}</div>
     @endif
@@ -121,6 +122,10 @@
                     set('description', option.dataset.description);
                     set('unit_price', option.dataset.price);
                     set('tax_id', option.dataset.tax);
+                    const warehouse = row.querySelector('[data-field=warehouse_id]');
+                    if (warehouse && warehouse.value === '' && container.dataset.defaultWarehouse) {
+                        warehouse.value = container.dataset.defaultWarehouse;
+                    }
                     recalculate();
                 });
 

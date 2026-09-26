@@ -165,6 +165,7 @@ class FinanceSeeder extends Seeder
             '1.1.2' => ['code' => '1120', 'name' => 'Bank', 'type' => 'ASSET', 'is_group' => false],
             '1.1.3' => ['code' => '1130', 'name' => 'Accounts Receivable', 'type' => 'ASSET', 'is_group' => false],
             '1.1.4' => ['code' => '1140', 'name' => 'Inventory', 'type' => 'ASSET', 'is_group' => false],
+            '1.1.5' => ['code' => '1150', 'name' => 'Goods Delivered Not Invoiced', 'type' => 'ASSET', 'is_group' => false],
             '1.2' => ['code' => '1200', 'name' => 'Fixed Assets', 'type' => 'ASSET', 'is_group' => true],
             '1.2.1' => ['code' => '1210', 'name' => 'Property & Equipment', 'type' => 'ASSET', 'is_group' => false],
             '1.2.2' => ['code' => '1220', 'name' => 'Accumulated Depreciation', 'type' => 'ASSET', 'is_group' => false],
@@ -254,11 +255,13 @@ class FinanceSeeder extends Seeder
             '1120' => ['cash_flow_category' => 'cash', 'is_current' => true, 'revalue_foreign_currency' => true],
             '1130' => ['cash_flow_category' => 'operating', 'is_current' => true, 'revalue_foreign_currency' => true, 'is_control_account' => true],
             '1140' => ['cash_flow_category' => 'operating', 'is_current' => true],
+            '1150' => ['cash_flow_category' => 'operating', 'is_current' => true],
             '1210' => ['cash_flow_category' => 'investing', 'is_current' => false],
             '1220' => ['cash_flow_category' => 'investing', 'is_current' => false],
             '2110' => ['cash_flow_category' => 'operating', 'is_current' => true, 'revalue_foreign_currency' => true, 'is_control_account' => true],
             '2120' => ['cash_flow_category' => 'operating', 'is_current' => true],
             '2130' => ['cash_flow_category' => 'operating', 'is_current' => true],
+            '2140' => ['cash_flow_category' => 'operating', 'is_current' => true],
             '2210' => ['cash_flow_category' => 'financing', 'is_current' => false, 'revalue_foreign_currency' => true],
             '3110' => ['cash_flow_category' => 'financing'],
         ];
@@ -287,6 +290,7 @@ class FinanceSeeder extends Seeder
             AccountPurpose::GoodsReceivedNotInvoiced->value => '2140',
             AccountPurpose::PurchasePriceVariance->value => '5220',
             AccountPurpose::InventoryAdjustment->value => '5230',
+            AccountPurpose::GoodsDeliveredNotInvoiced->value => '1150',
         ];
 
         foreach ($mappings as $purpose => $accountCode) {

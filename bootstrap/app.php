@@ -20,6 +20,7 @@ use Modules\Core\Http\Middleware\SetTokenCompanyContext;
 use Modules\Core\Http\Middleware\ShareAdminLte;
 use Modules\Finance\FinanceServiceProvider;
 use Modules\Inventory\InventoryServiceProvider;
+use Modules\Sales\SalesServiceProvider;
 use Modules\Workflow\WorkflowServiceProvider;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -28,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
         FinanceServiceProvider::class,
         WorkflowServiceProvider::class,
         InventoryServiceProvider::class,
+        SalesServiceProvider::class,
         EventServiceProvider::class,
         AdminLteServiceProvider::class,
     ])

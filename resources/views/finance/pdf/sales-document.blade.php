@@ -68,10 +68,10 @@
                     <tr><td class="muted">{{ __('Number') }}</td><td>{{ $number }}</td></tr>
                     <tr><td class="muted">{{ __('Date') }}</td><td>{{ Formatter::date($date) }}</td></tr>
                     @if ($dueDate)
-                        <tr><td class="muted">{{ __('Due date') }}</td><td>{{ Formatter::date($dueDate) }}</td></tr>
+                        <tr><td class="muted">{{ $dueDateLabel ?? __('Due date') }}</td><td>{{ Formatter::date($dueDate) }}</td></tr>
                     @endif
                     @if ($reference)
-                        <tr><td class="muted">{{ __('Credits invoice') }}</td><td>{{ $reference }}</td></tr>
+                        <tr><td class="muted">{{ $referenceLabel ?? __('Credits invoice') }}</td><td>{{ $reference }}</td></tr>
                     @endif
                     <tr><td class="muted">{{ __('Currency') }}</td><td>{{ $currencyCode }}</td></tr>
                 </table>

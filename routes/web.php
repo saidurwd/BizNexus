@@ -460,6 +460,7 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     require __DIR__.'/inventory.php';
+    require __DIR__.'/sales.php';
 
     // Approval delegation (self-service; users delegate only their own approval authority)
     Route::post('/approval-delegations', [ApprovalDelegationController::class, 'store'])->name('core.approval-delegations.store');

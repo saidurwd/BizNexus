@@ -12,9 +12,11 @@
             <h3 class="card-title">{{ __('Invoice Information') }}</h3>
             <div class="card-tools">
                 @if($invoice->isDraft())
-                    <a href="{{ route('finance.customer-invoices.edit', $invoice->id) }}" class="btn btn-sm btn-warning">
-                        <i class="bi bi-pencil"></i> {{ __('Edit') }}
-                    </a>
+                    @unless ($invoice->sales_order_id)
+                        <a href="{{ route('finance.customer-invoices.edit', $invoice->id) }}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil"></i> {{ __('Edit') }}
+                        </a>
+                    @endunless
                     <form action="{{ route('finance.customer-invoices.destroy', $invoice->id) }}" method="POST" class="d-inline" onsubmit="return confirm(@js(__('Delete this invoice?')))">
                         @csrf
                         @method('DELETE')
@@ -43,6 +45,18 @@
                     <th>{{ __('Customer') }}</th>
                     <td>{{ $invoice->customer?->name ?? '-' }}</td>
                 </tr>
+                @if ($invoice->salesOrder)
+                    <tr>
+                        <th>{{ __('Sales order') }}</th>
+                        <td>
+                            @can('sales.orders.view')
+                                <a href="{{ route('sales.orders.show', $invoice->sales_order_id) }}">{{ $invoice->salesOrder->order_number }}</a>
+                            @else
+                                {{ $invoice->salesOrder->order_number }}
+                            @endcan
+                        </td>
+                    </tr>
+                @endif
                 <tr>
                     <th>{{ __('Currency') }}</th>
                     <td>{{ $invoice->currency?->code ?? __('Company currency') }}@if ($invoice->currency) · {{ __('rate :rate', ['rate' => Formatter::rate($invoice->exchange_rate)]) }}@endif</td>

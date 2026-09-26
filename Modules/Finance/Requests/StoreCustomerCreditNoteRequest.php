@@ -35,6 +35,8 @@ class StoreCustomerCreditNoteRequest extends FormRequest
             'discount_amount' => ['nullable', 'numeric', 'min:0'],
             'description' => ['required', 'string', 'max:1000'],
             ...$this->documentLineRules($companyId),
+            'lines.*.product_id' => ['nullable', Rule::exists('products', 'id')->where('company_id', $companyId)],
+            'lines.*.warehouse_id' => ['nullable', Rule::exists('warehouses', 'id')->where('company_id', $companyId)->where('status', 'active')],
         ];
     }
 

@@ -110,6 +110,14 @@ class PermissionCatalog
         'inventory.adjustments.create' => ['name' => 'Prepare Stock Adjustments and Counts', 'group' => 'Inventory'],
         'inventory.adjustments.post' => ['name' => 'Post Stock Adjustments and Counts', 'group' => 'Inventory'],
         'inventory.transfers.create' => ['name' => 'Transfer Stock between Warehouses', 'group' => 'Inventory'],
+        'sales.quotations.view' => ['name' => 'View Quotations', 'group' => 'Sales'],
+        'sales.quotations.manage' => ['name' => 'Create, Edit and Send Quotations', 'group' => 'Sales'],
+        'sales.orders.view' => ['name' => 'View Sales Orders', 'group' => 'Sales'],
+        'sales.orders.create' => ['name' => 'Create and Edit Sales Orders', 'group' => 'Sales'],
+        'sales.orders.confirm' => ['name' => 'Confirm Sales Orders', 'group' => 'Sales'],
+        'sales.orders.cancel' => ['name' => 'Cancel or Close Sales Orders', 'group' => 'Sales'],
+        'sales.deliveries.view' => ['name' => 'View Deliveries', 'group' => 'Sales'],
+        'sales.deliveries.create' => ['name' => 'Deliver Goods', 'group' => 'Sales'],
     ];
 
     /**
@@ -222,6 +230,14 @@ class PermissionCatalog
         'inventory.adjustments.create' => ['finance.journals.create'],
         'inventory.adjustments.post' => ['finance.journals.post'],
         'inventory.transfers.create' => ['inventory.products.manage'],
+        'sales.quotations.view' => ['finance.customers.view'],
+        'sales.quotations.manage' => ['finance.customer-invoices.create'],
+        'sales.orders.view' => ['finance.customers.view'],
+        'sales.orders.create' => ['finance.customer-invoices.create'],
+        'sales.orders.confirm' => ['finance.customer-invoices.submit'],
+        'sales.orders.cancel' => ['finance.customer-invoices.cancel'],
+        'sales.deliveries.view' => ['finance.customers.view'],
+        'sales.deliveries.create' => ['finance.customer-invoices.create'],
     ];
 
     /**

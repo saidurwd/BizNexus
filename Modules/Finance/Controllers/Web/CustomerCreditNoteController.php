@@ -17,6 +17,8 @@ use Modules\Finance\Models\CustomerInvoice;
 use Modules\Finance\Models\Tax;
 use Modules\Finance\Requests\StoreCustomerCreditNoteRequest;
 use Modules\Finance\Services\CustomerCreditNoteService;
+use Modules\Inventory\Models\Product;
+use Modules\Inventory\Models\Warehouse;
 
 class CustomerCreditNoteController extends Controller
 {
@@ -146,6 +148,8 @@ class CustomerCreditNoteController extends Controller
             'accounts' => Account::postable()->active()->orderBy('account_code')->get(['id', 'account_code', 'account_name']),
             'taxes' => Tax::where('status', 'active')->orderBy('tax_code')->get(),
             'currencies' => Currency::where('status', 'active')->orderBy('code')->get(),
+            'products' => Product::active()->with(['category', 'unit'])->orderBy('sku')->get(),
+            'warehouses' => Warehouse::active()->orderByDesc('is_default')->orderBy('code')->get(['id', 'code', 'name']),
         ];
     }
 }

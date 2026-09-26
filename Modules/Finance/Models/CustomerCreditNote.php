@@ -49,6 +49,7 @@ class CustomerCreditNote extends Model
         'status',
         'rejection_reason',
         'journal_id',
+        'cost_journal_id',
         'posted_at',
         'created_by',
         'updated_by',
