@@ -35,6 +35,7 @@ class CustomerInvoiceService
             $invoice = CustomerInvoice::create([
                 'company_id' => $data['company_id'],
                 'customer_id' => $data['customer_id'],
+                'sales_order_id' => $data['sales_order_id'] ?? null,
                 'invoice_number' => $data['invoice_number'] ?? $this->documentNumber->generateNumber($data['company_id'], 'CI'),
                 'invoice_date' => $data['invoice_date'],
                 'due_date' => $data['due_date'] ?? Customer::findOrFail($data['customer_id'])->dueDateFor(Carbon::parse($data['invoice_date']))->toDateString(),
@@ -52,6 +53,7 @@ class CustomerInvoiceService
 
             foreach ($data['lines'] ?? [] as $lineData) {
                 $invoice->lines()->create([
+                    'sales_order_line_id' => $lineData['sales_order_line_id'] ?? null,
                     'product_id' => $lineData['product_id'] ?? null,
                     'warehouse_id' => $lineData['warehouse_id'] ?? null,
                     'account_id' => $lineData['account_id'],

@@ -14,10 +14,10 @@
             </select>
         </td>
         <td>
-            <select name="{{ $field('warehouse_id') }}" class="form-select form-select-sm @if ($error('warehouse_id')) is-invalid @endif" aria-label="{{ __('Warehouse') }}">
+            <select name="{{ $field('warehouse_id') }}" data-field="warehouse_id" class="form-select form-select-sm @if ($error('warehouse_id')) is-invalid @endif" aria-label="{{ __('Warehouse') }}">
                 <option value="">—</option>
                 @foreach ($warehouses ?? [] as $warehouse)
-                    <option value="{{ $warehouse->id }}" @selected((string) $old('warehouse_id', $warehouses->first()?->id) === (string) $warehouse->id)>{{ $warehouse->code }}</option>
+                    <option value="{{ $warehouse->id }}" @selected((string) $old('warehouse_id') === (string) $warehouse->id)>{{ $warehouse->code }}</option>
                 @endforeach
             </select>
             @if ($error('warehouse_id'))<div class="invalid-feedback">{{ $error('warehouse_id') }}</div>@endif

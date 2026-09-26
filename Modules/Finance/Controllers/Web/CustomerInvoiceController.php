@@ -65,7 +65,7 @@ class CustomerInvoiceController extends Controller
 
     public function show(string $id)
     {
-        $invoice = CustomerInvoice::with(['customer', 'currency', 'lines.account', 'lines.tax'])->findOrFail($id);
+        $invoice = CustomerInvoice::with(['customer', 'currency', 'salesOrder', 'lines.account', 'lines.tax'])->findOrFail($id);
 
         return view('finance.customer-invoices.show', compact('invoice'));
     }
@@ -79,6 +79,11 @@ class CustomerInvoiceController extends Controller
                 ->with('error', 'Only draft invoices can be edited.');
         }
 
+        if ($invoice->sales_order_id) {
+            return redirect()->route('finance.customer-invoices.show', $id)
+                ->with('error', __('This invoice was raised from a sales order. Delete it and raise it again from the order to change it.'));
+        }
+
         return view('finance.customer-invoices.edit', ['invoice' => $invoice, ...$this->formData()]);
     }
 
@@ -86,9 +91,9 @@ class CustomerInvoiceController extends Controller
     {
         $invoice = CustomerInvoice::findOrFail($id);
 
-        if (! $invoice->isDraft()) {
+        if (! $invoice->isDraft() || $invoice->sales_order_id) {
             return redirect()->route('finance.customer-invoices.show', $id)
-                ->with('error', 'Only draft invoices can be edited.');
+                ->with('error', __('This invoice was raised from a sales order. Delete it and raise it again from the order to change it.'));
         }
 
         $this->invoiceService->updateInvoice($invoice, $request->validated());

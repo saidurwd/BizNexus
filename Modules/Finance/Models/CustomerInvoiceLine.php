@@ -6,11 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Inventory\Models\Product;
 use Modules\Inventory\Models\Warehouse;
+use Modules\Sales\Models\SalesOrderLine;
 
 class CustomerInvoiceLine extends Model
 {
     protected $fillable = [
         'customer_invoice_id',
+        'sales_order_line_id',
         'product_id',
         'warehouse_id',
         'cost_value',
@@ -41,6 +43,11 @@ class CustomerInvoiceLine extends Model
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(CustomerInvoice::class);
+    }
+
+    public function salesOrderLine(): BelongsTo
+    {
+        return $this->belongsTo(SalesOrderLine::class);
     }
 
     public function product(): BelongsTo

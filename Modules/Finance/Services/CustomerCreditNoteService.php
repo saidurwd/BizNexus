@@ -10,6 +10,7 @@ use Modules\Core\Services\AuditService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
+use Modules\Finance\Contracts\SalesCostOfGoods;
 use Modules\Finance\Models\CustomerCreditNote;
 use Modules\Finance\Models\CustomerInvoice;
 use Modules\Finance\Services\Concerns\EnforcesSegregationOfDuties;
@@ -149,6 +150,7 @@ class CustomerCreditNoteService
                 'posted_at' => now(),
             ])->save();
             $this->applyToInvoice($creditNote);
+            app(SalesCostOfGoods::class)->creditNotePosted($creditNote);
 
             $this->audit->logCustom('Finance', 'CustomerCreditNote', $creditNote->id, 'POST', ['journal_id' => $journal->id]);
 
@@ -215,6 +217,8 @@ class CustomerCreditNoteService
 
         foreach ($lines as $line) {
             $creditNote->lines()->create([
+                'product_id' => $line['product_id'] ?? null,
+                'warehouse_id' => $line['warehouse_id'] ?? null,
                 'account_id' => $line['account_id'],
                 'description' => $line['description'],
                 'quantity' => $line['quantity'] ?? 1,
