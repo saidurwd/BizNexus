@@ -17,7 +17,7 @@
                     <td>{{ $delegation->starts_on->format('Y-m-d') }}</td>
                     <td>{{ $delegation->ends_on->format('Y-m-d') }}</td>
                     <td>{{ $delegation->reason }}</td>
-                    <td class="text-right">
+                    <td class="text-end">
                         <form method="POST" action="{{ route('core.approval-delegations.destroy', $delegation->id) }}">
                             @csrf
                             @method('DELETE')

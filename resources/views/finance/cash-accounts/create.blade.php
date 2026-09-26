@@ -13,13 +13,13 @@
                 @csrf
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="code">Code</label>
                             <input type="text" class="form-control" name="code" value="{{ old('code') }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="name">Name</label>
                             <input type="text" class="form-control" name="name" value="{{ old('name') }}" required>
                         </div>
@@ -28,7 +28,7 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="gl_account_id">GL Account</label>
                             <select name="gl_account_id" class="form-control" required>
                                 <option value="">Select GL Account</option>
@@ -41,7 +41,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="account_type">Account Type</label>
                             <select name="account_type" class="form-control">
                                 <option value="CASH" @selected(old('account_type', 'CASH') == 'CASH')>Cash</option>
@@ -54,20 +54,20 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="currency_code">Currency Code</label>
                             <input type="text" class="form-control" name="currency_code" value="{{ old('currency_code', 'BDT') }}" maxlength="3" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="opening_balance">Opening Balance</label>
                             <input type="number" class="form-control" name="opening_balance" step="0.01" min="0" value="{{ old('opening_balance', 0) }}" required>
                         </div>
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <label for="status">Status</label>
                     <select name="status" class="form-control">
                         <option value="active" @selected(old('status', 'active') == 'active')>Active</option>
@@ -75,12 +75,12 @@
                     </select>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <label for="notes">Notes</label>
                     <textarea class="form-control" name="notes" rows="3">{{ old('notes') }}</textarea>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <button type="submit" class="btn btn-primary">Save Cash Account</button>
                     <a href="{{ route('finance.cash-accounts.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>

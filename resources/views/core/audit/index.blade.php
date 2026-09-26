@@ -15,7 +15,7 @@
             <form method="GET" action="{{ route('core.audit.index') }}" class="form-inline">
                 <div class="row">
                     <div class="col-md-2">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Module</label>
                             <select name="module" class="form-control">
                                 <option value="">All Modules</option>
@@ -28,7 +28,7 @@
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Entity Type</label>
                             <select name="entity_type" class="form-control">
                                 <option value="">All Types</option>
@@ -41,7 +41,7 @@
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Action</label>
                             <select name="action" class="form-control">
                                 <option value="">All Actions</option>
@@ -54,7 +54,7 @@
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>User</label>
                             <select name="user_id" class="form-control">
                                 <option value="">All Users</option>
@@ -67,19 +67,19 @@
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Date From</label>
                             <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Date To</label>
                             <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Search</label>
                             <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ request('search') }}">
                         </div>

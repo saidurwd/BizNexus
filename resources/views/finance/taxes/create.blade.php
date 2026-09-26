@@ -14,7 +14,7 @@
 
                 @include('finance.taxes._form')
 
-                <div class="form-group">
+                <div class="mb-3">
                     <button type="submit" class="btn btn-primary">Save Tax Code</button>
                     <a href="{{ route('finance.taxes.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>

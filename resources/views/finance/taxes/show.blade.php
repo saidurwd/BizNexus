@@ -27,13 +27,13 @@
             <div class="card-header"><h3 class="card-title">Rate history</h3></div>
             <div class="card-body table-responsive">
                 <table class="table table-bordered">
-                    <thead><tr><th>Effective from</th><th>Effective to</th><th class="text-right">Rate %</th></tr></thead>
+                    <thead><tr><th>Effective from</th><th>Effective to</th><th class="text-end">Rate %</th></tr></thead>
                     <tbody>
                         @foreach ($tax->rates as $rate)
                             <tr>
                                 <td>{{ $rate->effective_from->year === 1900 ? 'Always' : $rate->effective_from->format('Y-m-d') }}</td>
                                 <td>{{ $rate->effective_to?->format('Y-m-d') ?? '—' }}</td>
-                                <td class="text-right">{{ Formatter::percent($rate->rate) }}</td>
+                                <td class="text-end">{{ Formatter::percent($rate->rate) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -42,12 +42,12 @@
                 @can('finance.taxes.update')
                     <form method="POST" action="{{ route('finance.taxes.rates.store', $tax->id) }}" class="form-inline mt-3">
                         @csrf
-                        <label for="new_rate" class="mr-2">New rate %</label>
-                        <input type="number" id="new_rate" name="rate" step="0.0001" min="0" max="100" class="form-control mr-2" required>
-                        <label for="new_effective_from" class="mr-2">effective from</label>
-                        <input type="date" id="new_effective_from" name="effective_from" class="form-control mr-2" required>
+                        <label for="new_rate" class="me-2">New rate %</label>
+                        <input type="number" id="new_rate" name="rate" step="0.0001" min="0" max="100" class="form-control me-2" required>
+                        <label for="new_effective_from" class="me-2">effective from</label>
+                        <input type="date" id="new_effective_from" name="effective_from" class="form-control me-2" required>
                         <button type="submit" class="btn btn-primary">Record rate change</button>
-                        @error('effective_from')<div class="text-danger ml-2">{{ $message }}</div>@enderror
+                        @error('effective_from')<div class="text-danger ms-2">{{ $message }}</div>@enderror
                     </form>
                 @endcan
             </div>
@@ -57,15 +57,15 @@
             <div class="card-header"><h3 class="card-title">Group components</h3></div>
             <div class="card-body table-responsive">
                 <table class="table table-bordered">
-                    <thead><tr><th>Order</th><th>Tax</th><th class="text-right">Rate today %</th><th>Compound</th><th></th></tr></thead>
+                    <thead><tr><th>Order</th><th>Tax</th><th class="text-end">Rate today %</th><th>Compound</th><th></th></tr></thead>
                     <tbody>
                         @forelse ($tax->components as $component)
                             <tr>
                                 <td>{{ $component->pivot->sequence }}</td>
                                 <td>{{ $component->tax_code }} — {{ $component->tax_name }}</td>
-                                <td class="text-right">{{ Formatter::percent($component->rateOn(now())) }}</td>
+                                <td class="text-end">{{ Formatter::percent($component->rateOn(now())) }}</td>
                                 <td>{{ $component->pivot->is_compound ? 'Yes (on net + earlier taxes)' : 'No' }}</td>
-                                <td class="text-right">
+                                <td class="text-end">
                                     @can('finance.taxes.update')
                                         <form method="POST" action="{{ route('finance.taxes.components.destroy', [$tax->id, $component->id]) }}">
                                             @csrf
@@ -84,13 +84,13 @@
                 @can('finance.taxes.update')
                     <form method="POST" action="{{ route('finance.taxes.components.store', $tax->id) }}" class="form-inline mt-3">
                         @csrf
-                        <select name="component_tax_id" class="form-control mr-2" required>
+                        <select name="component_tax_id" class="form-control me-2" required>
                             @foreach ($availableComponents as $component)
                                 <option value="{{ $component->id }}">{{ $component->tax_code }} — {{ $component->tax_name }}</option>
                             @endforeach
                         </select>
-                        <input type="number" name="sequence" min="1" max="99" value="{{ $tax->components->count() + 1 }}" class="form-control mr-2" style="width: 80px" required>
-                        <select name="is_compound" class="form-control mr-2">
+                        <input type="number" name="sequence" min="1" max="99" value="{{ $tax->components->count() + 1 }}" class="form-control me-2" style="width: 80px" required>
+                        <select name="is_compound" class="form-control me-2">
                             <option value="0">Not compound</option>
                             <option value="1">Compound</option>
                         </select>

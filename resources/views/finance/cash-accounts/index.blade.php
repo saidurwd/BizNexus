@@ -36,8 +36,8 @@
                             <td>{{ $account->account_type }}</td>
                             <td>{{ $account->glAccount?->account_code ?? '-' }} — {{ $account->glAccount?->account_name ?? '-' }}</td>
                             <td>{{ $account->currency_code }}</td>
-                            <td class="text-right">{{ Formatter::amount($account->opening_balance, $account->currency_code) }}</td>
-                            <td class="text-right">{{ Formatter::amount($account->current_balance, $account->currency_code) }}</td>
+                            <td class="text-end">{{ Formatter::amount($account->opening_balance, $account->currency_code) }}</td>
+                            <td class="text-end">{{ Formatter::amount($account->current_balance, $account->currency_code) }}</td>
                             <td>
                                 <span class="badge bg-{{ $account->status === 'active' ? 'success' : 'secondary' }}">
                                     {{ $account->status }}

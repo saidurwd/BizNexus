@@ -24,13 +24,13 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="invoice_number">Invoice Number</label>
                             <input type="text" class="form-control" name="invoice_number" value="{{ old('invoice_number') }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="invoice_date">Invoice Date</label>
                             <input type="date" class="form-control" name="invoice_date" value="{{ old('invoice_date', now()->format('Y-m-d')) }}" required>
                         </div>
@@ -39,7 +39,7 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="customer_id">Customer</label>
                             <select class="form-control" name="customer_id" required>
                                 <option value="">Select Customer</option>
@@ -52,7 +52,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="due_date">Due Date</label>
                             <input type="date" class="form-control" name="due_date" value="{{ old('due_date') }}" required>
                         </div>
@@ -61,7 +61,7 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="tax_id">Tax</label>
                             <select class="form-control" name="tax_id">
                                 <option value="">No Tax</option>
@@ -74,7 +74,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="subtotal">Subtotal</label>
                             <input type="number" class="form-control" name="subtotal" step="0.01" min="0" value="{{ old('subtotal') }}" required>
                         </div>
@@ -83,19 +83,19 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="total_amount">Total Amount</label>
                             <input type="number" class="form-control" name="total_amount" step="0.01" min="0" value="{{ old('total_amount') }}" required>
                         </div>
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <label for="description">Description</label>
                     <textarea class="form-control" name="description" rows="3">{{ old('description') }}</textarea>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <button type="submit" class="btn btn-primary">Create Invoice</button>
                     <a href="{{ route('finance.customer-invoices.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>

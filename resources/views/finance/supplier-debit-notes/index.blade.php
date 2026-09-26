@@ -20,7 +20,7 @@
                         <th>Debit Note #</th>
                         <th>Date</th>
                         <th>Supplier</th>
-                        <th class="text-right">Amount</th>
+                        <th class="text-end">Amount</th>
                         <th>Status</th>
                         <th class="text-center">Actions</th>
                     </tr>
@@ -31,7 +31,7 @@
                             <td>{{ $note->note_number }}</td>
                             <td>{{ $note->note_date->format('Y-m-d') }}</td>
                             <td>{{ $note->supplier?->name ?? '-' }}</td>
-                            <td class="text-right">{{ Formatter::amount($note->amount) }}</td>
+                            <td class="text-end">{{ Formatter::amount($note->amount) }}</td>
                             <td>
                                 @php
                                     $badgeClass = 'secondary';

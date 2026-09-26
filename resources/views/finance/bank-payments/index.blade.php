@@ -21,7 +21,7 @@
                         <th>Date</th>
                         <th>Bank Account</th>
                         <th>Type</th>
-                        <th class="text-right">Amount</th>
+                        <th class="text-end">Amount</th>
                         <th>Reference</th>
                         <th>Status</th>
                     </tr>
@@ -33,7 +33,7 @@
                             <td>{{ $payment->transaction_date->format('Y-m-d') }}</td>
                             <td>{{ $payment->bankAccount?->bank_name ?? '-' }} — {{ $payment->bankAccount?->display_account_number ?? '-' }}</td>
                             <td>{{ $payment->transaction_type }}</td>
-                            <td class="text-right">{{ Formatter::amount($payment->amount) }}</td>
+                            <td class="text-end">{{ Formatter::amount($payment->amount) }}</td>
                             <td>{{ $payment->reference ?? '-' }}</td>
                             <td>
                                 <span class="badge bg-{{ $payment->status === 'COMPLETED' ? 'success' : ($payment->status === 'PENDING' ? 'warning' : 'secondary') }}">

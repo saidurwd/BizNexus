@@ -19,7 +19,7 @@
                     <tr>
                         <th>Code</th>
                         <th>Name</th>
-                        <th class="text-right">Rate %</th>
+                        <th class="text-end">Rate %</th>
                         <th>Type</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -30,7 +30,7 @@
                         <tr>
                             <td>{{ $tax->tax_code }}</td>
                             <td>{{ $tax->tax_name }}</td>
-                            <td class="text-right">{{ Formatter::percent($tax->tax_rate) }}%</td>
+                            <td class="text-end">{{ Formatter::percent($tax->tax_rate) }}%</td>
                             <td>{{ $tax->tax_type }}</td>
                             <td>
                                 <span class="badge bg-{{ $tax->status === 'active' ? 'success' : 'secondary' }}">

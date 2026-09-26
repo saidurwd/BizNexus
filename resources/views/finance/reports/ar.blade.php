@@ -16,12 +16,12 @@
                 <thead>
                     <tr>
                         <th>Customer</th>
-                        <th class="text-right">Current</th>
-                        <th class="text-right">1-30 Days</th>
-                        <th class="text-right">31-60 Days</th>
-                        <th class="text-right">61-90 Days</th>
-                        <th class="text-right">Over 90 Days</th>
-                        <th class="text-right">Total</th>
+                        <th class="text-end">Current</th>
+                        <th class="text-end">1-30 Days</th>
+                        <th class="text-end">31-60 Days</th>
+                        <th class="text-end">61-90 Days</th>
+                        <th class="text-end">Over 90 Days</th>
+                        <th class="text-end">Total</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -29,12 +29,12 @@
                     @forelse($arAging as $item)
                         <tr>
                             <td>{{ $item['customer_name'] }}</td>
-                            <td class="text-right">{{ Formatter::amount($item['current']) }}</td>
-                            <td class="text-right">{{ Formatter::amount($item['days_1_30']) }}</td>
-                            <td class="text-right">{{ Formatter::amount($item['days_31_60']) }}</td>
-                            <td class="text-right">{{ Formatter::amount($item['days_61_90']) }}</td>
-                            <td class="text-right">{{ Formatter::amount($item['over_90_days']) }}</td>
-                            <td class="text-right">{{ Formatter::amount($item['total']) }}</td>
+                            <td class="text-end">{{ Formatter::amount($item['current']) }}</td>
+                            <td class="text-end">{{ Formatter::amount($item['days_1_30']) }}</td>
+                            <td class="text-end">{{ Formatter::amount($item['days_31_60']) }}</td>
+                            <td class="text-end">{{ Formatter::amount($item['days_61_90']) }}</td>
+                            <td class="text-end">{{ Formatter::amount($item['over_90_days']) }}</td>
+                            <td class="text-end">{{ Formatter::amount($item['total']) }}</td>
                         </tr>
                         @php
                             $totalCurrent += $item['current'];
@@ -52,12 +52,12 @@
                 <tfoot>
                     <tr class="bg-secondary">
                         <td><strong>TOTAL</strong></td>
-                        <td class="text-right"><strong>{{ Formatter::amount($totalCurrent) }}</strong></td>
-                        <td class="text-right"><strong>{{ Formatter::amount($total130) }}</strong></td>
-                        <td class="text-right"><strong>{{ Formatter::amount($total3160) }}</strong></td>
-                        <td class="text-right"><strong>{{ Formatter::amount($total6190) }}</strong></td>
-                        <td class="text-right"><strong>{{ Formatter::amount($totalOver90) }}</strong></td>
-                        <td class="text-right"><strong>{{ Formatter::amount($totalCurrent + $total130 + $total3160 + $total6190 + $totalOver90) }}</strong></td>
+                        <td class="text-end"><strong>{{ Formatter::amount($totalCurrent) }}</strong></td>
+                        <td class="text-end"><strong>{{ Formatter::amount($total130) }}</strong></td>
+                        <td class="text-end"><strong>{{ Formatter::amount($total3160) }}</strong></td>
+                        <td class="text-end"><strong>{{ Formatter::amount($total6190) }}</strong></td>
+                        <td class="text-end"><strong>{{ Formatter::amount($totalOver90) }}</strong></td>
+                        <td class="text-end"><strong>{{ Formatter::amount($totalCurrent + $total130 + $total3160 + $total6190 + $totalOver90) }}</strong></td>
                     </tr>
                 </tfoot>
             </table>

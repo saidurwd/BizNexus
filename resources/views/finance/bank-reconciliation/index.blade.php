@@ -19,9 +19,9 @@
                     <tr>
                         <th>Bank Account</th>
                         <th>Statement Date</th>
-                        <th class="text-right">Statement Balance</th>
-                        <th class="text-right">Book Balance</th>
-                        <th class="text-right">Difference</th>
+                        <th class="text-end">Statement Balance</th>
+                        <th class="text-end">Book Balance</th>
+                        <th class="text-end">Difference</th>
                         <th>Status</th>
                         <th>Reconciled By</th>
                     </tr>
@@ -31,9 +31,9 @@
                         <tr>
                             <td>{{ $recon->bankAccount?->bank_name ?? '-' }} — {{ $recon->bankAccount?->display_account_number ?? '-' }}</td>
                             <td>{{ $recon->statement_date->format('Y-m-d') }}</td>
-                            <td class="text-right">{{ Formatter::amount($recon->statement_balance) }}</td>
-                            <td class="text-right">{{ Formatter::amount($recon->book_balance) }}</td>
-                            <td class="text-right">{{ Formatter::amount($recon->difference) }}</td>
+                            <td class="text-end">{{ Formatter::amount($recon->statement_balance) }}</td>
+                            <td class="text-end">{{ Formatter::amount($recon->book_balance) }}</td>
+                            <td class="text-end">{{ Formatter::amount($recon->difference) }}</td>
                             <td>
                                 <span class="badge bg-{{ $recon->status === 'RECONCILED' ? 'success' : ($recon->status === 'PENDING' ? 'warning' : 'danger') }}">
                                     {{ $recon->status }}

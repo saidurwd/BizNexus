@@ -1,6 +1,6 @@
 @props(['name' => 'country_code', 'value' => null, 'label' => 'Country'])
 
-<div class="form-group">
+<div class="mb-3">
     <label for="{{ $name }}">{{ $label }}</label>
     <select class="form-control" id="{{ $name }}" name="{{ $name }}">
         <option value="">—</option>

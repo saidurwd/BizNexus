@@ -14,25 +14,25 @@
                 @method('PUT')
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="name">Name</label>
                             <input type="text" class="form-control" name="name" value="{{ old('name', $role->name) }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="slug">Slug</label>
                             <input type="text" class="form-control" name="slug" value="{{ old('slug', $role->slug) }}" required>
                         </div>
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <label for="description">Description</label>
                     <textarea class="form-control" name="description" rows="3">{{ old('description', $role->description) }}</textarea>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <label>Permissions</label>
                     @foreach($permissions->groupBy('group') as $group => $perms)
                         <h5>{{ $group ?? 'General' }}</h5>
@@ -47,7 +47,7 @@
                     @endforeach
                 </div>
 
-                <div class="form-group mt-3">
+                <div class="mb-3 mt-3">
                     <button type="submit" class="btn btn-primary">Update Role</button>
                     <a href="{{ route('core.roles.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>

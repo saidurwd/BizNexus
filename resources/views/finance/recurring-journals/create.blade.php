@@ -13,13 +13,13 @@
                 @csrf
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="name">Name</label>
                             <input type="text" class="form-control" name="name" value="{{ old('name') }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="frequency">Frequency</label>
                             <select name="frequency" class="form-control" required>
                                 <option value="DAILY">Daily</option>
@@ -34,13 +34,13 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="next_run_date">Next Run Date</label>
                             <input type="date" class="form-control" name="next_run_date" value="{{ old('next_run_date', now()->format('Y-m-d')) }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="status">Status</label>
                             <select name="status" class="form-control">
                                 <option value="active" @selected(old('status', 'active') == 'active')>Active</option>
@@ -50,12 +50,12 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <label for="description">Description</label>
                     <textarea class="form-control" name="description" rows="3">{{ old('description') }}</textarea>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <button type="submit" class="btn btn-primary">Save Recurring Journal</button>
                     <a href="{{ route('finance.recurring-journals.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>

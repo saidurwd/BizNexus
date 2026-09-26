@@ -17,7 +17,7 @@
                         <tr>
                             <td>{{ $group->name }}</td>
                             <td>{{ $group->members->map(fn ($member) => $member->code.' ('.rtrim(rtrim($member->pivot->ownership_percent, '0'), '.').'%)')->implode(', ') }}</td>
-                            <td class="text-right"><a href="{{ route('finance.consolidation.show', $group->id) }}" class="btn btn-sm btn-primary">Consolidated trial balance</a></td>
+                            <td class="text-end"><a href="{{ route('finance.consolidation.show', $group->id) }}" class="btn btn-sm btn-primary">Consolidated trial balance</a></td>
                         </tr>
                     @empty
                         <tr><td colspan="3" class="text-center text-muted">No consolidation groups yet.</td></tr>
@@ -33,7 +33,7 @@
             <div class="card-body">
                 <form method="POST" action="{{ route('finance.consolidation.store') }}">
                     @csrf
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label for="name">Group name</label>
                         <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}" required>
                     </div>

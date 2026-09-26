@@ -27,7 +27,7 @@
                         <th>Customer</th>
                         <th>Method</th>
                         <th>Reference</th>
-                        <th class="text-right">Amount</th>
+                        <th class="text-end">Amount</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -39,7 +39,7 @@
                             <td>{{ $receipt->customer?->name ?? '-' }}</td>
                             <td>{{ $receipt->receipt_method }}</td>
                             <td>{{ $receipt->reference ?? '-' }}</td>
-                            <td class="text-right">{{ Formatter::amount($receipt->amount) }}</td>
+                            <td class="text-end">{{ Formatter::amount($receipt->amount) }}</td>
                             <td>
                                 <span class="badge bg-{{ $receipt->status === 'POSTED' ? 'success' : ($receipt->status === 'PENDING' ? 'warning' : 'secondary') }}">
                                     {{ $receipt->status }}
@@ -55,7 +55,7 @@
                 <tfoot>
                     <tr class="table-active">
                         <td colspan="5" class="text-end"><strong>Total</strong></td>
-                        <td class="text-right"><strong>{{ Formatter::amount($totalAmount) }}</strong></td>
+                        <td class="text-end"><strong>{{ Formatter::amount($totalAmount) }}</strong></td>
                         <td></td>
                     </tr>
                 </tfoot>

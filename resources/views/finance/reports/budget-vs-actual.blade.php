@@ -21,10 +21,10 @@
                 <thead>
                     <tr>
                         <th>Account</th>
-                        <th class="text-right">Budget</th>
-                        <th class="text-right">Actual</th>
-                        <th class="text-right">Variance</th>
-                        <th class="text-right">Variance %</th>
+                        <th class="text-end">Budget</th>
+                        <th class="text-end">Actual</th>
+                        <th class="text-end">Variance</th>
+                        <th class="text-end">Variance %</th>
                     </tr>
                 </thead>
                 <tbody>

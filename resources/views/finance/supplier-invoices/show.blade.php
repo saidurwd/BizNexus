@@ -49,19 +49,19 @@
                 </tr>
                 <tr>
                     <th>Subtotal</th>
-                    <td class="text-right">{{ Formatter::amount($invoice->subtotal, $invoice->currency?->code) }}</td>
+                    <td class="text-end">{{ Formatter::amount($invoice->subtotal, $invoice->currency?->code) }}</td>
                 </tr>
                 <tr>
                     <th>Tax Amount</th>
-                    <td class="text-right">{{ Formatter::amount($invoice->tax_amount, $invoice->currency?->code) }}</td>
+                    <td class="text-end">{{ Formatter::amount($invoice->tax_amount, $invoice->currency?->code) }}</td>
                 </tr>
                 <tr>
                     <th>Total Amount</th>
-                    <td class="text-right">{{ Formatter::amount($invoice->total_amount, $invoice->currency?->code) }}</td>
+                    <td class="text-end">{{ Formatter::amount($invoice->total_amount, $invoice->currency?->code) }}</td>
                 </tr>
                 <tr>
                     <th>Outstanding</th>
-                    <td class="text-right">{{ Formatter::amount($invoice->outstanding_amount, $invoice->currency?->code) }}</td>
+                    <td class="text-end">{{ Formatter::amount($invoice->outstanding_amount, $invoice->currency?->code) }}</td>
                 </tr>
                 <tr>
                     <th>Status</th>
@@ -99,9 +99,9 @@
                             <th>Description</th>
                             <th>Qty</th>
                             <th>Unit Price</th>
-                            <th class="text-right">Subtotal</th>
+                            <th class="text-end">Subtotal</th>
                             <th>Tax</th>
-                            <th class="text-right">Total</th>
+                            <th class="text-end">Total</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -110,15 +110,15 @@
                                 <td>{{ $line->account?->account_code ?? '-' }} - {{ $line->account?->account_name ?? '-' }}</td>
                                 <td>{{ $line->description }}</td>
                                 <td>{{ $line->quantity }}</td>
-                                <td class="text-right">{{ Formatter::amount($line->unit_price, $invoice->currency?->code) }}</td>
-                                <td class="text-right">{{ Formatter::amount($line->subtotal, $invoice->currency?->code) }}</td>
+                                <td class="text-end">{{ Formatter::amount($line->unit_price, $invoice->currency?->code) }}</td>
+                                <td class="text-end">{{ Formatter::amount($line->subtotal, $invoice->currency?->code) }}</td>
                                 <td>
                                     {{ $line->tax?->tax_name ?? '-' }}
                                     @if($line->tax_amount > 0)
                                         ({{ Formatter::amount($line->tax_amount, $invoice->currency?->code) }})
                                     @endif
                                 </td>
-                                <td class="text-right">{{ Formatter::amount($line->total_amount, $invoice->currency?->code) }}</td>
+                                <td class="text-end">{{ Formatter::amount($line->total_amount, $invoice->currency?->code) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -131,7 +131,7 @@
         <a href="{{ route('finance.supplier-invoices.index') }}" class="btn btn-secondary">Back</a>
 
         @if($invoice->isDraft())
-            <form action="{{ route('finance.supplier-invoices.submit', $invoice->id) }}" method="POST" class="d-inline ml-2">
+            <form action="{{ route('finance.supplier-invoices.submit', $invoice->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
                 <button type="submit" class="btn btn-success" onclick="return confirm('Submit this invoice for approval?')">
                     <i class="bi bi-send"></i> Submit
@@ -140,13 +140,13 @@
         @endif
 
         @if($invoice->isSubmitted())
-            <form action="{{ route('finance.supplier-invoices.approve', $invoice->id) }}" method="POST" class="d-inline ml-2">
+            <form action="{{ route('finance.supplier-invoices.approve', $invoice->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
                 <button type="submit" class="btn btn-success" onclick="return confirm('Approve this invoice?')">
                     <i class="bi bi-check-circle"></i> Approve
                 </button>
             </form>
-            <form action="{{ route('finance.supplier-invoices.reject', $invoice->id) }}" method="POST" class="d-inline ml-2">
+            <form action="{{ route('finance.supplier-invoices.reject', $invoice->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
                 <button type="submit" class="btn btn-danger" onclick="return confirm('Reject this invoice?')">
                     <i class="bi bi-x-circle"></i> Reject
@@ -155,7 +155,7 @@
         @endif
 
         @if($invoice->isApproved() || $invoice->isSubmitted())
-            <form action="{{ route('finance.supplier-invoices.post', $invoice->id) }}" method="POST" class="d-inline ml-2">
+            <form action="{{ route('finance.supplier-invoices.post', $invoice->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
                 <button type="submit" class="btn btn-primary" onclick="return confirm('Post this invoice?')">
                     <i class="bi bi-journal-check"></i> Post
@@ -164,7 +164,7 @@
         @endif
 
         @if(!$invoice->isPosted() && !$invoice->isPaid())
-            <form action="{{ route('finance.supplier-invoices.cancel', $invoice->id) }}" method="POST" class="d-inline ml-2">
+            <form action="{{ route('finance.supplier-invoices.cancel', $invoice->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
                 <button type="submit" class="btn btn-danger" onclick="return confirm('Cancel this invoice?')">
                     <i class="bi bi-x-octagon"></i> Cancel

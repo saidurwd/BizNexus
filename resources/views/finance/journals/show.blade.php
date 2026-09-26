@@ -86,8 +86,8 @@
                         <th>Account Code</th>
                         <th>Account Name</th>
                         <th>Description</th>
-                        <th class="text-right">Debit</th>
-                        <th class="text-right">Credit</th>
+                        <th class="text-end">Debit</th>
+                        <th class="text-end">Credit</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -96,16 +96,16 @@
                             <td>{{ $line->account->account_code }}</td>
                             <td>{{ $line->account->account_name }}</td>
                             <td>{{ $line->description ?? '-' }}</td>
-                            <td class="text-right">{{ $line->debit > 0 ? Formatter::amount($line->debit) : '-' }}</td>
-                            <td class="text-right">{{ $line->credit > 0 ? Formatter::amount($line->credit) : '-' }}</td>
+                            <td class="text-end">{{ $line->debit > 0 ? Formatter::amount($line->debit) : '-' }}</td>
+                            <td class="text-end">{{ $line->credit > 0 ? Formatter::amount($line->credit) : '-' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="3" class="text-right"><strong>TOTALS</strong></td>
-                        <td class="text-right"><strong>{{ Formatter::amount($journal->total_debit) }}</strong></td>
-                        <td class="text-right"><strong>{{ Formatter::amount($journal->total_credit) }}</strong></td>
+                        <td colspan="3" class="text-end"><strong>TOTALS</strong></td>
+                        <td class="text-end"><strong>{{ Formatter::amount($journal->total_debit) }}</strong></td>
+                        <td class="text-end"><strong>{{ Formatter::amount($journal->total_credit) }}</strong></td>
                     </tr>
                 </tfoot>
             </table>

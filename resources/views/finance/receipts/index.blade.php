@@ -24,7 +24,7 @@
                         <th>Date</th>
                         <th>Customer</th>
                         <th>Bank Account</th>
-                        <th class="text-right">Amount</th>
+                        <th class="text-end">Amount</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -36,7 +36,7 @@
                             <td>{{ $receipt->receipt_date->format('Y-m-d') }}</td>
                             <td>{{ $receipt->customer?->name ?? '-' }}</td>
                             <td>{{ $receipt->bankAccount?->account_name ?? '-' }}</td>
-                            <td class="text-right">{{ Formatter::amount($receipt->amount, $receipt->currency?->code) }}</td>
+                            <td class="text-end">{{ Formatter::amount($receipt->amount, $receipt->currency?->code) }}</td>
                             <td>
                                 <span class="badge bg-{{ $receipt->status === 'POSTED' ? 'success' : ($receipt->status === 'DRAFT' ? 'secondary' : 'warning') }}">
                                     {{ $receipt->status }}

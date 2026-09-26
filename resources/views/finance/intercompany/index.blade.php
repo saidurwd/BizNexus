@@ -19,7 +19,7 @@
                         @csrf
                         <div class="row">
                             <div class="col-md-4">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <label for="target_company_id">Charge to</label>
                                     <select class="form-control" id="target_company_id" name="target_company_id" required>
                                         @foreach ($counterparties as $counterparty)
@@ -29,13 +29,13 @@
                                 </div>
                             </div>
                             <div class="col-md-2">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <label for="transaction_date">Date</label>
                                     <input type="date" class="form-control" id="transaction_date" name="transaction_date" value="{{ old('transaction_date', now()->toDateString()) }}" required>
                                 </div>
                             </div>
                             <div class="col-md-2">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <label for="currency_id">Currency</label>
                                     <select class="form-control" id="currency_id" name="currency_id" required>
                                         @foreach ($currencies as $currency)
@@ -45,7 +45,7 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <label for="amount">Amount</label>
                                     <input type="number" class="form-control" id="amount" name="amount" step="0.001" min="0" value="{{ old('amount') }}" required>
                                     @error('amount')<div class="text-danger mt-1">{{ $message }}</div>@enderror
@@ -54,7 +54,7 @@
                         </div>
                         <div class="row">
                             <div class="col-md-4">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <label for="source_account_id">Income account here</label>
                                     <select class="form-control" id="source_account_id" name="source_account_id" required>
                                         @foreach ($accounts as $account)
@@ -64,13 +64,13 @@
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <label for="target_account_code">Cost account code in the other company</label>
                                     <input type="text" class="form-control" id="target_account_code" name="target_account_code" value="{{ old('target_account_code') }}" required>
                                 </div>
                             </div>
                             <div class="col-md-5">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <label for="description">Description</label>
                                     <input type="text" class="form-control" id="description" name="description" maxlength="255" value="{{ old('description') }}" required>
                                 </div>
@@ -86,7 +86,7 @@
     <div class="card">
         <div class="card-body table-responsive">
             <table class="table table-bordered table-striped">
-                <thead><tr><th>Date</th><th>From</th><th>To</th><th>Description</th><th class="text-right">Amount</th></tr></thead>
+                <thead><tr><th>Date</th><th>From</th><th>To</th><th>Description</th><th class="text-end">Amount</th></tr></thead>
                 <tbody>
                     @forelse ($transactions as $transaction)
                         <tr>
@@ -94,7 +94,7 @@
                             <td>{{ $transaction->sourceCompany->code }}</td>
                             <td>{{ $transaction->targetCompany->code }}</td>
                             <td>{{ $transaction->description }}</td>
-                            <td class="text-right">{{ $transaction->amount }} {{ $transaction->currency->code }}</td>
+                            <td class="text-end">{{ $transaction->amount }} {{ $transaction->currency->code }}</td>
                         </tr>
                     @empty
                         <tr><td colspan="5" class="text-center text-muted">No intercompany transactions.</td></tr>

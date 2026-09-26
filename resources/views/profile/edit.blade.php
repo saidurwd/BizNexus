@@ -44,7 +44,7 @@
                     <div class="card-body">
                         <form method="POST" action="{{ route('company.switch') }}" id="company-branch-switch-form">
                             @csrf
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <label for="company_id">Company</label>
                                 <select class="form-control" name="company_id" id="profile_company_id" required>
                                     @foreach($companies as $company)
@@ -55,7 +55,7 @@
                                 </select>
                             </div>
 
-                            <div class="form-group" id="branch-select-group" style="display: none;">
+                            <div class="mb-3" id="branch-select-group" style="display: none;">
                                 <label for="branch_id">Branch</label>
                                 <select class="form-control" name="branch_id" id="profile_branch_id" disabled>
                                     <option value="">Select a company first</option>

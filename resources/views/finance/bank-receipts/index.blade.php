@@ -20,7 +20,7 @@
                         <th>Transaction #</th>
                         <th>Date</th>
                         <th>Bank Account</th>
-                        <th class="text-right">Amount</th>
+                        <th class="text-end">Amount</th>
                         <th>Reference</th>
                         <th>Status</th>
                     </tr>
@@ -31,7 +31,7 @@
                             <td>{{ $receipt->transaction_number }}</td>
                             <td>{{ $receipt->transaction_date->format('Y-m-d') }}</td>
                             <td>{{ $receipt->bankAccount?->bank_name ?? '-' }} — {{ $receipt->bankAccount?->display_account_number ?? '-' }}</td>
-                            <td class="text-right">{{ Formatter::amount($receipt->amount) }}</td>
+                            <td class="text-end">{{ Formatter::amount($receipt->amount) }}</td>
                             <td>{{ $receipt->reference ?? '-' }}</td>
                             <td>
                                 <span class="badge bg-{{ $receipt->status === 'COMPLETED' ? 'success' : ($receipt->status === 'PENDING' ? 'warning' : 'secondary') }}">

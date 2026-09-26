@@ -13,13 +13,13 @@
                 @csrf
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="code">Code</label>
                             <input type="text" class="form-control" name="code" value="{{ old('code') }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="name">Name</label>
                             <input type="text" class="form-control" name="name" value="{{ old('name') }}" required>
                         </div>
@@ -28,7 +28,7 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="parent_id">Parent Cost Center</label>
                             <select name="parent_id" class="form-control">
                                 <option value="">— None —</option>
@@ -41,7 +41,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="status">Status</label>
                             <select name="status" class="form-control">
                                 <option value="active" @selected(old('status', 'active') == 'active')>Active</option>
@@ -51,7 +51,7 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <button type="submit" class="btn btn-primary">Save Cost Center</button>
                     <a href="{{ route('finance.cost-centers.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>

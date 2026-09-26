@@ -14,7 +14,7 @@
                 @method('PUT')
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="company_id">Company</label>
                             <select name="company_id" class="form-control" required>
                                 @foreach($companies as $company)
@@ -26,7 +26,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="branch_id">Branch</label>
                             <select name="branch_id" class="form-control">
                                 <option value="">Select Branch</option>
@@ -42,13 +42,13 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="code">Code</label>
                             <input type="text" class="form-control" name="code" value="{{ old('code', $department->code) }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="name">Name</label>
                             <input type="text" class="form-control" name="name" value="{{ old('name', $department->name) }}" required>
                         </div>
@@ -57,7 +57,7 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="parent_id">Parent Department</label>
                             <select name="parent_id" class="form-control">
                                 <option value="">None (Top Level)</option>
@@ -70,7 +70,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="manager_id">Manager</label>
                             <select name="manager_id" class="form-control">
                                 <option value="">Select Manager</option>
@@ -84,7 +84,7 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <label for="status">Status</label>
                     <select name="status" class="form-control">
                         <option value="active" @selected(old('status', $department->status) == 'active')>Active</option>
@@ -92,7 +92,7 @@
                     </select>
                 </div>
 
-                <div class="form-group mt-3">
+                <div class="mb-3 mt-3">
                     <button type="submit" class="btn btn-primary">Update Department</button>
                     <a href="{{ route('core.departments.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>

@@ -16,7 +16,7 @@
         <div class="card-header">
             <h3 class="card-title">Journal Register</h3>
             @if($company)
-                <span class="text-muted ml-2">({{ $company->code }} — {{ $company->name }})</span>
+                <span class="text-muted ms-2">({{ $company->code }} — {{ $company->name }})</span>
             @endif
             <div class="card-tools">
                 <form method="GET" action="{{ route('finance.journals.index') }}" class="form-inline">
@@ -40,8 +40,8 @@
                         <th>Journal #</th>
                         <th>Description</th>
                         <th>Period</th>
-                        <th class="text-right">Total Debit</th>
-                        <th class="text-right">Total Credit</th>
+                        <th class="text-end">Total Debit</th>
+                        <th class="text-end">Total Credit</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -53,8 +53,8 @@
                             <td>{{ $journal->journal_number }}</td>
                             <td>{{ $journal->description ?: '-' }}</td>
                             <td>{{ $journal->fiscalPeriod?->period_name ?? '-' }}</td>
-                            <td class="text-right">{{ Formatter::amount($journal->total_debit) }}</td>
-                            <td class="text-right">{{ Formatter::amount($journal->total_credit) }}</td>
+                            <td class="text-end">{{ Formatter::amount($journal->total_debit) }}</td>
+                            <td class="text-end">{{ Formatter::amount($journal->total_credit) }}</td>
                             <td>
                                 <span class="badge bg-{{ $journal->status === 'POSTED' ? 'success' : ($journal->status === 'DRAFT' ? 'secondary' : ($journal->status === 'APPROVED' ? 'info' : ($journal->status === 'REJECTED' ? 'danger' : ($journal->status === 'CANCELLED' ? 'dark' : 'warning')))) }}">
                                     {{ $journal->status }}

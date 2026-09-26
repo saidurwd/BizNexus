@@ -37,8 +37,8 @@
                                         <th>Journal #</th>
                                         <th>Description</th>
                                         <th>Cost Center</th>
-                                        <th class="text-right">Debit</th>
-                                        <th class="text-right">Credit</th>
+                                        <th class="text-end">Debit</th>
+                                        <th class="text-end">Credit</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -48,14 +48,14 @@
                                             <td>{{ $entry['journal_number'] }}</td>
                                             <td>{{ $entry['description'] ?? '-' }}</td>
                                             <td>{{ $entry['cost_center'] ?? '-' }}</td>
-                                            <td class="text-right">{{ Formatter::amount($entry['debit']) }}</td>
-                                            <td class="text-right">{{ Formatter::amount($entry['credit']) }}</td>
+                                            <td class="text-end">{{ Formatter::amount($entry['debit']) }}</td>
+                                            <td class="text-end">{{ Formatter::amount($entry['credit']) }}</td>
                                         </tr>
                                     @endforeach
                                     <tr class="table-active">
                                         <td colspan="4" class="text-end"><strong>Total</strong></td>
-                                        <td class="text-right"><strong>{{ Formatter::amount($account['total_debit']) }}</strong></td>
-                                        <td class="text-right"><strong>{{ Formatter::amount($account['total_credit']) }}</strong></td>
+                                        <td class="text-end"><strong>{{ Formatter::amount($account['total_debit']) }}</strong></td>
+                                        <td class="text-end"><strong>{{ Formatter::amount($account['total_credit']) }}</strong></td>
                                     </tr>
                                 </tbody>
                             </table>

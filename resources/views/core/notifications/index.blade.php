@@ -32,7 +32,7 @@
             <form method="GET" action="{{ route('core.notifications.index') }}" class="form-inline">
                 <div class="row">
                     <div class="col-md-3">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Type</label>
                             <select name="type" class="form-control">
                                 <option value="">All Types</option>
@@ -54,7 +54,7 @@
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Status</label>
                             <select name="read" class="form-control">
                                 <option value="">All</option>
@@ -64,7 +64,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>&nbsp;</label>
                             <div>
                                 <button type="submit" class="btn btn-primary">
@@ -122,7 +122,7 @@
                             </td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <div class="mr-3">
+                                    <div class="me-3">
                                         <div class="bg-{{ $badgeClass }} p-2 rounded-circle text-white">
                                             <i class="{{ $icon }}"></i>
                                         </div>

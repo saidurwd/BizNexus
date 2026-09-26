@@ -15,7 +15,7 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="journal_date">Journal Date</label>
                             <input type="date" class="form-control @error('journal_date') is-invalid @enderror" 
                                    id="journal_date" name="journal_date" value="{{ old('journal_date', now()->format('Y-m-d')) }}" required>
@@ -25,7 +25,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="fiscal_period_id">Fiscal Period</label>
                             <select class="form-control" id="fiscal_period_id" name="fiscal_period_id">
                                 <option value="">Select Period</option>
@@ -41,7 +41,7 @@
 
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="description">Description</label>
                             <input type="text" class="form-control" id="description" name="description" 
                                    value="{{ old('description') }}" placeholder="Enter description">
@@ -57,8 +57,8 @@
                                 <tr>
                                     <th>Account</th>
                                     <th>Description</th>
-                                    <th class="text-right">Debit</th>
-                                    <th class="text-right">Credit</th>
+                                    <th class="text-end">Debit</th>
+                                    <th class="text-end">Credit</th>
                                     <th>Cost Center</th>
                                     <th>Department</th>
                                     <th>Branch</th>
@@ -83,11 +83,11 @@
                                         <input type="text" class="form-control" name="lines[0][description]" placeholder="Description" value="{{ old('lines.0.description') }}">
                                     </td>
                                     <td>
-                                        <input type="number" class="form-control text-right debit-input" name="lines[0][debit]" 
+                                        <input type="number" class="form-control text-end debit-input" name="lines[0][debit]" 
                                                step="0.01" min="0" value="{{ old('lines.0.debit', 0) }}">
                                     </td>
                                     <td>
-                                        <input type="number" class="form-control text-right credit-input" name="lines[0][credit]" 
+                                        <input type="number" class="form-control text-end credit-input" name="lines[0][credit]" 
                                                step="0.01" min="0" value="{{ old('lines.0.credit', 0) }}">
                                     </td>
                                     <td>
@@ -161,11 +161,11 @@
                                         <input type="text" class="form-control" name="lines[1][description]" placeholder="Description" value="{{ old('lines.1.description') }}">
                                     </td>
                                     <td>
-                                        <input type="number" class="form-control text-right debit-input" name="lines[1][debit]" 
+                                        <input type="number" class="form-control text-end debit-input" name="lines[1][debit]" 
                                                step="0.01" min="0" value="{{ old('lines.1.debit', 0) }}">
                                     </td>
                                     <td>
-                                        <input type="number" class="form-control text-right credit-input" name="lines[1][credit]" 
+                                        <input type="number" class="form-control text-end credit-input" name="lines[1][credit]" 
                                                step="0.01" min="0" value="{{ old('lines.1.credit', 0) }}">
                                     </td>
                                     <td>
@@ -227,11 +227,11 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <td colspan="5" class="text-right"><strong>Totals:</strong></td>
-                                    <td class="text-right">
+                                    <td colspan="5" class="text-end"><strong>Totals:</strong></td>
+                                    <td class="text-end">
                                         <strong id="totalDebit">0.00</strong>
                                     </td>
-                                    <td class="text-right">
+                                    <td class="text-end">
                                         <strong id="totalCredit">0.00</strong>
                                     </td>
                                     <td colspan="3">
@@ -248,7 +248,7 @@
                     </div>
                 </div>
 
-                <div class="form-group mt-4">
+                <div class="mb-3 mt-4">
                     <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
                         Create Journal
                     </button>
@@ -339,11 +339,11 @@
                     <input type="text" class="form-control" name="lines[${lineIndex}][description]" placeholder="Description">
                 </td>
                 <td>
-                    <input type="number" class="form-control text-right debit-input" name="lines[${lineIndex}][debit]" 
+                    <input type="number" class="form-control text-end debit-input" name="lines[${lineIndex}][debit]" 
                            step="0.01" min="0" value="0">
                 </td>
                 <td>
-                    <input type="number" class="form-control text-right credit-input" name="lines[${lineIndex}][credit]" 
+                    <input type="number" class="form-control text-end credit-input" name="lines[${lineIndex}][credit]" 
                            step="0.01" min="0" value="0">
                 </td>
                 <td>

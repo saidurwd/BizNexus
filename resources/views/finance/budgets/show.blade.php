@@ -66,7 +66,7 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h3 class="card-title">Budget Lines</h3>
         @if($budget->isDraft())
-            <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addLineModal">
+            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addLineModal">
                 <i class="bi bi-plus-circle"></i> Add Line
             </button>
         @endif
@@ -78,7 +78,7 @@
                     <th>Account</th>
                     <th>Cost Center</th>
                     <th>Period</th>
-                    <th class="text-right">Budget Amount</th>
+                    <th class="text-end">Budget Amount</th>
                     @if($budget->isDraft())
                         <th class="text-center">Actions</th>
                     @endif
@@ -90,7 +90,7 @@
                         <td>{{ $line->account?->account_code ?? '-' }} - {{ $line->account?->account_name ?? '-' }}</td>
                         <td>{{ $line->costCenter?->name ?? '-' }}</td>
                         <td>{{ $line->period }}</td>
-                        <td class="text-right">{{ Formatter::amount($line->budget_amount) }}</td>
+                        <td class="text-end">{{ Formatter::amount($line->budget_amount) }}</td>
                         @if($budget->isDraft())
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm btn-warning edit-line-btn"
@@ -100,7 +100,7 @@
                                     data-cost_center_id="{{ $line->cost_center_id }}"
                                     data-period="{{ $line->period }}"
                                     data-budget_amount="{{ $line->budget_amount }}"
-                                    data-toggle="modal" data-target="#editLineModal">
+                                    data-bs-toggle="modal" data-bs-target="#editLineModal">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <form action="{{ route('finance.budgets.lines.destroy', [$budget->id, $line->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this line?')">
@@ -122,8 +122,8 @@
             @if($budget->lines->isNotEmpty())
                 <tfoot>
                     <tr class="table-active">
-                        <td colspan="3" class="text-right font-weight-bold">Total:</td>
-                        <td class="text-right font-weight-bold">{{ Formatter::amount($budget->lines->sum('budget_amount')) }}</td>
+                        <td colspan="3" class="text-end fw-bold">Total:</td>
+                        <td class="text-end fw-bold">{{ Formatter::amount($budget->lines->sum('budget_amount')) }}</td>
                         @if($budget->isDraft())
                             <td></td>
                         @endif
@@ -138,7 +138,7 @@
         <a href="{{ route('finance.budgets.index') }}" class="btn btn-secondary">Back</a>
 
         @if($budget->isDraft())
-            <form action="{{ route('finance.budgets.submit', $budget->id) }}" method="POST" class="d-inline ml-2">
+            <form action="{{ route('finance.budgets.submit', $budget->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
                 <button type="submit" class="btn btn-success" onclick="return confirm('Submit this budget for approval?')">
                     <i class="bi bi-send"></i> Submit for Approval
@@ -147,13 +147,13 @@
         @endif
 
         @if($budget->status === \Modules\Finance\Models\Budget::STATUS_SUBMITTED)
-            <form action="{{ route('finance.budgets.approve', $budget->id) }}" method="POST" class="d-inline ml-2">
+            <form action="{{ route('finance.budgets.approve', $budget->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
                 <button type="submit" class="btn btn-success" onclick="return confirm('Approve this budget?')">
                     <i class="bi bi-check-circle"></i> Approve
                 </button>
             </form>
-            <form action="{{ route('finance.budgets.reject', $budget->id) }}" method="POST" class="d-inline ml-2">
+            <form action="{{ route('finance.budgets.reject', $budget->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
                 <button type="submit" class="btn btn-danger" onclick="return confirm('Reject this budget?')">
                     <i class="bi bi-x-circle"></i> Reject
@@ -169,12 +169,10 @@
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title">Add Budget Line</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Account</label>
                             <select class="form-control" name="account_id" required>
                                 <option value="">Select Account</option>
@@ -189,7 +187,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Cost Center</label>
                             <select class="form-control" name="cost_center_id">
                                 <option value="">Select Cost Center</option>
@@ -201,17 +199,17 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Period (1-12)</label>
                             <input type="number" class="form-control" name="period" min="1" max="12" required>
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Budget Amount</label>
                             <input type="number" step="0.0001" class="form-control" name="budget_amount" required>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary">Add Line</button>
                     </div>
                 </form>
@@ -225,12 +223,10 @@
                     @method('PUT')
                     <div class="modal-header">
                         <h5 class="modal-title">Edit Budget Line</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Account</label>
                             <select class="form-control" name="account_id" required>
                                 <option value="">Select Account</option>
@@ -245,7 +241,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Cost Center</label>
                             <select class="form-control" name="cost_center_id">
                                 <option value="">Select Cost Center</option>
@@ -254,17 +250,17 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Period (1-12)</label>
                             <input type="number" class="form-control" name="period" min="1" max="12" required>
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Budget Amount</label>
                             <input type="number" step="0.0001" class="form-control" name="budget_amount" required>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary">Update Line</button>
                     </div>
                 </form>

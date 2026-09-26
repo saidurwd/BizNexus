@@ -14,13 +14,13 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="payment_date">Payment Date</label>
                             <input type="date" class="form-control" name="payment_date" value="{{ old('payment_date', now()->format('Y-m-d')) }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="payment_method">Payment Method</label>
                             <select class="form-control" name="payment_method" required>
                                 <option value="BANK_TRANSFER">Bank Transfer</option>
@@ -33,7 +33,7 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="supplier_id">Supplier</label>
                             <select class="form-control" name="supplier_id" required>
                                 <option value="">Select Supplier</option>
@@ -46,7 +46,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="amount">Amount</label>
                             <input type="number" class="form-control" name="amount" step="0.01" min="0" value="{{ old('amount') }}" required>
                         </div>
@@ -56,7 +56,7 @@
                 @if ($withholdingTaxes->isNotEmpty())
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <label for="withholding_tax_id">Withholding tax</label>
                                 <select class="form-control" id="withholding_tax_id" name="withholding_tax_id">
                                     <option value="">None</option>
@@ -73,7 +73,7 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="bank_account_id">Bank Account</label>
                             <select class="form-control" name="bank_account_id">
                                 <option value="">— None —</option>
@@ -86,19 +86,19 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="reference">Reference</label>
                             <input type="text" class="form-control" name="reference" value="{{ old('reference') }}">
                         </div>
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <label for="description">Description</label>
                     <textarea class="form-control" name="description" rows="3">{{ old('description') }}</textarea>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <button type="submit" class="btn btn-primary">Create Payment</button>
                     <a href="{{ route('finance.payments.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>

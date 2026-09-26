@@ -14,7 +14,7 @@
                 @method('PUT')
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="company_id">Company</label>
                             <select name="company_id" class="form-control" required>
                                 @foreach($companies as $company)
@@ -26,7 +26,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="code">Code</label>
                             <input type="text" class="form-control" name="code" value="{{ old('code', $branch->code) }}" required>
                         </div>
@@ -35,13 +35,13 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="name">Name</label>
                             <input type="text" class="form-control" name="name" value="{{ old('name', $branch->name) }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="phone">Phone</label>
                             <input type="text" class="form-control" name="phone" value="{{ old('phone', $branch->phone) }}">
                         </div>
@@ -50,20 +50,20 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="email">Email</label>
                             <input type="email" class="form-control" name="email" value="{{ old('email', $branch->email) }}">
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="address">Address</label>
                             <textarea class="form-control" name="address" rows="2">{{ old('address', $branch->address) }}</textarea>
                         </div>
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <label for="status">Status</label>
                     <select name="status" class="form-control">
                         <option value="active" @selected(old('status', $branch->status) == 'active')>Active</option>
@@ -71,7 +71,7 @@
                     </select>
                 </div>
 
-                <div class="form-group mt-3">
+                <div class="mb-3 mt-3">
                     <button type="submit" class="btn btn-primary">Update Branch</button>
                     <a href="{{ route('core.branches.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>

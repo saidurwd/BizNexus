@@ -23,7 +23,7 @@
                         <th>Account Number</th>
                         <th>GL Account</th>
                         <th>Currency</th>
-                        <th class="text-right">Current Balance</th>
+                        <th class="text-end">Current Balance</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -37,7 +37,7 @@
                             <td>{{ $account->display_account_number }}</td>
                             <td>{{ $account->glAccount?->account_code ?? '-' }} — {{ $account->glAccount?->account_name ?? '-' }}</td>
                             <td>{{ $account->currency?->code ?? '-' }}</td>
-                            <td class="text-right">{{ Formatter::amount($account->current_balance) }}</td>
+                            <td class="text-end">{{ Formatter::amount($account->current_balance) }}</td>
                             <td>
                                 <span class="badge bg-{{ $account->status === 'active' ? 'success' : 'secondary' }}">
                                     {{ $account->status }}

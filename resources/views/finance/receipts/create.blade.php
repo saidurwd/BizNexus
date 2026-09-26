@@ -14,13 +14,13 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="receipt_date">Receipt Date</label>
                             <input type="date" class="form-control" name="receipt_date" value="{{ old('receipt_date', now()->format('Y-m-d')) }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="receipt_type">Receipt Type</label>
                             <select class="form-control" name="receipt_type" required>
                                 <option value="CASH">Cash</option>
@@ -33,7 +33,7 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="receipt_account_id">Receipt Account</label>
                             <select class="form-control" name="receipt_account_id" required>
                                 <option value="">Select Account</option>
@@ -41,7 +41,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="amount">Amount</label>
                             <input type="number" class="form-control" name="amount" step="0.01" min="0" value="{{ old('amount') }}" required>
                         </div>
@@ -50,7 +50,7 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="payer_type">Payer Type</label>
                             <select class="form-control" name="payer_type" required>
                                 <option value="CUSTOMER">Customer</option>
@@ -60,7 +60,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="payer_id">Payer</label>
                             <select class="form-control" name="payer_id">
                                 <option value="">Select Payer</option>
@@ -69,22 +69,22 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <label for="payer_name">Payer Name</label>
                     <input type="text" class="form-control" name="payer_name" value="{{ old('payer_name') }}" required>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <label for="reference">Reference</label>
                     <input type="text" class="form-control" name="reference" value="{{ old('reference') }}">
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <label for="description">Description</label>
                     <textarea class="form-control" name="description" rows="3">{{ old('description') }}</textarea>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <button type="submit" class="btn btn-primary">Create Receipt</button>
                     <a href="{{ route('finance.receipts.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>

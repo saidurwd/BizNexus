@@ -14,13 +14,13 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="bank_name">Bank Name</label>
                             <input type="text" class="form-control" name="bank_name" value="{{ old('bank_name') }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="branch_name">Branch Name</label>
                             <input type="text" class="form-control" name="branch_name" value="{{ old('branch_name') }}">
                         </div>
@@ -29,13 +29,13 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="account_name">Account Name</label>
                             <input type="text" class="form-control" name="account_name" value="{{ old('account_name') }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="account_number">Account Number</label>
                             <input type="text" class="form-control" name="account_number" value="{{ old('account_number') }}" required>
                         </div>
@@ -44,7 +44,7 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="gl_account_id">GL Account</label>
                             <select name="gl_account_id" class="form-control" required>
                                 <option value="">Select GL Account</option>
@@ -57,7 +57,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="currency_id">Currency</label>
                             <select name="currency_id" class="form-control" required>
                                 <option value="">Select Currency</option>
@@ -73,13 +73,13 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="opening_balance">Opening Balance</label>
                             <input type="number" class="form-control" name="opening_balance" step="0.01" min="0" value="{{ old('opening_balance', 0) }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="status">Status</label>
                             <select name="status" class="form-control">
                                 <option value="active" @selected(old('status', 'active') == 'active')>Active</option>
@@ -89,7 +89,7 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <button type="submit" class="btn btn-primary">Save Bank Account</button>
                     <a href="{{ route('finance.bank-accounts.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>

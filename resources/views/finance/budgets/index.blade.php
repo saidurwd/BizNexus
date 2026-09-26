@@ -15,7 +15,7 @@
     <div class="card">
         <div class="card-body">
             <form method="GET" action="{{ route('finance.budgets.index') }}" class="form-inline mb-3">
-                <div class="form-group mr-2">
+                <div class="mb-3 me-2">
                     <select name="status" class="form-control">
                         <option value="">All Statuses</option>
                         <option value="{{ \Modules\Finance\Models\Budget::STATUS_DRAFT }}" {{ request('status') == \Modules\Finance\Models\Budget::STATUS_DRAFT ? 'selected' : '' }}>Draft</option>

@@ -14,13 +14,13 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="name">Budget Name</label>
                             <input type="text" class="form-control" name="name" value="{{ old('name') }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="fiscal_year_id">Fiscal Year</label>
                             <select class="form-control" name="fiscal_year_id" required>
                                 <option value="">Select Fiscal Year</option>
@@ -34,7 +34,7 @@
                     </div>
                 </div>
 
-                <div class="form-group mt-3">
+                <div class="mb-3 mt-3">
                     <label for="status">Status</label>
                     <select class="form-control" name="status" required>
                         <option value="{{ \Modules\Finance\Models\Budget::STATUS_DRAFT }}" {{ old('status') == \Modules\Finance\Models\Budget::STATUS_DRAFT ? 'selected' : '' }}>Draft</option>
@@ -44,12 +44,12 @@
                     </select>
                 </div>
 
-                <div class="form-group mt-3">
+                <div class="mb-3 mt-3">
                     <label for="description">Description</label>
                     <textarea class="form-control" name="description" rows="3">{{ old('description') }}</textarea>
                 </div>
 
-                <div class="form-group mt-4">
+                <div class="mb-3 mt-4">
                     <button type="submit" class="btn btn-primary">Create Budget</button>
                     <a href="{{ route('finance.budgets.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>

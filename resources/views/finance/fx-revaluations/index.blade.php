@@ -13,10 +13,10 @@
             <div class="card-body">
                 <form method="POST" action="{{ route('finance.fx-revaluations.store') }}" class="form-inline">
                     @csrf
-                    <label for="revaluation_date" class="mr-2">Revaluation date</label>
-                    <input type="date" id="revaluation_date" name="revaluation_date" class="form-control mr-2" value="{{ old('revaluation_date', now()->endOfMonth()->toDateString()) }}" required>
+                    <label for="revaluation_date" class="me-2">Revaluation date</label>
+                    <input type="date" id="revaluation_date" name="revaluation_date" class="form-control me-2" value="{{ old('revaluation_date', now()->endOfMonth()->toDateString()) }}" required>
                     <button type="submit" class="btn btn-primary">Revalue</button>
-                    @error('revaluation_date')<div class="text-danger ml-2">{{ $message }}</div>@enderror
+                    @error('revaluation_date')<div class="text-danger ms-2">{{ $message }}</div>@enderror
                 </form>
             </div>
         </div>
@@ -28,7 +28,7 @@
                 <thead>
                     <tr>
                         <th>Date</th>
-                        <th class="text-right">Net unrealised gain / (loss)</th>
+                        <th class="text-end">Net unrealised gain / (loss)</th>
                         <th>Journal</th>
                         <th>Reversal</th>
                     </tr>
@@ -37,7 +37,7 @@
                     @forelse ($revaluations as $revaluation)
                         <tr>
                             <td>{{ $revaluation->revaluation_date->format('Y-m-d') }}</td>
-                            <td class="text-right">{{ Formatter::amount($revaluation->net_gain_loss) }}</td>
+                            <td class="text-end">{{ Formatter::amount($revaluation->net_gain_loss) }}</td>
                             <td>
                                 @if ($revaluation->journal)
                                     <a href="{{ route('finance.journals.show', $revaluation->journal_id) }}">{{ $revaluation->journal->journal_number }}</a>

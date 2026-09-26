@@ -27,7 +27,7 @@
                         <th>Supplier</th>
                         <th>Method</th>
                         <th>Reference</th>
-                        <th class="text-right">Amount</th>
+                        <th class="text-end">Amount</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -39,7 +39,7 @@
                             <td>{{ $payment->supplier?->name ?? '-' }}</td>
                             <td>{{ $payment->payment_method }}</td>
                             <td>{{ $payment->reference ?? '-' }}</td>
-                            <td class="text-right">{{ Formatter::amount($payment->amount) }}</td>
+                            <td class="text-end">{{ Formatter::amount($payment->amount) }}</td>
                             <td>
                                 <span class="badge bg-{{ $payment->status === 'POSTED' ? 'success' : ($payment->status === 'PENDING' ? 'warning' : 'secondary') }}">
                                     {{ $payment->status }}
@@ -55,7 +55,7 @@
                 <tfoot>
                     <tr class="table-active">
                         <td colspan="5" class="text-end"><strong>Total</strong></td>
-                        <td class="text-right"><strong>{{ Formatter::amount($totalAmount) }}</strong></td>
+                        <td class="text-end"><strong>{{ Formatter::amount($totalAmount) }}</strong></td>
                         <td></td>
                     </tr>
                 </tfoot>

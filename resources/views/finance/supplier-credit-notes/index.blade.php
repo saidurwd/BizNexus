@@ -21,7 +21,7 @@
                         <th>Date</th>
                         <th>Supplier</th>
                         <th>Related Invoice</th>
-                        <th class="text-right">Total Amount</th>
+                        <th class="text-end">Total Amount</th>
                         <th>Status</th>
                         <th class="text-center">Actions</th>
                     </tr>
@@ -33,7 +33,7 @@
                             <td>{{ $note->credit_note_date->format('Y-m-d') }}</td>
                             <td>{{ $note->supplier?->name ?? '-' }}</td>
                             <td>{{ $note->invoice?->invoice_number ?? '-' }}</td>
-                            <td class="text-right">{{ Formatter::amount($note->total_amount) }}</td>
+                            <td class="text-end">{{ Formatter::amount($note->total_amount) }}</td>
                             <td>
                                 @php
                                     $badgeClass = 'secondary';

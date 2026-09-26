@@ -26,16 +26,16 @@
                         <th>Journal #</th>
                         <th>Account</th>
                         <th>Description</th>
-                        <th class="text-right">Receipt</th>
-                        <th class="text-right">Payment</th>
-                        <th class="text-right">Balance</th>
+                        <th class="text-end">Receipt</th>
+                        <th class="text-end">Payment</th>
+                        <th class="text-end">Balance</th>
                     </tr>
                 </thead>
                 <tbody>
                     @php $runningBalance = $openingBalance; @endphp
                     <tr class="table-active">
                         <td colspan="6"><strong>Opening balance {{ $startDate }}</strong></td>
-                        <td class="text-right"><strong>{{ Formatter::amount($openingBalance) }}</strong></td>
+                        <td class="text-end"><strong>{{ Formatter::amount($openingBalance) }}</strong></td>
                     </tr>
                     @forelse ($lines as $line)
                         @php $runningBalance += (float) $line->debit - (float) $line->credit; @endphp
@@ -44,16 +44,16 @@
                             <td><a href="{{ route('finance.journals.show', $line->journal_id) }}">{{ $line->journal->journal_number }}</a></td>
                             <td>{{ $line->account->account_code }} — {{ $line->account->account_name }}</td>
                             <td>{{ $line->description ?? $line->journal->description }}</td>
-                            <td class="text-right">{{ (float) $line->debit > 0 ? Formatter::amount($line->debit) : '-' }}</td>
-                            <td class="text-right">{{ (float) $line->credit > 0 ? Formatter::amount($line->credit) : '-' }}</td>
-                            <td class="text-right">{{ Formatter::amount($runningBalance) }}</td>
+                            <td class="text-end">{{ (float) $line->debit > 0 ? Formatter::amount($line->debit) : '-' }}</td>
+                            <td class="text-end">{{ (float) $line->credit > 0 ? Formatter::amount($line->credit) : '-' }}</td>
+                            <td class="text-end">{{ Formatter::amount($runningBalance) }}</td>
                         </tr>
                     @empty
                         <tr><td colspan="7" class="text-center text-muted">No transactions in this period.</td></tr>
                     @endforelse
                     <tr class="table-active">
                         <td colspan="6"><strong>Closing balance {{ $endDate }}</strong></td>
-                        <td class="text-right"><strong>{{ Formatter::amount($closingBalance) }}</strong></td>
+                        <td class="text-end"><strong>{{ Formatter::amount($closingBalance) }}</strong></td>
                     </tr>
                 </tbody>
             </table>

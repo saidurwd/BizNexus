@@ -15,13 +15,13 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="code">Code</label>
                             <input type="text" class="form-control" id="code" name="code" value="{{ old('code', $costCenter->code) }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="name">Name</label>
                             <input type="text" class="form-control" id="name" name="name" value="{{ old('name', $costCenter->name) }}" required>
                         </div>
@@ -30,7 +30,7 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="parent_id">Parent Cost Center</label>
                             <select id="parent_id" name="parent_id" class="form-control">
                                 <option value="">— None —</option>
@@ -43,7 +43,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="status">Status</label>
                             <select id="status" name="status" class="form-control">
                                 <option value="active" @selected(old('status', $costCenter->status) === 'active')>Active</option>
@@ -53,7 +53,7 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <button type="submit" class="btn btn-primary">Update Cost Center</button>
                     <a href="{{ route('finance.cost-centers.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>

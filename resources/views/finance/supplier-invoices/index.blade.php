@@ -20,9 +20,9 @@
                         <th>Invoice #</th>
                         <th>Date</th>
                         <th>Supplier</th>
-                        <th class="text-right">Amount</th>
-                        <th class="text-right">Tax</th>
-                        <th class="text-right">Total</th>
+                        <th class="text-end">Amount</th>
+                        <th class="text-end">Tax</th>
+                        <th class="text-end">Total</th>
                         <th>Status</th>
                         <th class="text-center">Actions</th>
                     </tr>
@@ -33,9 +33,9 @@
                             <td>{{ $invoice->invoice_number }}</td>
                             <td>{{ $invoice->invoice_date->format('Y-m-d') }}</td>
                             <td>{{ $invoice->supplier?->name ?? '-' }}</td>
-                            <td class="text-right">{{ Formatter::amount($invoice->subtotal, $invoice->currency?->code) }}</td>
-                            <td class="text-right">{{ Formatter::amount($invoice->tax_amount, $invoice->currency?->code) }}</td>
-                            <td class="text-right">{{ Formatter::amount($invoice->total_amount, $invoice->currency?->code) }}</td>
+                            <td class="text-end">{{ Formatter::amount($invoice->subtotal, $invoice->currency?->code) }}</td>
+                            <td class="text-end">{{ Formatter::amount($invoice->tax_amount, $invoice->currency?->code) }}</td>
+                            <td class="text-end">{{ Formatter::amount($invoice->total_amount, $invoice->currency?->code) }}</td>
                             <td>
                                 @php
                                     $badgeClass = 'secondary';

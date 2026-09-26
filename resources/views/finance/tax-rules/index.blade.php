@@ -24,7 +24,7 @@
                             <td>{{ $rule->tax ? $rule->tax->tax_code : 'No tax' }}</td>
                             <td>{{ $rule->reverse_charge ? 'Yes' : 'No' }}</td>
                             <td>{{ $rule->priority }}</td>
-                            <td class="text-right">
+                            <td class="text-end">
                                 @can('finance.taxes.update')
                                     <form method="POST" action="{{ route('finance.tax-rules.destroy', $rule->id) }}">
                                         @csrf
@@ -50,7 +50,7 @@
                     @csrf
                     <div class="row">
                         <div class="col-md-2">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <label for="direction">Direction</label>
                                 <select class="form-control" id="direction" name="direction">
                                     <option value="sales">Sales</option>
@@ -62,7 +62,7 @@
                             <x-form.country-select name="counterparty_country" label="Counterparty country (empty = any)" />
                         </div>
                         <div class="col-md-2">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <label for="counterparty_type">Counterparty</label>
                                 <select class="form-control" id="counterparty_type" name="counterparty_type">
                                     <option value="any">Any</option>
@@ -72,7 +72,7 @@
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <label for="supply_type">Supply</label>
                                 <select class="form-control" id="supply_type" name="supply_type">
                                     <option value="any">Any</option>
@@ -82,7 +82,7 @@
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <label for="tax_id">Tax code</label>
                                 <select class="form-control" id="tax_id" name="tax_id">
                                     <option value="">No tax (exempt / out of scope)</option>
@@ -95,7 +95,7 @@
                     </div>
                     <div class="row">
                         <div class="col-md-2">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <label for="reverse_charge">Reverse charge</label>
                                 <select class="form-control" id="reverse_charge" name="reverse_charge">
                                     <option value="0">No</option>
@@ -104,7 +104,7 @@
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <label for="priority">Priority</label>
                                 <input type="number" class="form-control" id="priority" name="priority" min="1" max="999" value="100">
                             </div>

@@ -5,7 +5,7 @@
 @section('content_header')
     <h1>Workflow Definitions</h1>
     <div class="mt-2">
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createDefinitionModal">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createDefinitionModal">
             <i class="bi bi-plus-circle"></i> Create Definition
         </button>
     </div>
@@ -42,7 +42,7 @@
                                 @endif
                             </td>
                             <td>
-                                <button type="button" class="btn btn-sm btn-warning" data-toggle="modal" data-target="#editDefinitionModal{{ $definition->id }}">
+                                <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editDefinitionModal{{ $definition->id }}">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                             </td>
@@ -63,34 +63,32 @@
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title">Create Workflow Definition</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label>Name</label>
                         <input type="text" class="form-control" name="name" required>
                     </div>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label>Entity Type</label>
                         <input type="text" class="form-control" name="entity_type" placeholder="e.g., journal, supplier_invoice" required>
                     </div>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label>States (JSON)</label>
                         <textarea class="form-control" name="states" rows="5" required placeholder='{"draft": ["submitted"], "submitted": ["approved", "rejected"]}'></textarea>
                     </div>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label>Transitions (JSON)</label>
                         <textarea class="form-control" name="transitions" rows="5" required placeholder='{"draft": ["submitted"], "submitted": ["approved", "rejected"]}'></textarea>
                     </div>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label>Approval Roles (JSON, optional)</label>
                         <textarea class="form-control" name="approval_roles" rows="3" placeholder='["MANAGER", "CFO"]'></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-primary">Create</button>
                 </div>
             </form>
@@ -105,28 +103,26 @@
                     @method('PUT')
                     <div class="modal-header">
                         <h5 class="modal-title">Edit Workflow Definition</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Name</label>
                             <input type="text" class="form-control" name="name" value="{{ $definition->name }}" required>
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Entity Type</label>
                             <input type="text" class="form-control" name="entity_type" value="{{ $definition->entity_type }}" required>
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>States (JSON)</label>
                             <textarea class="form-control" name="states" rows="5" required>{{ json_encode($definition->states, JSON_PRETTY_PRINT) }}</textarea>
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Transitions (JSON)</label>
                             <textarea class="form-control" name="transitions" rows="5" required>{{ json_encode($definition->transitions, JSON_PRETTY_PRINT) }}</textarea>
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>Approval Roles (JSON, optional)</label>
                             <textarea class="form-control" name="approval_roles" rows="3">{{ json_encode($definition->approval_roles, JSON_PRETTY_PRINT) }}</textarea>
                         </div>
@@ -136,7 +132,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary">Update</button>
                     </div>
                 </form>

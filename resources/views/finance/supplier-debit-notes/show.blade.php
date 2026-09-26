@@ -49,7 +49,7 @@
                 </tr>
                 <tr>
                     <th>Amount</th>
-                    <td class="text-right">{{ Formatter::amount($debitNote->amount) }}</td>
+                    <td class="text-end">{{ Formatter::amount($debitNote->amount) }}</td>
                 </tr>
                 <tr>
                     <th>Description</th>
@@ -74,7 +74,7 @@
         <a href="{{ route('finance.supplier-debit-notes.index') }}" class="btn btn-secondary">Back</a>
 
         @if($debitNote->isDraft())
-            <form action="{{ route('finance.supplier-debit-notes.post', $debitNote->id) }}" method="POST" class="d-inline ml-2">
+            <form action="{{ route('finance.supplier-debit-notes.post', $debitNote->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
                 <button type="submit" class="btn btn-primary" onclick="return confirm('Post this debit note?')">
                     <i class="bi bi-journal-check"></i> Post
@@ -83,7 +83,7 @@
         @endif
 
         @if($debitNote->isDraft())
-            <form action="{{ route('finance.supplier-debit-notes.cancel', $debitNote->id) }}" method="POST" class="d-inline ml-2">
+            <form action="{{ route('finance.supplier-debit-notes.cancel', $debitNote->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
                 <button type="submit" class="btn btn-danger" onclick="return confirm('Cancel this debit note?')">
                     <i class="bi bi-x-octagon"></i> Cancel

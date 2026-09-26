@@ -15,7 +15,7 @@
 
                 <div class="row">
                     <div class="col-md-4">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="account_code">Account Code</label>
                             <input type="text" class="form-control @error('account_code') is-invalid @enderror" 
                                    id="account_code" name="account_code" value="{{ old('account_code') }}" required>
@@ -25,7 +25,7 @@
                         </div>
                     </div>
                     <div class="col-md-8">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="account_name">Account Name</label>
                             <input type="text" class="form-control @error('account_name') is-invalid @enderror" 
                                    id="account_name" name="account_name" value="{{ old('account_name') }}" required>
@@ -38,7 +38,7 @@
 
                 <div class="row">
                     <div class="col-md-4">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="account_type">Account Type</label>
                             <select class="form-control @error('account_type') is-invalid @enderror" 
                                     id="account_type" name="account_type" required>
@@ -55,7 +55,7 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="account_category_id">Account Category</label>
                             <select class="form-control" id="account_category_id" name="account_category_id">
                                 <option value="">Select Category</option>
@@ -68,7 +68,7 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="normal_balance">Normal Balance</label>
                             <select class="form-control" id="normal_balance" name="normal_balance">
                                 <option value="DEBIT" {{ old('normal_balance') === 'DEBIT' ? 'selected' : '' }}>Debit</option>
@@ -80,7 +80,7 @@
 
                 <div class="row">
                     <div class="col-md-4">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="parent_id">Parent Account</label>
                             <select class="form-control" id="parent_id" name="parent_id">
                                 <option value="">None (Top Level)</option>
@@ -93,7 +93,7 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="status">Status</label>
                             <select class="form-control" id="status" name="status">
                                 <option value="active" {{ old('status') === 'active' ? 'selected' : '' }}>Active</option>
@@ -102,7 +102,7 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="is_group">Is Group</label>
                             <select class="form-control" id="is_group" name="is_group">
                                 <option value="0" {{ old('is_group', 0) == 0 ? 'selected' : '' }}>No</option>
@@ -111,7 +111,7 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="is_postable">Is Postable</label>
                             <select class="form-control" id="is_postable" name="is_postable">
                                 <option value="0" {{ old('is_postable', 1) == 0 ? 'selected' : '' }}>No</option>
@@ -121,7 +121,7 @@
 
                 <div class="row">
                     <div class="col-md-3">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="revalue_foreign_currency">Revalue foreign currency</label>
                             <select class="form-control" id="revalue_foreign_currency" name="revalue_foreign_currency">
                                 <option value="0" @selected(old('revalue_foreign_currency', 0) == 0)>No</option>
@@ -130,7 +130,7 @@
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="is_control_account">Control account</label>
                             <select class="form-control" id="is_control_account" name="is_control_account">
                                 <option value="0" @selected(old('is_control_account', 0) == 0)>No</option>
@@ -139,7 +139,7 @@
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="cash_flow_category">Cash flow category</label>
                             <select class="form-control" id="cash_flow_category" name="cash_flow_category">
                                 <option value="">—</option>
@@ -150,7 +150,7 @@
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="is_current">Balance sheet class</label>
                             <select class="form-control" id="is_current" name="is_current">
                                 <option value="">—</option>
@@ -163,12 +163,12 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <label for="description">Description</label>
                     <textarea class="form-control" id="description" name="description" rows="3">{{ old('description') }}</textarea>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <button type="submit" class="btn btn-primary">Create Account</button>
                     <a href="{{ route('finance.accounts.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>

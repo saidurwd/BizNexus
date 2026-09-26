@@ -73,8 +73,8 @@
                         <th>Date</th>
                         <th>Journal #</th>
                         <th>Description</th>
-                        <th class="text-right">Debit</th>
-                        <th class="text-right">Credit</th>
+                        <th class="text-end">Debit</th>
+                        <th class="text-end">Credit</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -83,8 +83,8 @@
                             <td>{{ $line->journal->journal_date->format('Y-m-d') }}</td>
                             <td>{{ $line->journal->journal_number }}</td>
                             <td>{{ $line->description ?? '-' }}</td>
-                            <td class="text-right">{{ $line->debit > 0 ? Formatter::amount($line->debit) : '-' }}</td>
-                            <td class="text-right">{{ $line->credit > 0 ? Formatter::amount($line->credit) : '-' }}</td>
+                            <td class="text-end">{{ $line->debit > 0 ? Formatter::amount($line->debit) : '-' }}</td>
+                            <td class="text-end">{{ $line->credit > 0 ? Formatter::amount($line->credit) : '-' }}</td>
                         </tr>
                     @empty
                         <tr>

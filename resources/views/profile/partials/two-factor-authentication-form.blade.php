@@ -9,13 +9,13 @@
 @endif
 
 @if ($user->hasEnabledTwoFactorAuthentication())
-    <p><span class="badge badge-success">Enabled</span> since {{ $user->two_factor_confirmed_at->format('Y-m-d') }}</p>
+    <p><span class="badge text-bg-success">Enabled</span> since {{ $user->two_factor_confirmed_at->format('Y-m-d') }}</p>
 
     <p class="mb-1">Recovery codes (store them safely; each works once):</p>
     <pre class="bg-light p-2">{{ implode("\n", $user->recoveryCodes()) }}</pre>
 
     <div class="d-flex gap-2">
-        <form method="POST" action="{{ route('two-factor.recovery-codes') }}" class="mr-2">
+        <form method="POST" action="{{ route('two-factor.recovery-codes') }}" class="me-2">
             @csrf
             <button type="submit" class="btn btn-outline-secondary">Regenerate recovery codes</button>
         </form>
@@ -41,7 +41,7 @@
         <button type="submit" class="btn btn-primary">Confirm</button>
     </form>
 @else
-    <p><span class="badge badge-secondary">Not enabled</span></p>
+    <p><span class="badge text-bg-secondary">Not enabled</span></p>
     <form method="POST" action="{{ route('two-factor.enable') }}">
         @csrf
         <button type="submit" class="btn btn-primary">Enable two-factor authentication</button>

@@ -13,17 +13,17 @@
                 @csrf
                 @method('PUT')
 
-                <div class="form-group">
+                <div class="mb-3">
                     <label for="name">Budget Name</label>
                     <input type="text" class="form-control" name="name" value="{{ old('name', $budget->name) }}" required>
                 </div>
 
-                <div class="form-group mt-3">
+                <div class="mb-3 mt-3">
                     <label for="description">Description</label>
                     <textarea class="form-control" name="description" rows="3">{{ old('description', $budget->description) }}</textarea>
                 </div>
 
-                <div class="form-group mt-3">
+                <div class="mb-3 mt-3">
                     <label for="status">Status</label>
                     <select class="form-control" name="status" required>
                         <option value="{{ \Modules\Finance\Models\Budget::STATUS_DRAFT }}" {{ $budget->status === \Modules\Finance\Models\Budget::STATUS_DRAFT ? 'selected' : '' }}>Draft</option>
@@ -33,7 +33,7 @@
                     </select>
                 </div>
 
-                <div class="form-group mt-4">
+                <div class="mb-3 mt-4">
                     <button type="submit" class="btn btn-primary">Update Budget</button>
                     <a href="{{ route('finance.budgets.show', $budget->id) }}" class="btn btn-secondary">Cancel</a>
                 </div>

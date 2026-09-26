@@ -17,7 +17,7 @@
 
                 <p class="text-muted">Current rate: {{ Formatter::percent($tax->rate) }}%. Record rate changes on the tax code page so earlier documents keep their rate.</p>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <button type="submit" class="btn btn-primary">Update Tax Code</button>
                     <a href="{{ route('finance.taxes.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>

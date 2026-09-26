@@ -14,7 +14,7 @@
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">{{ ucfirst(str_replace('_', ' ', $entityType)) }}</h3>
-                            <span class="badge bg-warning float-right">{{ count($approvals) }} Pending</span>
+                            <span class="badge bg-warning float-end">{{ count($approvals) }} Pending</span>
                         </div>
                         <div class="card-body p-0">
                             <table class="table table-bordered table-striped mb-0">

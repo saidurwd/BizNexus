@@ -18,9 +18,9 @@
                         <th>Date</th>
                         <th>Journal #</th>
                         <th>Description</th>
-                        <th class="text-right">Debit</th>
-                        <th class="text-right">Credit</th>
-                        <th class="text-right">Balance</th>
+                        <th class="text-end">Debit</th>
+                        <th class="text-end">Credit</th>
+                        <th class="text-end">Balance</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -30,9 +30,9 @@
                             <td>{{ $entry['date']->format('Y-m-d') }}</td>
                             <td>{{ $entry['journal_number'] }}</td>
                             <td>{{ $entry['description'] }}</td>
-                            <td class="text-right">{{ $entry['debit'] > 0 ? Formatter::amount($entry['debit']) : '-' }}</td>
-                            <td class="text-right">{{ $entry['credit'] > 0 ? Formatter::amount($entry['credit']) : '-' }}</td>
-                            <td class="text-right">
+                            <td class="text-end">{{ $entry['debit'] > 0 ? Formatter::amount($entry['debit']) : '-' }}</td>
+                            <td class="text-end">{{ $entry['credit'] > 0 ? Formatter::amount($entry['credit']) : '-' }}</td>
+                            <td class="text-end">
                                 @php 
                                     $balance += $entry['debit'] - $entry['credit'];
                                     echo Formatter::amount($balance);

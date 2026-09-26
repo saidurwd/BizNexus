@@ -24,7 +24,7 @@
                         <th>Date</th>
                         <th>Payee</th>
                         <th>Payment Account</th>
-                        <th class="text-right">Amount</th>
+                        <th class="text-end">Amount</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -36,7 +36,7 @@
                             <td>{{ $payment->payment_date->format('Y-m-d') }}</td>
                             <td>{{ $payment->payee_name }}</td>
                             <td>{{ $payment->bankAccount?->gl_account?->account_name ?? '-' }}</td>
-                            <td class="text-right">{{ Formatter::amount($payment->amount, $payment->currency?->code) }}</td>
+                            <td class="text-end">{{ Formatter::amount($payment->amount, $payment->currency?->code) }}</td>
                             <td>
                                 <span class="badge bg-{{ $payment->status === 'POSTED' ? 'success' : ($payment->status === 'DRAFT' ? 'secondary' : 'warning') }}">
                                     {{ $payment->status }}

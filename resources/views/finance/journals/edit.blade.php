@@ -16,7 +16,7 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="journal_date">Journal Date</label>
                             <input type="date" class="form-control @error('journal_date') is-invalid @enderror" 
                                    id="journal_date" name="journal_date" value="{{ old('journal_date', $journal->journal_date->format('Y-m-d')) }}" required>
@@ -26,7 +26,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="description">Description</label>
                             <input type="text" class="form-control" id="description" name="description" 
                                    value="{{ old('description', $journal->description) }}" placeholder="Enter description">
@@ -41,8 +41,8 @@
                             <tr>
                                 <th>Account</th>
                                 <th>Description</th>
-                                <th class="text-right">Debit</th>
-                                <th class="text-right">Credit</th>
+                                <th class="text-end">Debit</th>
+                                <th class="text-end">Credit</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -63,11 +63,11 @@
                                         <input type="text" class="form-control" name="lines[{{ $index }}][description]" placeholder="Description" value="{{ $line['description'] ?? $journal->lines[$index]->description ?? '' }}">
                                     </td>
                                     <td>
-                                        <input type="number" class="form-control text-right debit-input" name="lines[{{ $index }}][debit]" 
+                                        <input type="number" class="form-control text-end debit-input" name="lines[{{ $index }}][debit]" 
                                                step="0.01" min="0" value="{{ $line['debit'] ?? $journal->lines[$index]->debit ?? 0 }}">
                                     </td>
                                     <td>
-                                        <input type="number" class="form-control text-right credit-input" name="lines[{{ $index }}][credit]" 
+                                        <input type="number" class="form-control text-end credit-input" name="lines[{{ $index }}][credit]" 
                                                step="0.01" min="0" value="{{ $line['credit'] ?? $journal->lines[$index]->credit ?? 0 }}">
                                     </td>
                                     <td>
@@ -82,11 +82,11 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="2" class="text-right"><strong>Totals:</strong></td>
-                                <td class="text-right">
+                                <td colspan="2" class="text-end"><strong>Totals:</strong></td>
+                                <td class="text-end">
                                     <strong id="totalDebit">{{ Formatter::amount($journal->total_debit) }}</strong>
                                 </td>
-                                <td class="text-right">
+                                <td class="text-end">
                                     <strong id="totalCredit">{{ Formatter::amount($journal->total_credit) }}</strong>
                                 </td>
                                 <td>
@@ -102,7 +102,7 @@
                     </div>
                 </div>
 
-                <div class="form-group mt-4">
+                <div class="mb-3 mt-4">
                     <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
                         Update Journal
                     </button>
@@ -163,11 +163,11 @@
                     <input type="text" class="form-control" name="lines[${lineIndex}][description]" placeholder="Description">
                 </td>
                 <td>
-                    <input type="number" class="form-control text-right debit-input" name="lines[${lineIndex}][debit]" 
+                    <input type="number" class="form-control text-end debit-input" name="lines[${lineIndex}][debit]" 
                            step="0.01" min="0" value="0">
                 </td>
                 <td>
-                    <input type="number" class="form-control text-right credit-input" name="lines[${lineIndex}][credit]" 
+                    <input type="number" class="form-control text-end credit-input" name="lines[${lineIndex}][credit]" 
                            step="0.01" min="0" value="0">
                 </td>
                 <td>

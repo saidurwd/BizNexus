@@ -45,15 +45,15 @@
                 </tr>
                 <tr>
                     <th>Subtotal</th>
-                    <td class="text-right">{{ Formatter::amount($creditNote->subtotal) }}</td>
+                    <td class="text-end">{{ Formatter::amount($creditNote->subtotal) }}</td>
                 </tr>
                 <tr>
                     <th>Tax Amount</th>
-                    <td class="text-right">{{ Formatter::amount($creditNote->tax_amount) }}</td>
+                    <td class="text-end">{{ Formatter::amount($creditNote->tax_amount) }}</td>
                 </tr>
                 <tr>
                     <th>Total Amount</th>
-                    <td class="text-right">{{ Formatter::amount($creditNote->total_amount) }}</td>
+                    <td class="text-end">{{ Formatter::amount($creditNote->total_amount) }}</td>
                 </tr>
                 <tr>
                     <th>Reason</th>
@@ -80,7 +80,7 @@
         <a href="{{ route('finance.supplier-credit-notes.index') }}" class="btn btn-secondary">Back</a>
 
         @if($creditNote->status === 'draft')
-            <form action="{{ route('finance.supplier-credit-notes.submit', $creditNote->id) }}" method="POST" class="d-inline ml-2">
+            <form action="{{ route('finance.supplier-credit-notes.submit', $creditNote->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
                 <button type="submit" class="btn btn-success" onclick="return confirm('Submit this credit note for approval?')">
                     <i class="bi bi-send"></i> Submit
@@ -89,7 +89,7 @@
         @endif
 
         @if($creditNote->status === 'submitted')
-            <form action="{{ route('finance.supplier-credit-notes.approve', $creditNote->id) }}" method="POST" class="d-inline ml-2">
+            <form action="{{ route('finance.supplier-credit-notes.approve', $creditNote->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
                 <button type="submit" class="btn btn-success" onclick="return confirm('Approve this credit note?')">
                     <i class="bi bi-check-circle"></i> Approve
@@ -98,7 +98,7 @@
         @endif
 
         @if($creditNote->status === 'approved')
-            <form action="{{ route('finance.supplier-credit-notes.post', $creditNote->id) }}" method="POST" class="d-inline ml-2">
+            <form action="{{ route('finance.supplier-credit-notes.post', $creditNote->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
                 <button type="submit" class="btn btn-primary" onclick="return confirm('Post this credit note?')">
                     <i class="bi bi-journal-check"></i> Post
@@ -107,7 +107,7 @@
         @endif
 
         @if(!in_array($creditNote->status, ['posted', 'cancelled']))
-            <form action="{{ route('finance.supplier-credit-notes.cancel', $creditNote->id) }}" method="POST" class="d-inline ml-2">
+            <form action="{{ route('finance.supplier-credit-notes.cancel', $creditNote->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
                 <button type="submit" class="btn btn-danger" onclick="return confirm('Cancel this credit note?')">
                     <i class="bi bi-x-octagon"></i> Cancel
