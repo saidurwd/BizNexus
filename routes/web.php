@@ -44,7 +44,6 @@ use Modules\Finance\Controllers\Web\ReportExportController;
 use Modules\Finance\Controllers\Web\SalesDocumentPdfController;
 use Modules\Finance\Controllers\Web\SupplierController;
 use Modules\Finance\Controllers\Web\SupplierCreditNoteController;
-use Modules\Finance\Controllers\Web\SupplierDebitNoteController;
 use Modules\Finance\Controllers\Web\SupplierInvoiceController;
 use Modules\Finance\Controllers\Web\SupplierInvoiceLineController;
 use Modules\Finance\Controllers\Web\SupplierStatementController;
@@ -161,9 +160,6 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
     // Finance Module
     Route::prefix('finance')->name('finance.')->group(function () {
 
-        // Finance Dashboard
-        Route::redirect('/dashboard', '/dashboard')->middleware('permission:finance.dashboard.view')->name('dashboard');
-
         // Chart of Accounts
         Route::get('/accounts', [AccountController::class, 'index'])->middleware('permission:finance.accounts.view')->name('accounts.index');
         Route::get('/accounts/create', [AccountController::class, 'create'])->middleware('permission:finance.accounts.create')->name('accounts.create');
@@ -209,7 +205,6 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::delete('/journals/lines/{lineId}', [JournalController::class, 'removeLine'])->middleware('permission:finance.journals.update')->name('journals.lines.destroy');
 
         // General Ledger
-        Route::get('/general-ledger', [JournalController::class, 'generalLedger'])->middleware('permission:finance.ledger.view')->name('general-ledger');
 
         // Accounts Payable
         Route::get('/ap-aging', [ReportController::class, 'apAging'])->middleware('permission:finance.reports.view')->name('ap-aging');
@@ -243,8 +238,6 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
             Route::get('/profit-loss', [ReportController::class, 'profitLoss'])->middleware('permission:finance.reports.view')->name('profit-loss');
             Route::get('/balance-sheet', [ReportController::class, 'balanceSheet'])->middleware('permission:finance.reports.view')->name('balance-sheet');
             Route::get('/cash-flow', [ReportController::class, 'cashFlow'])->middleware('permission:finance.reports.view')->name('cash-flow');
-            Route::get('/ap', [ReportController::class, 'apAging'])->middleware('permission:finance.reports.view')->name('ap');
-            Route::get('/ar', [ReportController::class, 'arAging'])->middleware('permission:finance.reports.view')->name('ar');
             Route::get('/payment-register', [ReportController::class, 'paymentRegister'])->middleware('permission:finance.reports.view')->name('payment-register');
             Route::get('/receipt-register', [ReportController::class, 'receiptRegister'])->middleware('permission:finance.reports.view')->name('receipt-register');
             Route::get('/cash-book', [ReportController::class, 'cashBook'])->middleware('permission:finance.reports.view')->name('cash-book');
@@ -306,17 +299,6 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::post('/supplier-credit-notes/{id}/cancel', [SupplierCreditNoteController::class, 'cancel'])->middleware('permission:finance.supplier-credit-notes.cancel')->name('supplier-credit-notes.cancel');
 
         // Supplier Debit Notes
-        Route::get('/supplier-debit-notes', [SupplierDebitNoteController::class, 'index'])->middleware('permission:finance.supplier-debit-notes.view')->name('supplier-debit-notes.index');
-        Route::get('/supplier-debit-notes/create', [SupplierDebitNoteController::class, 'create'])->middleware('permission:finance.supplier-debit-notes.create')->name('supplier-debit-notes.create');
-        Route::post('/supplier-debit-notes', [SupplierDebitNoteController::class, 'store'])->middleware('permission:finance.supplier-debit-notes.create')->name('supplier-debit-notes.store');
-        Route::get('/supplier-debit-notes/{id}', [SupplierDebitNoteController::class, 'show'])->middleware('permission:finance.supplier-debit-notes.view')->name('supplier-debit-notes.show');
-        Route::get('/supplier-debit-notes/{id}/edit', [SupplierDebitNoteController::class, 'edit'])->middleware('permission:finance.supplier-debit-notes.update')->name('supplier-debit-notes.edit');
-        Route::put('/supplier-debit-notes/{id}', [SupplierDebitNoteController::class, 'update'])->middleware('permission:finance.supplier-debit-notes.update')->name('supplier-debit-notes.update');
-        Route::delete('/supplier-debit-notes/{id}', [SupplierDebitNoteController::class, 'destroy'])->middleware('permission:finance.supplier-debit-notes.delete')->name('supplier-debit-notes.destroy');
-        Route::post('/supplier-debit-notes/{id}/post', [SupplierDebitNoteController::class, 'post'])->middleware('permission:finance.supplier-debit-notes.post')->name('supplier-debit-notes.post');
-        Route::post('/supplier-debit-notes/{id}/submit', [SupplierDebitNoteController::class, 'submit'])->middleware('permission:finance.supplier-debit-notes.submit')->name('supplier-debit-notes.submit');
-        Route::post('/supplier-debit-notes/{id}/approve', [SupplierDebitNoteController::class, 'approve'])->middleware('permission:finance.supplier-debit-notes.approve')->name('supplier-debit-notes.approve');
-        Route::post('/supplier-debit-notes/{id}/cancel', [SupplierDebitNoteController::class, 'cancel'])->middleware('permission:finance.supplier-debit-notes.cancel')->name('supplier-debit-notes.cancel');
 
         // Supplier Statements
         Route::get('/supplier-statements', [SupplierStatementController::class, 'index'])->middleware('permission:finance.suppliers.view')->name('supplier-statements.index');

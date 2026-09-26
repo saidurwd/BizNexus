@@ -4,10 +4,10 @@ namespace Modules\Finance\Controllers\Web;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Modules\Core\Models\CostCenter;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
 use Modules\Finance\Controllers\Controller;
-use Modules\Finance\Models\CostCenter;
 
 class CostCenterController extends Controller
 {

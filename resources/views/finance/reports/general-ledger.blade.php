@@ -9,7 +9,7 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            <form method="GET" action="{{ route('finance.general-ledger') }}" class="row g-3 mb-3">
+            <form method="GET" action="{{ route('finance.reports.general-ledger') }}" class="row g-3 mb-3">
                 <div class="col-md-3">
                     <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}" placeholder="Start Date">
                 </div>

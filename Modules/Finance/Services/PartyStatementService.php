@@ -12,7 +12,6 @@ use Modules\Finance\Models\CustomerInvoice;
 use Modules\Finance\Models\CustomerReceipt;
 use Modules\Finance\Models\Supplier;
 use Modules\Finance\Models\SupplierCreditNote;
-use Modules\Finance\Models\SupplierDebitNote;
 use Modules\Finance\Models\SupplierInvoice;
 use Modules\Finance\Models\SupplierPayment;
 
@@ -45,11 +44,9 @@ class PartyStatementService
      */
     public function forSupplier(Supplier $supplier, ?CarbonInterface $from, ?CarbonInterface $to): array
     {
-        $posted = ['POSTED', 'posted'];
         $sources = [
             ['invoice', SupplierInvoice::where('supplier_id', $supplier->id)->whereIn('status', self::POSTED_INVOICE_STATUSES), 'invoice_date', 'invoice_number', 'total_amount', 'debit'],
-            ['credit_note', SupplierCreditNote::where('supplier_id', $supplier->id)->whereIn('status', $posted), 'credit_note_date', 'credit_note_number', 'total_amount', 'credit'],
-            ['debit_note', SupplierDebitNote::where('supplier_id', $supplier->id)->whereIn('status', $posted), 'note_date', 'note_number', 'amount', 'credit'],
+            ['credit_note', SupplierCreditNote::where('supplier_id', $supplier->id)->where('status', SupplierCreditNote::STATUS_POSTED), 'credit_note_date', 'credit_note_number', 'total_amount', 'credit'],
             ['payment', SupplierPayment::where('supplier_id', $supplier->id)->where('status', SupplierPayment::STATUS_POSTED), 'payment_date', 'payment_number', 'amount', 'credit'],
         ];
 
@@ -59,7 +56,7 @@ class PartyStatementService
             ...$statement,
             'total_invoices' => $statement['totals']['invoice'],
             'total_payments' => $statement['totals']['payment'],
-            'total_credits' => bcadd($statement['totals']['credit_note'], $statement['totals']['debit_note'], 4),
+            'total_credits' => $statement['totals']['credit_note'],
         ];
     }
 

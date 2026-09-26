@@ -12,12 +12,6 @@ return [
     |
     */
 
-    // Dashboard
-    'finance.dashboard' => [
-        'label' => 'Dashboard',
-        'parent' => null,
-    ],
-
     // Chart of Accounts
     'finance.accounts' => [
         'label' => 'Chart of Accounts',
@@ -62,10 +56,6 @@ return [
     ],
 
     // General Ledger
-    'finance.general-ledger' => [
-        'label' => 'General Ledger',
-        'parent' => null,
-    ],
     'finance.ap-aging' => [
         'label' => 'AP Aging',
         'parent' => null,
@@ -273,14 +263,6 @@ return [
     ],
     'finance.reports.cash-flow' => [
         'label' => 'Cash Flow',
-        'parent' => 'finance.reports',
-    ],
-    'finance.reports.ap' => [
-        'label' => 'AP Aging',
-        'parent' => 'finance.reports',
-    ],
-    'finance.reports.ar' => [
-        'label' => 'AR Aging',
         'parent' => 'finance.reports',
     ],
 

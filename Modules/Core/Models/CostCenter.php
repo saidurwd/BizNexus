@@ -2,14 +2,20 @@
 
 namespace Modules\Core\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Core\Concerns\BelongsToCompany;
 
+/**
+ * A cost center of a company, used as an analysis dimension on journal and budget lines.
+ */
 class CostCenter extends Model
 {
-    use SoftDeletes;
+    use BelongsToCompany, SoftDeletes;
+
     protected $fillable = [
         'company_id',
         'parent_id',
@@ -26,17 +32,17 @@ class CostCenter extends Model
 
     public function parent(): BelongsTo
     {
-        return $this->belongsTo(CostCenter::class, 'parent_id');
+        return $this->belongsTo(self::class, 'parent_id');
     }
 
     public function children(): HasMany
     {
-        return $this->hasMany(CostCenter::class, 'parent_id');
+        return $this->hasMany(self::class, 'parent_id');
     }
 
-    public function manager()
+    public function manager(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class, 'manager_id');
+        return $this->belongsTo(User::class, 'manager_id');
     }
 
     public function scopeActive($query)
