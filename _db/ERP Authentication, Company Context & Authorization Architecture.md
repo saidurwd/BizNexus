@@ -20,12 +20,13 @@ The architecture must prevent unauthorized cross-company data access.
 
 ---
 
-**Version:** 2.0 (2026-09-24). Revised against the implementation on branch `fix/erp-core-hardening`.
+**Version:** 3.0 (2026-09-26). Revised against the implementation on branch `fix/erp-core-hardening`.
 
 ## 0. Implementation Status & Decisions
 
 | Area | Decision | Status |
 |---|---|---|
+| Tenancy | Tenants (customer organisations) own companies and users; user–company access and intercompany postings cannot cross tenants; tenants have a status and a data region, and users only sign in on the deployment serving their region. | Implemented |
 | Company isolation | `BelongsToCompany` trait + `CompanyScope`. **Fails closed**: no active company ⇒ no rows. Jobs, seeders and console code use `CompanyContextService::runAs()`. | Implemented |
 | Active company | Session for web, token ability `company:{id}` for API, `runAs()` for jobs. Re-validated on every request. | Implemented |
 | Roles | **One model only:** `company_user_roles` with `valid_from` / `valid_until`. The global `role_user` table was removed. | Implemented |
@@ -40,6 +41,8 @@ The architecture must prevent unauthorized cross-company data access.
 | API | Sanctum tokens bound to one company; token abilities may narrow but never exceed the user's role permissions; 2FA users must supply a code. | Implemented |
 | Segregation of duties | Creator cannot approve (configurable); approver cannot post (optional); permission conflict matrix in `config/authorization.php`; `authorization:sod-report`. | Implemented |
 | Delegation | Approve/reject permissions only, per company, date-bounded (≤ 90 days), non-transferable, audited. | Implemented |
+| Localisation | User language (else company language) per request; right-to-left layout for Arabic, Hebrew, Persian, Urdu; business dates in the company time zone. | Implemented |
+| Consolidation access | Consolidated reports require `finance.consolidation.view` in every member company; intercompany charges require `finance.intercompany.create` in both companies. | Implemented |
 | Field masking | Bank account numbers masked without `finance.bank-accounts.view-sensitive`. | Implemented |
 | Audit | Append-only, per-company SHA-256 hash chain; `audit:verify`. Company switches are audited. | Implemented |
 

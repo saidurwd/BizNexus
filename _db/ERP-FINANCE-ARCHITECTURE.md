@@ -1,7 +1,7 @@
 # ERP Finance Architecture Specification
 
 **Document:** ERP-FINANCE-ARCHITECTURE.md  
-**Version:** 2.0.0 (2026-09-24)  
+**Version:** 3.0.0 (2026-09-26)  
 **Status:** Architecture baseline, revised against the implementation  
 **Platform:** Laravel ERP  
 **Primary Module:** Finance & Accounting  
@@ -30,14 +30,21 @@ Rules marked **Implemented** are enforced in code and covered by automated tests
 | Period closing (§53) | Closing is refused while journals dated inside the period are unposted. | Implemented |
 | Deletion (§80) | Foreign keys on financial tables `RESTRICT` deletes; a company with financial records cannot be deleted. | Implemented |
 | Tax rounding | Tax is computed at 12 decimal places and rounded half-up to 4 once. | Implemented |
-| Tenancy | Tenant (customer organisation) separate from legal entity (company); shared database with `tenant_id` or database per tenant; data residency. | **Decision needed** |
-| Multi-currency | Transaction, functional and reporting currency; line-level currency; rate types; revaluation; realised/unrealised FX; rounding account; per-currency precision. | Planned |
-| Tax engine | Jurisdictions, determination rules, compound/reverse-charge/withholding, provider interface, country packs (e.g. Bangladesh VAT, GCC VAT, EU VAT). | Planned |
-| Statutory output | E-invoicing (Peppol, ZATCA, India IRN, NBR), SAF-T, hash chain on posted documents where required. | Planned |
-| Year-end close | Close P&L to retained earnings; opening period 0, adjustment period 13; non-calendar fiscal calendars (4-4-5). | Planned |
-| Intercompany & consolidation | Due-to/due-from, eliminations, ownership %, currency translation (CTA), minority interest. | Planned |
-| Chart of accounts | Group COA with company mapping; control accounts closed to manual journals; cash-flow and current/non-current tags; parallel ledgers (IFRS / local GAAP). | Planned |
-| Money arithmetic | One money library (e.g. `brick/money`) for all amounts; no floats. | Planned |
+| Tenancy | **Decided:** one shared database with a tenant layer (tenants → companies → data), the NetSuite/Dynamics model. Company codes are unique per tenant; access never crosses tenants; each tenant is pinned to a `data_region` and served only by the deployment with that `DATA_REGION` (data residency). | Implemented |
+| Multi-currency | `Money` value object with ISO 4217 minor units; rate types spot/average/closing (IAS 21) in one company-safe `ExchangeRateService`; journals take transaction-currency amounts and derive functional amounts; rounding line; source documents default to the spot rate; period-end revaluation (auto-reversing) and realised differences on settlement. | Implemented |
+| Tax engine | `TaxCalculator` contract (internal engine, external adapters possible); effective-dated rates; groups with compound components; recoverable/non-recoverable; determination rules by country, B2B/B2C and goods/services; reverse charge; withholding on payments; tax transactions and a tax return report. | Implemented |
+| Statutory output | UBL 2.1 / Peppol BIS Billing 3.0 (EN 16931) for customer invoices behind an `EInvoiceFormat` registry per country. National adapters (ZATCA, India IRN, Bangladesh NBR), clearance APIs, SAF-T and document hash chains are still to build. | Partly implemented |
+| Year-end close | Adjustment period on the last day of each year; closing entry to retained earnings; reopening reverses it; calendars monthly (any start month), 4-4-5, 4-5-4, 5-4-4, 13×4 weeks. | Implemented |
+| Intercompany & consolidation | Intercompany charges post in both companies with a trading partner on every line; consolidation groups with ownership; consolidated trial balance with closing/average translation, eliminations, translation reserve and non-controlling interests. Equity is translated at the closing rate (historical-rate tracking and minority-interest postings still to build). | Implemented (reporting) |
+| Chart of accounts | Account determination per company (`account_mappings`) replaces code patterns; control accounts closed to manual journals; IAS 7 cash-flow category and IAS 1 current/non-current classification; account codes unique per company. Group COA mapping uses matching account codes; parallel ledgers (IFRS / local GAAP) still to build. | Mostly implemented |
+| Money arithmetic | `Modules\Core\Support\Money` (bcmath, no floats) is used by the posting engine, FX, tax and consolidation. Some older reporting code still uses float casts. | Mostly implemented |
+
+### Operating notes (v3.0)
+
+- **Rates to maintain per company:** spot rates for transactions (a spot rate older than `FINANCE_MAX_SPOT_RATE_AGE_DAYS`, 7 by default, is refused), closing rates for each revaluation date, and average rates for consolidation.
+- **Accounts to map per company** (Finance → Account Determination): FX rounding, realised and unrealised FX gain/loss, retained earnings, intercompany receivable/payable, translation reserve.
+- **Month end:** `php artisan finance:revalue` (or the FX Revaluation screen), then close periods. **Year end:** close all regular periods, then *Close year* on the Periods page.
+- **Tax setup:** tax codes with input/output accounts, rates recorded as effective-dated changes, and determination rules (Finance → Tax → Tax Rules).
 
 ---
 
@@ -2825,6 +2832,7 @@ Only after these items are approved should implementation continue.
 Version	Date	Status	Description
 1.0.0	2026-09-07	Baseline	Initial ERP Finance architecture
 2.0.0	2026-09-24	Revised	Implementation status, corrected numbering, decimal and deletion rules, international roadmap
+3.0.0	2026-09-26	Revised	Tenancy decision; multi-currency, FX revaluation, tax engine, e-invoicing, year-end close, intercompany and consolidation, localisation implemented
 
 END OF DOCUMENT
 
