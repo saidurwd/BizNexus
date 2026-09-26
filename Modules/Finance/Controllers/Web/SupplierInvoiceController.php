@@ -6,6 +6,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Concerns\FiltersDocumentLists;
 use Modules\Finance\Controllers\Controller;
 use Modules\Finance\Models\Supplier;
 use Modules\Finance\Models\SupplierInvoice;
@@ -14,6 +15,8 @@ use Modules\Finance\Services\SupplierInvoiceService;
 
 class SupplierInvoiceController extends Controller
 {
+    use FiltersDocumentLists;
+
     public function __construct(
         CompanyContextService $companyContext,
         PermissionService $permissionService,
@@ -22,14 +25,18 @@ class SupplierInvoiceController extends Controller
         parent::__construct($companyContext, $permissionService);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-
-        $invoices = SupplierInvoice::with(['supplier', 'tax', 'currency'])
+        $query = SupplierInvoice::with(['supplier', 'tax', 'currency']);
+        $filters = $this->applyListFilters($query, $request, 'invoice_date', ['invoice_number', 'description'], 'supplier');
+        $invoices = $query
+            ->when($filters['overdue'] ?? false, fn ($query) => $query->pending()->whereDate('due_date', '<', app(CompanyContextService::class)->today()->toDateString()))
             ->orderByDesc('invoice_date')
-            ->get();
+            ->orderByDesc('id')
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('finance.supplier-invoices.index', compact('invoices'));
+        return view('finance.supplier-invoices.index', compact('invoices', 'filters'));
     }
 
     public function create()

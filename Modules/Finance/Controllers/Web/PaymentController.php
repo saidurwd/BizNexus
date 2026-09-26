@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Concerns\FiltersDocumentLists;
 use Modules\Finance\Controllers\Controller;
 use Modules\Finance\Models\SupplierPayment;
 use Modules\Finance\Models\Tax;
@@ -13,6 +14,8 @@ use Modules\Finance\Services\PaymentService;
 
 class PaymentController extends Controller
 {
+    use FiltersDocumentLists;
+
     public function __construct(
         protected PaymentService $paymentService,
         CompanyContextService $companyContext,
@@ -24,11 +27,11 @@ class PaymentController extends Controller
     public function index(Request $request)
     {
 
-        $payments = SupplierPayment::with(['bankAccount', 'currency'])
-            ->orderBy('payment_date', 'desc')
-            ->paginate(20);
+        $query = SupplierPayment::with(['bankAccount', 'currency', 'supplier']);
+        $filters = $this->applyListFilters($query, $request, 'payment_date', ['payment_number', 'reference', 'description'], 'supplier');
+        $payments = $query->orderByDesc('payment_date')->orderByDesc('id')->paginate(20)->withQueryString();
 
-        return view('finance.payments.index', compact('payments'));
+        return view('finance.payments.index', compact('payments', 'filters'));
     }
 
     public function create()

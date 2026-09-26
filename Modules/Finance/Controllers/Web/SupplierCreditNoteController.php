@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
 use Modules\Core\Models\Currency;
+use Modules\Finance\Controllers\Concerns\FiltersDocumentLists;
 use Modules\Finance\Controllers\Controller;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\Supplier;
@@ -19,18 +20,15 @@ use Modules\Finance\Services\SupplierCreditNoteService;
 
 class SupplierCreditNoteController extends Controller
 {
+    use FiltersDocumentLists;
+
     public function index(Request $request): View
     {
-        $status = $request->query('status');
+        $query = SupplierCreditNote::with(['supplier', 'currency', 'invoice']);
+        $filters = $this->applyListFilters($query, $request, 'credit_note_date', ['credit_note_number', 'reason'], 'supplier');
+        $creditNotes = $query->orderByDesc('credit_note_date')->orderByDesc('id')->paginate(20)->withQueryString();
 
-        $creditNotes = SupplierCreditNote::with(['supplier', 'currency', 'invoice'])
-            ->when($status, fn ($query) => $query->where('status', $status))
-            ->orderByDesc('credit_note_date')
-            ->orderByDesc('id')
-            ->paginate(20)
-            ->withQueryString();
-
-        return view('finance.supplier-credit-notes.index', compact('creditNotes', 'status'));
+        return view('finance.supplier-credit-notes.index', compact('creditNotes', 'filters'));
     }
 
     /**

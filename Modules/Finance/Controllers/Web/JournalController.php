@@ -12,6 +12,7 @@ use Modules\Core\Models\Department;
 use Modules\Core\Models\FiscalPeriod;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Concerns\FiltersDocumentLists;
 use Modules\Finance\Controllers\Controller;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\Journal;
@@ -23,6 +24,8 @@ use Modules\Finance\Services\LedgerService;
 
 class JournalController extends Controller
 {
+    use FiltersDocumentLists;
+
     public function __construct(
         protected JournalService $journalService,
         protected LedgerService $ledgerService,
@@ -39,14 +42,18 @@ class JournalController extends Controller
         $companyId = $this->getActiveCompanyId();
         $company = $companyId ? Company::find($companyId) : null;
 
-        $journals = Journal::with(['lines.account', 'fiscalPeriod'])
-            ->when($request->get('status'), fn ($q, $status) => $q->where('status', $status))
-            ->orderBy('journal_date', 'desc')
-            ->paginate(20);
+        $query = Journal::with(['lines.account', 'fiscalPeriod']);
+        $filters = $this->applyListFilters($query, $request, 'journal_date', ['journal_number', 'description']);
+        $journals = $query
+            ->orderByDesc('journal_date')
+            ->orderByDesc('id')
+            ->paginate(20)
+            ->withQueryString();
 
         return view('finance.journals.index', [
             'journals' => $journals,
             'company' => $company,
+            'filters' => $filters,
         ]);
     }
 

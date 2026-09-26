@@ -12,6 +12,7 @@
 @endsection
 
 @section('content')
+    <x-finance.list-filters :filters="$filters" :statuses="['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'POSTED', 'CANCELLED']" :search-label="__('Payment number, reference or supplier')" />
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Payment Register</h3>
@@ -56,5 +57,8 @@
                 </tbody>
             </table>
         </div>
+        @if ($payments->hasPages())
+            <div class="card-footer">{{ $payments->links() }}</div>
+        @endif
     </div>
 @endsection

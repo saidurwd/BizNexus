@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Modules\Core\Models\Currency;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Concerns\FiltersDocumentLists;
 use Modules\Finance\Controllers\Controller;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\Customer;
@@ -18,6 +19,8 @@ use Modules\Finance\Services\CustomerInvoiceService;
 
 class CustomerInvoiceController extends Controller
 {
+    use FiltersDocumentLists;
+
     public function __construct(
         protected CustomerInvoiceService $invoiceService,
         CompanyContextService $companyContext,
@@ -29,11 +32,16 @@ class CustomerInvoiceController extends Controller
     public function index(Request $request)
     {
 
-        $invoices = CustomerInvoice::with(['customer', 'currency'])
-            ->orderBy('invoice_date', 'desc')
-            ->paginate(20);
+        $query = CustomerInvoice::with(['customer', 'currency']);
+        $filters = $this->applyListFilters($query, $request, 'invoice_date', ['invoice_number', 'description'], 'customer');
+        $invoices = $query
+            ->when($filters['overdue'] ?? false, fn ($query) => $query->pending()->whereDate('due_date', '<', app(CompanyContextService::class)->today()->toDateString()))
+            ->orderByDesc('invoice_date')
+            ->orderByDesc('id')
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('finance.customer-invoices.index', compact('invoices'));
+        return view('finance.customer-invoices.index', compact('invoices', 'filters'));
     }
 
     public function create()

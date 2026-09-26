@@ -5,12 +5,15 @@ namespace Modules\Finance\Controllers\Web;
 use Illuminate\Http\Request;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Concerns\FiltersDocumentLists;
 use Modules\Finance\Controllers\Controller;
 use Modules\Finance\Models\CustomerReceipt;
 use Modules\Finance\Services\ReceiptService;
 
 class ReceiptController extends Controller
 {
+    use FiltersDocumentLists;
+
     public function __construct(
         protected ReceiptService $receiptService,
         CompanyContextService $companyContext,
@@ -22,11 +25,11 @@ class ReceiptController extends Controller
     public function index(Request $request)
     {
 
-        $receipts = CustomerReceipt::with(['customer', 'bankAccount', 'currency'])
-            ->orderBy('receipt_date', 'desc')
-            ->paginate(20);
+        $query = CustomerReceipt::with(['customer', 'bankAccount', 'currency']);
+        $filters = $this->applyListFilters($query, $request, 'receipt_date', ['receipt_number', 'reference', 'description'], 'customer');
+        $receipts = $query->orderByDesc('receipt_date')->orderByDesc('id')->paginate(20)->withQueryString();
 
-        return view('finance.receipts.index', compact('receipts'));
+        return view('finance.receipts.index', compact('receipts', 'filters'));
     }
 
     public function create()

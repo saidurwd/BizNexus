@@ -12,6 +12,7 @@
 @endsection
 
 @section('content')
+    <x-finance.list-filters :filters="$filters" :statuses="['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'POSTED', 'PARTIALLY_PAID', 'PAID', 'CANCELLED']" :search-label="__('Invoice number, description or customer')" with-overdue />
     <div class="card">
         <div class="card-body table-responsive">
             <table class="table table-bordered table-striped">
@@ -55,5 +56,8 @@
                 </tbody>
             </table>
         </div>
+        @if ($invoices->hasPages())
+            <div class="card-footer">{{ $invoices->links() }}</div>
+        @endif
     </div>
 @endsection

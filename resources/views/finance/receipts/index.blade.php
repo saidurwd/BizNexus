@@ -12,6 +12,7 @@
 @endsection
 
 @section('content')
+    <x-finance.list-filters :filters="$filters" :statuses="['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'POSTED', 'CANCELLED']" :search-label="__('Receipt number, reference or customer')" />
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">{{ ($isBankReceipts ?? false) ? 'Bank Receipt Register' : 'Receipt Register' }}</h3>
@@ -56,5 +57,8 @@
                 </tbody>
             </table>
         </div>
+        @if ($receipts->hasPages())
+            <div class="card-footer">{{ $receipts->links() }}</div>
+        @endif
     </div>
 @endsection

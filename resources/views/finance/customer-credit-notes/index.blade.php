@@ -12,22 +12,7 @@
 @endsection
 
 @section('content')
-    <form method="GET" class="card mb-3">
-        <div class="card-body row g-2 align-items-end">
-            <div class="col-sm-4 col-md-3">
-                <label for="status" class="form-label">{{ __('Status') }}</label>
-                <select id="status" name="status" class="form-select">
-                    <option value="">{{ __('All') }}</option>
-                    @foreach (['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'POSTED', 'CANCELLED'] as $option)
-                        <option value="{{ $option }}" @selected($status === $option)>{{ __(ucfirst(strtolower($option))) }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-outline-primary">{{ __('Filter') }}</button>
-            </div>
-        </div>
-    </form>
+    <x-finance.list-filters :filters="$filters" :statuses="['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'POSTED', 'CANCELLED']" :search-label="__('Credit note number, reason or customer')" />
 
     <div class="card">
         <div class="card-body table-responsive p-0">

@@ -12,25 +12,13 @@
 @endsection
 
 @section('content')
+    <x-finance.list-filters :filters="$filters" :statuses="['DRAFT', 'SUBMITTED', 'APPROVED', 'POSTED', 'REVERSED', 'REJECTED', 'CANCELLED']" :search-label="__('Journal number or description')" />
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Journal Register</h3>
             @if($company)
                 <span class="text-muted ms-2">({{ $company->code }} — {{ $company->name }})</span>
             @endif
-            <div class="card-tools">
-                <form method="GET" action="{{ route('finance.journals.index') }}" class="form-inline">
-                    <select name="status" class="form-control form-control-sm" onchange="this.form.submit()">
-                        <option value="">All Statuses</option>
-                        <option value="DRAFT" {{ request('status') === 'DRAFT' ? 'selected' : '' }}>Draft</option>
-                        <option value="SUBMITTED" {{ request('status') === 'SUBMITTED' ? 'selected' : '' }}>Submitted</option>
-                        <option value="APPROVED" {{ request('status') === 'APPROVED' ? 'selected' : '' }}>Approved</option>
-                        <option value="POSTED" {{ request('status') === 'POSTED' ? 'selected' : '' }}>Posted</option>
-                        <option value="REJECTED" {{ request('status') === 'REJECTED' ? 'selected' : '' }}>Rejected</option>
-                        <option value="CANCELLED" {{ request('status') === 'CANCELLED' ? 'selected' : '' }}>Cancelled</option>
-                    </select>
-                </form>
-            </div>
         </div>
         <div class="card-body table-responsive">
             <table class="table table-bordered table-striped">
