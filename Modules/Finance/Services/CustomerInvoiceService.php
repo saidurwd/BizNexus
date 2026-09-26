@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
 use Modules\Core\Services\AuditService;
 use Modules\Core\Services\CompanyContextService;
-use Modules\Core\Support\Money;
 use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
+use Modules\Core\Support\Money;
 use Modules\Finance\Events\CustomerInvoiceApproved;
 use Modules\Finance\Models\CustomerInvoice;
 use Modules\Finance\Services\Concerns\EnforcesSegregationOfDuties;
@@ -46,7 +46,6 @@ class CustomerInvoiceService
                 'created_by' => Auth::id(),
             ]);
 
-
             foreach ($data['lines'] ?? [] as $lineData) {
                 $invoice->lines()->create([
                     'account_id' => $lineData['account_id'],
@@ -57,8 +56,6 @@ class CustomerInvoiceService
                     'tax_id' => $lineData['tax_id'] ?? null,
                     'supply_type' => $lineData['supply_type'] ?? null,
                     'is_reverse_charge' => (bool) ($lineData['is_reverse_charge'] ?? false),
-                'supply_type' => $lineData['supply_type'] ?? null,
-                'is_reverse_charge' => (bool) ($lineData['is_reverse_charge'] ?? false),
                     'tax_amount' => 0,
                     'discount_amount' => $lineData['discount_amount'] ?? 0,
                     'total_amount' => 0,
@@ -288,7 +285,7 @@ class CustomerInvoiceService
 
         $invoice->update([
             'customer_id' => $data['customer_id'],
-            'invoice_number' => $data['invoice_number'],
+            'invoice_number' => $data['invoice_number'] ?? $invoice->invoice_number,
             'invoice_date' => $data['invoice_date'],
             'due_date' => $data['due_date'],
             'currency_id' => $data['currency_id'] ?? null,
@@ -298,7 +295,6 @@ class CustomerInvoiceService
         ]);
 
         $invoice->lines()->delete();
-
 
         foreach ($data['lines'] ?? [] as $lineData) {
             $invoice->lines()->create([

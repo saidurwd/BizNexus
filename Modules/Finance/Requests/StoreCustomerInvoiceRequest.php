@@ -3,24 +3,42 @@
 namespace Modules\Finance\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Modules\Core\Services\CompanyContextService;
+use Modules\Finance\Requests\Concerns\ValidatesDocumentLines;
 
+/**
+ * Creating or updating a customer invoice with its lines. The number is optional: a blank one is issued from the
+ * company's CI sequence.
+ */
 class StoreCustomerInvoiceRequest extends FormRequest
 {
+    use ValidatesDocumentLines;
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
+        $companyId = (int) app(CompanyContextService::class)->getActiveCompanyId();
+
         return [
-            'company_id' => 'required|exists:companies,id',
-            'customer_id' => 'required|exists:customers,id',
-            'invoice_number' => 'required|string|max:50|unique:customer_invoices,invoice_number',
-            'invoice_date' => 'required|date',
-            'due_date' => 'nullable|date',
-            'currency_id' => 'nullable|exists:currencies,id',
-            'exchange_rate' => 'nullable|numeric|min:0',
-            'subtotal' => 'required|numeric|min:0',
-            'tax_amount' => 'nullable|numeric|min:0',
-            'discount_amount' => 'nullable|numeric|min:0',
-            'total_amount' => 'required|numeric|min:0',
-            'description' => 'nullable|string|max:1000',
+            'customer_id' => ['required', Rule::exists('customers', 'id')->where('company_id', $companyId)],
+            'invoice_number' => ['nullable', 'string', 'max:50', Rule::unique('customer_invoices', 'invoice_number')->where('company_id', $companyId)->ignore($this->route('id'))],
+            'invoice_date' => ['required', 'date'],
+            'due_date' => ['required', 'date', 'after_or_equal:invoice_date'],
+            'currency_id' => ['nullable', Rule::exists('currencies', 'id')],
+            'discount_amount' => ['nullable', 'numeric', 'min:0'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            ...$this->documentLineRules($companyId),
         ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return $this->documentLineAttributes();
     }
 }
