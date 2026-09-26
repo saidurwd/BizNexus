@@ -3,7 +3,9 @@
 namespace Modules\Finance;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\Core\Models\Company;
 use Modules\Finance\Contracts\TaxCalculator;
+use Modules\Finance\Models\PaymentTerm;
 use Modules\Finance\Services\ChartOfAccountsService;
 use Modules\Finance\Services\CustomerInvoiceService;
 use Modules\Finance\Services\FinancialReportService;
@@ -33,5 +35,7 @@ class FinanceServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/Database/Migrations');
         $this->loadViewsFrom(__DIR__.'/../../resources/views/finance', 'finance');
+
+        Company::created(fn (Company $company) => PaymentTerm::createDefaultsFor($company->id));
     }
 }

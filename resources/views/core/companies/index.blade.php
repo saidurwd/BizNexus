@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Companies')
+@section('title', __('Companies'))
 
 @section('content_header')
-    <h1>Companies</h1>
+    <h1>{{ __('Companies') }}</h1>
     <div class="mt-2">
         <a href="{{ route('core.companies.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Add Company
+            <i class="bi bi-plus-circle"></i> {{ __('Add Company') }}
         </a>
     </div>
 @endsection
@@ -17,13 +17,13 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Legal Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('Code') }}</th>
+                        <th>{{ __('Name') }}</th>
+                        <th>{{ __('Legal Name') }}</th>
+                        <th>{{ __('Email') }}</th>
+                        <th>{{ __('Phone') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -54,7 +54,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">No companies found</td>
+                            <td colspan="7" class="text-center">{{ __('No companies found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

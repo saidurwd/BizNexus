@@ -1,32 +1,29 @@
-<x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600">
-        Please select the branch for <strong>{{ $company->code }} — {{ $company->name }}</strong>.
-    </div>
+@extends('adminlte::auth.auth-page', ['authType' => 'login'])
+
+@section('title', __('Select branch'))
+
+@section('auth_header', __('Select your branch'))
+
+@section('auth_body')
+    <p class="text-body-secondary">{{ __('Choose the branch of :company you want to work in.', ['company' => $company->code.' — '.$company->name]) }}</p>
 
     <form method="POST" action="{{ route('branch.selection.submit') }}">
         @csrf
         <input type="hidden" name="company_id" value="{{ $company->id }}">
-
-        <div>
-            <x-input-label for="branch_id" value="Branch" />
-            <select id="branch_id" name="branch_id" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
-                <option value="">Select a branch</option>
-                @foreach($branches as $branch)
-                    <option value="{{ $branch->id }}" {{ old('branch_id') == $branch->id ? 'selected' : '' }}>
-                        {{ $branch->code }} — {{ $branch->name }}
-                    </option>
+        <div class="mb-3">
+            <label for="branch_id" class="form-label">{{ __('Branch') }}</label>
+            <select id="branch_id" name="branch_id" class="form-select @error('branch_id') is-invalid @enderror" required>
+                <option value="">{{ __('Select a branch') }}</option>
+                @foreach ($branches as $branch)
+                    <option value="{{ $branch->id }}" @selected(old('branch_id') == $branch->id)>{{ $branch->code }} — {{ $branch->name }}</option>
                 @endforeach
             </select>
-            <x-input-error :messages="$errors->get('branch_id')" class="mt-2" />
+            @error('branch_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
         </div>
-
-        <div class="flex items-center justify-between mt-4">
-            <a href="{{ route('company.selection') }}" class="text-sm text-gray-600 hover:text-gray-900">
-                ← Back to Company Selection
-            </a>
-            <x-primary-button>
-                Continue
-            </x-primary-button>
-        </div>
+        <button type="submit" class="btn btn-primary w-100">{{ __('Continue') }}</button>
     </form>
-</x-guest-layout>
+@endsection
+
+@section('auth_footer')
+    <a href="{{ route('company.selection') }}">{{ __('Back to company selection') }}</a>
+@endsection

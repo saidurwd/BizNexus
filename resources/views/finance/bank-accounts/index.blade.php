@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Bank Accounts - BizNexus')
+@section('title', __('Bank Accounts - BizNexus'))
 
 @section('content_header')
-    <h1>Bank Accounts</h1>
+    <h1>{{ __('Bank Accounts') }}</h1>
     <div class="mt-2">
         <a href="{{ route('finance.bank-accounts.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Add Bank Account
+            <i class="bi bi-plus-circle"></i> {{ __('Add Bank Account') }}
         </a>
     </div>
 @endsection
@@ -17,15 +17,15 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Bank</th>
-                        <th>Branch</th>
-                        <th>Account Name</th>
-                        <th>Account Number</th>
-                        <th>GL Account</th>
-                        <th>Currency</th>
-                        <th class="text-right">Current Balance</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('Bank') }}</th>
+                        <th>{{ __('Branch') }}</th>
+                        <th>{{ __('Account Name') }}</th>
+                        <th>{{ __('Account Number') }}</th>
+                        <th>{{ __('GL Account') }}</th>
+                        <th>{{ __('Currency') }}</th>
+                        <th class="text-end">{{ __('Current Balance') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -37,7 +37,7 @@
                             <td>{{ $account->display_account_number }}</td>
                             <td>{{ $account->glAccount?->account_code ?? '-' }} — {{ $account->glAccount?->account_name ?? '-' }}</td>
                             <td>{{ $account->currency?->code ?? '-' }}</td>
-                            <td class="text-right">{{ number_format($account->current_balance, 2) }}</td>
+                            <td class="text-end">{{ Formatter::amount($account->current_balance) }}</td>
                             <td>
                                 <span class="badge bg-{{ $account->status === 'active' ? 'success' : 'secondary' }}">
                                     {{ $account->status }}
@@ -58,7 +58,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center">No bank accounts found</td>
+                            <td colspan="9" class="text-center">{{ __('No bank accounts found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

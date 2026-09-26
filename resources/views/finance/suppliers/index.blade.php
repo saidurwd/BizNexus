@@ -1,67 +1,68 @@
 @extends('layouts.erp')
 
-@section('title', 'Suppliers')
+@section('title', __('Suppliers'))
 
 @section('content_header')
-    <h1>Suppliers</h1>
-    <div class="mt-2">
-        <a href="{{ route('finance.suppliers.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Add Supplier
-        </a>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h1 class="m-0">{{ __('Suppliers') }}</h1>
+        @can('finance.suppliers.create')
+            <a href="{{ route('finance.suppliers.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ __('New supplier') }}</a>
+        @endcan
     </div>
 @endsection
 
 @section('content')
+    <form method="GET" class="card mb-3">
+        <div class="card-body row g-2 align-items-end">
+            <div class="col-md-5">
+                <label for="q" class="form-label">{{ __('Search') }}</label>
+                <input type="search" id="q" name="q" value="{{ $filters['q'] ?? '' }}" class="form-control" placeholder="{{ __('Name, code, email or tax number') }}">
+            </div>
+            <div class="col-md-2">
+                <label for="status" class="form-label">{{ __('Status') }}</label>
+                <select id="status" name="status" class="form-select">
+                    <option value="">{{ __('All') }}</option>
+                    <option value="active" @selected(($filters['status'] ?? '') === 'active')>{{ __('Active') }}</option>
+                    <option value="inactive" @selected(($filters['status'] ?? '') === 'inactive')>{{ __('Inactive') }}</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">{{ __('Filter') }}</button>
+            </div>
+        </div>
+    </form>
+
     <div class="card">
-        <div class="card-body table-responsive">
-            <table class="table table-bordered table-striped">
-                <thead>
+        <div class="card-body table-responsive p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
                     <tr>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Contact Person</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('Code') }}</th>
+                        <th>{{ __('Name') }}</th>
+                        <th>{{ __('Contact') }}</th>
+                        <th>{{ __('Tax number') }}</th>
+                        <th>{{ __('Payment term') }}</th>
+                        <th>{{ __('Status') }}</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($suppliers as $supplier)
+                    @forelse ($suppliers as $party)
                         <tr>
-                            <td>{{ $supplier->supplier_code }}</td>
-                            <td>{{ $supplier->name }}</td>
-                            <td>{{ $supplier->contact_person ?? '-' }}</td>
-                            <td>{{ $supplier->email ?? '-' }}</td>
-                            <td>{{ $supplier->phone ?? '-' }}</td>
-                            <td>
-                                <span class="badge bg-{{ $supplier->status === 'active' ? 'success' : 'secondary' }}">
-                                    {{ $supplier->status }}
-                                </span>
-                            </td>
-                            <td>
-                                <a href="{{ route('finance.suppliers.show', $supplier->id) }}" class="btn btn-sm btn-info">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                <a href="{{ route('finance.suppliers.edit', $supplier->id) }}" class="btn btn-sm btn-warning">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <form action="{{ route('finance.suppliers.destroy', $supplier->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete {{ addslashes($supplier->name) }}? This cannot be undone.')">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
+                            <td><code>{{ $party->supplier_code }}</code></td>
+                            <td><a href="{{ route('finance.suppliers.show', $party->id) }}">{{ $party->name }}</a></td>
+                            <td>{{ $party->contact_person }} <small class="text-body-secondary">{{ $party->email }}</small></td>
+                            <td>{{ $party->tax_number ?? '—' }}</td>
+                            <td>{{ $party->paymentTerm?->code ?? '—' }}</td>
+                            <td><x-status-badge :status="$party->status" /></td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="7" class="text-center">No suppliers found</td>
-                        </tr>
+                        <tr><td colspan="6" class="text-center text-body-secondary py-4">{{ __('No suppliers found.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
+        @if ($suppliers->hasPages())
+            <div class="card-footer">{{ $suppliers->links() }}</div>
+        @endif
     </div>
 @endsection

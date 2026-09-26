@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Modules\Core\Models\SecurityEvent;
+use Modules\Core\Services\SecurityLogService;
 
 class LoginRequest extends FormRequest
 {
@@ -48,6 +50,14 @@ class LoginRequest extends FormRequest
 
         if (! $user instanceof User || ! $user->canSignIn() || ! $provider->validateCredentials($user, $this->only('password'))) {
             RateLimiter::hit($this->throttleKey());
+
+            app(SecurityLogService::class)->event(SecurityEvent::LOGIN_FAILED, SecurityEvent::SEVERITY_WARNING, $user instanceof User ? $user : null, (string) $this->input('email'), [
+                'reason' => match (true) {
+                    ! $user instanceof User => 'unknown_email',
+                    ! $user->canSignIn() => 'sign_in_not_allowed',
+                    default => 'wrong_password',
+                },
+            ]);
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),

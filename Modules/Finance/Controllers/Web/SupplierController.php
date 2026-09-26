@@ -2,16 +2,19 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Modules\Core\Support\Countries;
-use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Concerns\ManagesParties;
 use Modules\Finance\Controllers\Controller;
 use Modules\Finance\Models\Supplier;
+use Modules\Finance\Services\PaymentService;
 
 class SupplierController extends Controller
 {
+    use ManagesParties;
+
     public function __construct(
         CompanyContextService $companyContext,
         PermissionService $permissionService
@@ -21,93 +24,72 @@ class SupplierController extends Controller
 
     public function index(Request $request)
     {
+        $filters = $request->validate(['q' => ['nullable', 'string', 'max:100'], 'status' => ['nullable', 'in:active,inactive']]);
+        $term = isset($filters['q']) ? '%'.addcslashes($filters['q'], '%_\\').'%' : null;
 
-        $suppliers = Supplier::when($request->get('status'), fn ($q, $status) => $q->where('status', $status))
+        $suppliers = Supplier::with('paymentTerm')
+            ->when($filters['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
+            ->when($term, fn ($query) => $query->where(fn ($query) => $query->where('name', 'like', $term)->orWhere('supplier_code', 'like', $term)->orWhere('email', 'like', $term)->orWhere('tax_number', 'like', $term)))
             ->orderBy('name')
-            ->get();
+            ->paginate(25)
+            ->withQueryString();
 
-        return view('finance.suppliers.index', [
-            'suppliers' => $suppliers,
-        ]);
+        return view('finance.suppliers.index', compact('suppliers', 'filters'));
     }
 
     public function create()
     {
-
-        return view('finance.suppliers.create');
+        return view('finance.suppliers.create', ['party' => null, 'isCustomer' => false, ...$this->partyFormData('LIABILITY')]);
     }
 
     public function store(Request $request)
     {
-
-        $validated = $request->validate(['supplier_code' => 'required|string|max:50',
-            'name' => 'required|string|max:255',
-            'contact_person' => 'nullable|string|max:255',
-            'address' => 'nullable|string',
-            'phone' => 'nullable|string|max:50',
-            'email' => 'nullable|email|max:255',
-            'tax_number' => 'nullable|string|max:100',
-            'country_code' => ['nullable', Rule::in(Countries::codes())],
-            'status' => 'nullable|in:active,inactive',
+        $supplier = Supplier::create([
+            ...$this->validatedParty($request, 'suppliers', 'supplier_code', 'payable_account_id'),
+            'company_id' => $this->getActiveCompanyId(),
+            'created_by' => $request->user()->id,
         ]);
 
-        $validated['company_id'] = $this->getActiveCompanyId();
-
-        Supplier::create($validated);
-
-        return redirect()->route('finance.suppliers.index')->with('success', 'Supplier created successfully.');
+        return redirect()->route('finance.suppliers.show', $supplier->id)->with('success', __('Supplier created.'));
     }
 
-    public function show(int $id)
+    public function show(int $id, PaymentService $payments)
     {
+        $supplier = Supplier::with(['currency', 'paymentTerm'])->findOrFail($id);
 
-        $supplier = Supplier::with(['invoices', 'payments'])
-            ->findOrFail($id);
-
-        return view('finance.suppliers.show', [
-            'supplier' => $supplier,
+        return view('finance.parties.show', [
+            'party' => $supplier,
+            'isCustomer' => false,
+            'openBalance' => $payments->getAPAging((int) $supplier->company_id, $supplier->id)['total'],
+            'availableCredit' => null,
         ]);
     }
 
     public function edit(int $id)
     {
-
-        $supplier = Supplier::findOrFail($id);
-
-        return view('finance.suppliers.edit', [
-            'supplier' => $supplier,
-        ]);
+        return view('finance.suppliers.edit', ['party' => Supplier::findOrFail($id), 'isCustomer' => false, ...$this->partyFormData('LIABILITY')]);
     }
 
     public function update(Request $request, int $id)
     {
-
         $supplier = Supplier::findOrFail($id);
-
-        $validated = $request->validate(['supplier_code' => 'required|string|max:50|unique:suppliers,supplier_code,'.$supplier->id,
-            'name' => 'required|string|max:255',
-            'contact_person' => 'nullable|string|max:255',
-            'address' => 'nullable|string',
-            'phone' => 'nullable|string|max:50',
-            'email' => 'nullable|email|max:255',
-            'tax_number' => 'nullable|string|max:100',
-            'country_code' => ['nullable', Rule::in(Countries::codes())],
-            'status' => 'nullable|in:active,inactive',
+        $supplier->update([
+            ...$this->validatedParty($request, 'suppliers', 'supplier_code', 'payable_account_id', $supplier->id),
+            'updated_by' => $request->user()->id,
         ]);
 
-        $validated['company_id'] = $this->getActiveCompanyId();
-
-        $supplier->update($validated);
-
-        return redirect()->route('finance.suppliers.index')->with('success', 'Supplier updated successfully.');
+        return redirect()->route('finance.suppliers.show', $supplier->id)->with('success', __('Supplier updated.'));
     }
 
     public function destroy(int $id)
     {
 
-        $supplier = Supplier::findOrFail($id);
-        $supplier->delete();
+        try {
+            Supplier::findOrFail($id)->delete();
+        } catch (QueryException) {
+            return back()->with('error', __('This supplier has invoices or payments and cannot be deleted. Make it inactive instead.'));
+        }
 
-        return redirect()->route('finance.suppliers.index')->with('success', 'Supplier deleted successfully.');
+        return redirect()->route('finance.suppliers.index')->with('success', __('Supplier deleted.'));
     }
 }

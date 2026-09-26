@@ -12,6 +12,8 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
 use Laravel\Fortify\Fortify;
+use Modules\Core\Models\SecurityEvent;
+use Modules\Core\Services\SecurityLogService;
 
 /**
  * Second login step for users with two-factor authentication: a TOTP code or a single-use recovery code.
@@ -50,6 +52,7 @@ class TwoFactorChallengeController extends Controller
 
         if (! $this->passesChallenge($request, $user, $provider)) {
             RateLimiter::hit($throttleKey);
+            app(SecurityLogService::class)->event(SecurityEvent::TWO_FACTOR_FAILED, SecurityEvent::SEVERITY_WARNING, $user);
 
             throw ValidationException::withMessages(['code' => 'The provided two-factor code was invalid.']);
         }

@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Audit Log Details')
+@section('title', __('Audit Log Details'))
 
 @section('content_header')
-    <h1>Audit Log Details</h1>
+    <h1>{{ __('Audit Log Details') }}</h1>
     <div class="mt-2">
         <a href="{{ route('core.audit.index') }}" class="btn btn-default">
-            <i class="bi bi-arrow-left"></i> Back to Audit Logs
+            <i class="bi bi-arrow-left"></i> {{ __('Back to Audit Logs') }}
         </a>
     </div>
 @endsection
@@ -16,16 +16,16 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">General Information</h3>
+                    <h3 class="card-title">{{ __('General Information') }}</h3>
                 </div>
                 <div class="card-body">
                     <table class="table table-sm">
                         <tr>
-                            <th>Date & Time</th>
+                            <th>{{ __('Date & Time') }}</th>
                             <td>{{ $auditLog->created_at->format('Y-m-d H:i:s') }}</td>
                         </tr>
                         <tr>
-                            <th>User</th>
+                            <th>{{ __('User') }}</th>
                             <td>
                                 {{ $auditLog->user?->name ?? 'System' }}
                                 @if($auditLog->user?->email)
@@ -34,21 +34,21 @@
                             </td>
                         </tr>
                         <tr>
-                            <th>Module</th>
+                            <th>{{ __('Module') }}</th>
                             <td>
                                 <span class="badge bg-info">{{ ucfirst($auditLog->module) }}</span>
                             </td>
                         </tr>
                         <tr>
-                            <th>Entity Type</th>
+                            <th>{{ __('Entity Type') }}</th>
                             <td>{{ $auditLog->entity_type }}</td>
                         </tr>
                         <tr>
-                            <th>Entity ID</th>
+                            <th>{{ __('Entity ID') }}</th>
                             <td>{{ $auditLog->entity_id ?? '-' }}</td>
                         </tr>
                         <tr>
-                            <th>Action</th>
+                            <th>{{ __('Action') }}</th>
                             <td>
                                 @php
                                     $badgeClass = 'secondary';
@@ -60,11 +60,11 @@
                             </td>
                         </tr>
                         <tr>
-                            <th>IP Address</th>
+                            <th>{{ __('IP Address') }}</th>
                             <td><code>{{ $auditLog->ip_address ?? '-' }}</code></td>
                         </tr>
                         <tr>
-                            <th>User Agent</th>
+                            <th>{{ __('User Agent') }}</th>
                             <td><small>{{ $auditLog->user_agent ?? '-' }}</small></td>
                         </tr>
                     </table>
@@ -75,18 +75,18 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Changes</h3>
+                    <h3 class="card-title">{{ __('Changes') }}</h3>
                 </div>
                 <div class="card-body">
                     @if(empty($changes))
-                        <p class="text-muted">No detailed changes recorded for this action.</p>
+                        <p class="text-muted">{{ __('No detailed changes recorded for this action.') }}</p>
                     @else
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th>Field</th>
-                                    <th>Old Value</th>
-                                    <th>New Value</th>
+                                    <th>{{ __('Field') }}</th>
+                                    <th>{{ __('Old Value') }}</th>
+                                    <th>{{ __('New Value') }}</th>
                                 </tr>
                             </thead>
                             <tbody>

@@ -2,7 +2,6 @@
 
 namespace Modules\Finance\Controllers\Web;
 
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Modules\Core\Models\Branch;
 use Modules\Core\Models\BusinessUnit;
@@ -12,21 +11,20 @@ use Modules\Core\Models\Department;
 use Modules\Core\Models\FiscalPeriod;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
+use Modules\Finance\Controllers\Concerns\FiltersDocumentLists;
 use Modules\Finance\Controllers\Controller;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\Journal;
 use Modules\Finance\Models\JournalLine;
 use Modules\Finance\Models\Tax;
-use Modules\Finance\Services\FinancialReportService;
 use Modules\Finance\Services\JournalService;
-use Modules\Finance\Services\LedgerService;
 
 class JournalController extends Controller
 {
+    use FiltersDocumentLists;
+
     public function __construct(
         protected JournalService $journalService,
-        protected LedgerService $ledgerService,
-        protected FinancialReportService $reportService,
         CompanyContextService $companyContext,
         PermissionService $permissionService
     ) {
@@ -39,14 +37,18 @@ class JournalController extends Controller
         $companyId = $this->getActiveCompanyId();
         $company = $companyId ? Company::find($companyId) : null;
 
-        $journals = Journal::with(['lines.account', 'fiscalPeriod'])
-            ->when($request->get('status'), fn ($q, $status) => $q->where('status', $status))
-            ->orderBy('journal_date', 'desc')
-            ->paginate(20);
+        $query = Journal::with(['lines.account', 'fiscalPeriod']);
+        $filters = $this->applyListFilters($query, $request, 'journal_date', ['journal_number', 'description']);
+        $journals = $query
+            ->orderByDesc('journal_date')
+            ->orderByDesc('id')
+            ->paginate(20)
+            ->withQueryString();
 
         return view('finance.journals.index', [
             'journals' => $journals,
             'company' => $company,
+            'filters' => $filters,
         ]);
     }
 
@@ -153,20 +155,6 @@ class JournalController extends Controller
 
         return view('finance.journals.show', [
             'journal' => $journal,
-        ]);
-    }
-
-    public function generalLedger(Request $request)
-    {
-
-        $ledger = $this->ledgerService->getGeneralLedger(
-            $this->getActiveCompanyId(),
-            $request->get('start_date') ? Carbon::parse($request->get('start_date')) : null,
-            $request->get('end_date') ? Carbon::parse($request->get('end_date')) : null
-        );
-
-        return view('finance.reports.general-ledger', [
-            'ledger' => $ledger,
         ]);
     }
 

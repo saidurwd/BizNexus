@@ -23,7 +23,7 @@ return new class extends Migration
             $table->decimal('ownership_percent', 7, 4)->default(100);
             $table->timestamps();
 
-            $table->unique(['consolidation_group_id', 'company_id']);
+            $table->unique(['consolidation_group_id', 'company_id'], 'consolidation_group_members_group_company_unique');
         });
     }
 

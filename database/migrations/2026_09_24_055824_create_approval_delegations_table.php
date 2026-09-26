@@ -19,7 +19,7 @@ return new class extends Migration
             $table->timestamp('revoked_at')->nullable();
             $table->timestamps();
 
-            $table->index(['company_id', 'delegate_id', 'starts_on', 'ends_on']);
+            $table->index(['company_id', 'delegate_id', 'starts_on', 'ends_on'], 'approval_delegations_delegate_window_index');
         });
     }
 

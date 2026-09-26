@@ -66,8 +66,6 @@ class PermissionCatalog
         'finance.recurring-journals.delete' => ['name' => 'Delete Recurring Journals', 'group' => 'Finance'],
         'finance.recurring-journals.update' => ['name' => 'Edit Recurring Journals', 'group' => 'Finance'],
         'finance.recurring-journals.view' => ['name' => 'View Recurring Journals', 'group' => 'Finance'],
-        'finance.supplier-debit-notes.approve' => ['name' => 'Approve Supplier Debit Notes', 'group' => 'Finance'],
-        'finance.supplier-debit-notes.submit' => ['name' => 'Submit Supplier Debit Notes', 'group' => 'Finance'],
         'finance.supplier-invoices.approve' => ['name' => 'Approve Supplier Invoices', 'group' => 'Finance'],
         'finance.supplier-invoices.cancel' => ['name' => 'Cancel Supplier Invoices', 'group' => 'Finance'],
         'finance.supplier-invoices.create' => ['name' => 'Create Supplier Invoices', 'group' => 'Finance'],
@@ -77,6 +75,26 @@ class PermissionCatalog
         'finance.supplier-invoices.submit' => ['name' => 'Submit Supplier Invoices', 'group' => 'Finance'],
         'finance.supplier-invoices.update' => ['name' => 'Edit Supplier Invoices', 'group' => 'Finance'],
         'finance.supplier-invoices.view' => ['name' => 'View Supplier Invoices', 'group' => 'Finance'],
+        'core.activity-logs.view' => ['name' => 'View Activity Logs', 'group' => 'Security'],
+        'core.security-events.view' => ['name' => 'View Security Events', 'group' => 'Security'],
+        'core.login-history.view' => ['name' => 'View Login History', 'group' => 'Security'],
+        'core.system.view' => ['name' => 'View System Health, Queues and Scheduled Jobs', 'group' => 'System'],
+        'core.system.manage' => ['name' => 'Retry or Discard Failed Jobs', 'group' => 'System'],
+        'finance.data-import.use' => ['name' => 'Import Data from Spreadsheets', 'group' => 'Finance'],
+        'finance.number-series.view' => ['name' => 'View Number Series', 'group' => 'Finance'],
+        'finance.number-series.manage' => ['name' => 'Change Number Series', 'group' => 'Finance'],
+        'finance.payment-terms.view' => ['name' => 'View Payment Terms', 'group' => 'Finance'],
+        'finance.payment-terms.manage' => ['name' => 'Manage Payment Terms', 'group' => 'Finance'],
+        'finance.supplier-credit-notes.reject' => ['name' => 'Reject Supplier Credit Notes', 'group' => 'Finance'],
+        'finance.customer-credit-notes.view' => ['name' => 'View Customer Credit Notes', 'group' => 'Finance'],
+        'finance.customer-credit-notes.create' => ['name' => 'Create Customer Credit Notes', 'group' => 'Finance'],
+        'finance.customer-credit-notes.update' => ['name' => 'Edit Customer Credit Notes', 'group' => 'Finance'],
+        'finance.customer-credit-notes.delete' => ['name' => 'Delete Customer Credit Notes', 'group' => 'Finance'],
+        'finance.customer-credit-notes.submit' => ['name' => 'Submit Customer Credit Notes', 'group' => 'Finance'],
+        'finance.customer-credit-notes.approve' => ['name' => 'Approve Customer Credit Notes', 'group' => 'Finance'],
+        'finance.customer-credit-notes.reject' => ['name' => 'Reject Customer Credit Notes', 'group' => 'Finance'],
+        'finance.customer-credit-notes.post' => ['name' => 'Post Customer Credit Notes', 'group' => 'Finance'],
+        'finance.customer-credit-notes.cancel' => ['name' => 'Cancel Customer Credit Notes', 'group' => 'Finance'],
     ];
 
     /**
@@ -140,14 +158,6 @@ class PermissionCatalog
         'finance.supplier-credit-notes.submit' => ['finance.suppliers.approve'],
         'finance.supplier-credit-notes.update' => ['finance.suppliers.update'],
         'finance.supplier-credit-notes.view' => ['finance.suppliers.view'],
-        'finance.supplier-debit-notes.approve' => ['finance.suppliers.approve'],
-        'finance.supplier-debit-notes.cancel' => ['finance.suppliers.cancel'],
-        'finance.supplier-debit-notes.create' => ['finance.suppliers.create'],
-        'finance.supplier-debit-notes.delete' => ['finance.suppliers.delete'],
-        'finance.supplier-debit-notes.post' => ['finance.suppliers.post'],
-        'finance.supplier-debit-notes.submit' => ['finance.suppliers.approve'],
-        'finance.supplier-debit-notes.update' => ['finance.suppliers.update'],
-        'finance.supplier-debit-notes.view' => ['finance.suppliers.view'],
         'finance.supplier-invoices.approve' => ['finance.suppliers.approve'],
         'finance.supplier-invoices.cancel' => ['finance.suppliers.cancel'],
         'finance.supplier-invoices.create' => ['finance.suppliers.create'],
@@ -164,10 +174,29 @@ class PermissionCatalog
         'core.fiscal-years.reopen' => ['core.periods.reopen'],
         'finance.intercompany.view' => ['finance.journals.view'],
         'finance.intercompany.create' => ['finance.journals.post'],
+        'core.activity-logs.view' => ['core.audit.view'],
+        'core.security-events.view' => ['core.audit.view'],
+        'core.login-history.view' => ['core.audit.view'],
+        'finance.data-import.use' => ['finance.accounts.create', 'finance.customers.create', 'finance.suppliers.create', 'finance.journals.create'],
+        'finance.number-series.view' => ['finance.accounts.view'],
+        'finance.number-series.manage' => ['finance.accounts.update'],
+        'finance.payment-terms.view' => ['finance.accounts.view'],
+        'finance.payment-terms.manage' => ['finance.accounts.update'],
+        'finance.supplier-credit-notes.reject' => ['finance.supplier-invoices.reject'],
+        'finance.customer-credit-notes.view' => ['finance.customer-invoices.view'],
+        'finance.customer-credit-notes.create' => ['finance.customer-invoices.create'],
+        'finance.customer-credit-notes.update' => ['finance.customer-invoices.update'],
+        'finance.customer-credit-notes.delete' => ['finance.customer-invoices.delete'],
+        'finance.customer-credit-notes.submit' => ['finance.customer-invoices.submit'],
+        'finance.customer-credit-notes.approve' => ['finance.customer-invoices.approve'],
+        'finance.customer-credit-notes.reject' => ['finance.customer-invoices.reject'],
+        'finance.customer-credit-notes.post' => ['finance.customer-invoices.post'],
+        'finance.customer-credit-notes.cancel' => ['finance.customer-invoices.cancel'],
     ];
 
     /**
      * Create the granular permissions and grant each to every role holding one of its legacy equivalents.
+     * The super-admin role ("full system access") is kept holding every permission.
      *
      * @param  array<string, array{name: string, group: string}>  $permissions
      * @param  array<string, array<int, string>>  $legacyEquivalents
@@ -202,6 +231,22 @@ class PermissionCatalog
                 'created_at' => $now,
                 'updated_at' => $now,
             ])->values()->all());
+        }
+
+        self::grantEverythingToSuperAdmin($now);
+    }
+
+    protected static function grantEverythingToSuperAdmin(mixed $now): void
+    {
+        $permissionIds = DB::table('permissions')->pluck('id');
+
+        foreach (DB::table('roles')->where('slug', 'super-admin')->pluck('id') as $roleId) {
+            DB::table('permission_role')->insertOrIgnore($permissionIds->map(fn (int $permissionId) => [
+                'permission_id' => $permissionId,
+                'role_id' => $roleId,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])->all());
         }
     }
 }

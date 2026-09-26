@@ -1,23 +1,23 @@
 @extends('layouts.erp')
 
-@section('title', 'Notifications')
+@section('title', __('Notifications'))
 
 @section('content_header')
-    <h1>Notifications</h1>
+    <h1>{{ __('Notifications') }}</h1>
     <div class="mt-2">
         @if(Auth::user()->unreadNotifications->count() > 0)
             <form action="{{ route('core.notifications.mark-all-read') }}" method="POST" class="d-inline">
                 @csrf
                 <button type="submit" class="btn btn-success btn-sm">
-                    <i class="bi bi-check2-all"></i> Mark All as Read
+                    <i class="bi bi-check2-all"></i> {{ __('Mark All as Read') }}
                 </button>
             </form>
         @endif
-        <form action="{{ route('core.notifications.destroy-all') }}" method="POST" class="d-inline" onsubmit="return confirm('Delete all notifications?')">
+        <form action="{{ route('core.notifications.destroy-all') }}" method="POST" class="d-inline" onsubmit="return confirm(@js(__('Delete all notifications?')))">
             @csrf
             @method('DELETE')
             <button type="submit" class="btn btn-danger btn-sm">
-                <i class="bi bi-trash"></i> Clear All
+                <i class="bi bi-trash"></i> {{ __('Clear All') }}
             </button>
         </form>
     </div>
@@ -26,52 +26,43 @@
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Filters</h3>
+            <h3 class="card-title">{{ __('Filters') }}</h3>
         </div>
         <div class="card-body">
             <form method="GET" action="{{ route('core.notifications.index') }}" class="form-inline">
                 <div class="row">
                     <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Type</label>
+                        <div class="mb-3">
+                            <label>{{ __('Type') }}</label>
                             <select name="type" class="form-control">
-                                <option value="">All Types</option>
+                                <option value="">{{ __('All Types') }}</option>
                                 @foreach($types as $type)
                                     <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>
-                                        @php
-                                            $labels = [
-                                                'budget_exceeded' => 'Budget Exceeded',
-                                                'invoice_approval' => 'Invoice Approval',
-                                                'journal_approval' => 'Journal Approval',
-                                                'payment_approved' => 'Payment Approved',
-                                                'period_closing' => 'Period Closing',
-                                            ];
-                                            echo $labels[$type] ?? ucfirst(str_replace('_', ' ', $type));
-                                        @endphp
+                                        {{ \Illuminate\Support\Str::headline(class_basename($type)) }}
                                     </option>
                                 @endforeach
                             </select>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Status</label>
+                        <div class="mb-3">
+                            <label>{{ __('Status') }}</label>
                             <select name="read" class="form-control">
-                                <option value="">All</option>
-                                <option value="unread" {{ request('read') == 'unread' ? 'selected' : '' }}>Unread</option>
-                                <option value="read" {{ request('read') == 'read' ? 'selected' : '' }}>Read</option>
+                                <option value="">{{ __('All') }}</option>
+                                <option value="unread" {{ request('read') == 'unread' ? 'selected' : '' }}>{{ __('Unread') }}</option>
+                                <option value="read" {{ request('read') == 'read' ? 'selected' : '' }}>{{ __('Read') }}</option>
                             </select>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>&nbsp;</label>
                             <div>
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-funnel"></i> Filter
+                                    <i class="bi bi-funnel"></i> {{ __('Filter') }}
                                 </button>
                                 <a href="{{ route('core.notifications.index') }}" class="btn btn-default">
-                                    <i class="bi bi-x-circle"></i> Clear
+                                    <i class="bi bi-x-circle"></i> {{ __('Clear') }}
                                 </a>
                             </div>
                         </div>
@@ -87,10 +78,10 @@
                 <thead>
                     <tr>
                         <th width="50"></th>
-                        <th>Notification</th>
-                        <th>Type</th>
-                        <th>Date & Time</th>
-                        <th class="text-center">Actions</th>
+                        <th>{{ __('Notification') }}</th>
+                        <th>{{ __('Type') }}</th>
+                        <th>{{ __('Date & Time') }}</th>
+                        <th class="text-center">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -103,11 +94,7 @@
                             $icon = 'bi bi-bell';
                             $label = ucfirst(str_replace('_', ' ', $type));
                             
-                            if ($type === 'budget_exceeded') { $badgeClass = 'danger'; $icon = 'bi bi-calculator'; $label = 'Budget Exceeded'; }
-                            elseif ($type === 'invoice_approval') { $badgeClass = 'warning'; $icon = 'bi bi-file-earmark-text'; $label = 'Invoice Approval'; }
-                            elseif ($type === 'journal_approval') { $badgeClass = 'info'; $icon = 'bi bi-journal-text'; $label = 'Journal Approval'; }
-                            elseif ($type === 'payment_approved') { $badgeClass = 'success'; $icon = 'bi bi-check-circle'; $label = 'Payment Approved'; }
-                            elseif ($type === 'period_closing') { $badgeClass = 'primary'; $icon = 'bi bi-calendar-range'; $label = 'Period Closing'; }
+                            if ($type === 'approval_requested') { $badgeClass = 'warning'; $icon = 'bi bi-inbox'; $label = __('Approval requested'); }
                             
                             $message = $data['message'] ?? 'Notification';
                             $rowClass = $isUnread ? 'table-active' : '';
@@ -122,15 +109,19 @@
                             </td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <div class="mr-3">
+                                    <div class="me-3">
                                         <div class="bg-{{ $badgeClass }} p-2 rounded-circle text-white">
                                             <i class="{{ $icon }}"></i>
                                         </div>
                                     </div>
                                     <div>
-                                        <strong>{{ $message }}</strong>
+                                        @if(! empty($data['url']))
+                                            <a href="{{ $data['url'] }}"><strong>{{ $message }}</strong></a>
+                                        @else
+                                            <strong>{{ $message }}</strong>
+                                        @endif
                                         @if(isset($data['amount']))
-                                            <br><small class="text-muted">Amount: {{ number_format($data['amount'], 2) }}</small>
+                                            <br><small class="text-muted">{{ __('Amount') }}: {{ Formatter::amount($data['amount'], $data['currency'] ?? null) }} {{ $data['currency'] ?? '' }}@if(! empty($data['submitted_by'])) · {{ __('submitted by :name', ['name' => $data['submitted_by']]) }}@endif</small>
                                         @endif
                                     </div>
                                 </div>
@@ -143,7 +134,7 @@
                                 <a href="{{ route('core.notifications.show', $notification->id) }}" class="btn btn-sm btn-info">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <form action="{{ route('core.notifications.destroy', $notification->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this notification?')">
+                                <form action="{{ route('core.notifications.destroy', $notification->id) }}" method="POST" class="d-inline" onsubmit="return confirm(@js(__('Delete this notification?')))">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-danger">
@@ -154,7 +145,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center">No notifications found</td>
+                            <td colspan="5" class="text-center">{{ __('No notifications found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

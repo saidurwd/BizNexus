@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Core\Concerns\HasAttachments;
 use Modules\Core\Models\Branch;
 use Modules\Core\Models\Company;
 use Modules\Core\Models\Currency;
@@ -19,7 +20,7 @@ use Modules\Finance\Scopes\BranchScope;
 
 class Journal extends Model
 {
-    use BelongsToCompany, HasFactory;
+    use BelongsToCompany, HasAttachments, HasFactory;
 
     public static function factory()
     {

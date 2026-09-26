@@ -54,6 +54,7 @@ class NumberSequence extends Model
 
         $number = str_replace('{PREFIX}', $this->prefix, $number);
         $number = str_replace('{YEAR}', $documentDate->format('Y'), $number);
+        $number = str_replace('{YY}', $documentDate->format('y'), $number);
         $number = str_replace('{MONTH}', $documentDate->format('m'), $number);
         $number = str_replace('{DAY}', $documentDate->format('d'), $number);
 
@@ -64,33 +65,5 @@ class NumberSequence extends Model
         }
 
         return $number;
-    }
-
-    public static function getNextNumberFor(string $documentType, int $companyId): string
-    {
-        $sequence = static::where('company_id', $companyId)
-            ->where('document_type', $documentType)
-            ->where('is_active', true)
-            ->firstOrFail();
-
-        return $sequence->getNextNumber();
-    }
-
-    public static function initializeForCompany(int $companyId, array $documentTypes): void
-    {
-        foreach ($documentTypes as $type) {
-            static::firstOrCreate(
-                [
-                    'company_id' => $companyId,
-                    'document_type' => $type['document_type'],
-                ],
-                [
-                    'prefix' => $type['prefix'],
-                    'format' => $type['format'] ?? '{PREFIX}-{YEAR}-{SEQUENCE:6}',
-                    'last_number' => 0,
-                    'is_active' => true,
-                ]
-            );
-        }
     }
 }

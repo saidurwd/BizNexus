@@ -1,9 +1,9 @@
 @extends('layouts.erp')
 
-@section('title', 'Add Role')
+@section('title', __('Add Role'))
 
 @section('content_header')
-    <h1>Add Role</h1>
+    <h1>{{ __('Add Role') }}</h1>
 @endsection
 
 @section('content')
@@ -13,26 +13,26 @@
                 @csrf
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="name">Name</label>
+                        <div class="mb-3">
+                            <label for="name">{{ __('Name') }}</label>
                             <input type="text" class="form-control" name="name" value="{{ old('name') }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="slug">Slug</label>
+                        <div class="mb-3">
+                            <label for="slug">{{ __('Slug') }}</label>
                             <input type="text" class="form-control" name="slug" value="{{ old('slug') }}" required>
                         </div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="description">Description</label>
+                <div class="mb-3">
+                    <label for="description">{{ __('Description') }}</label>
                     <textarea class="form-control" name="description" rows="3">{{ old('description') }}</textarea>
                 </div>
 
-                <div class="form-group">
-                    <label>Permissions</label>
+                <div class="mb-3">
+                    <label>{{ __('Permissions') }}</label>
                     @foreach($permissions->groupBy('group') as $group => $perms)
                         <h5>{{ $group ?? 'General' }}</h5>
                         @foreach($perms as $permission)
@@ -46,9 +46,9 @@
                     @endforeach
                 </div>
 
-                <div class="form-group mt-3">
-                    <button type="submit" class="btn btn-primary">Save Role</button>
-                    <a href="{{ route('core.roles.index') }}" class="btn btn-secondary">Cancel</a>
+                <div class="mb-3 mt-3">
+                    <button type="submit" class="btn btn-primary">{{ __('Save Role') }}</button>
+                    <a href="{{ route('core.roles.index') }}" class="btn btn-secondary">{{ __('Cancel') }}</a>
                 </div>
             </form>
         </div>

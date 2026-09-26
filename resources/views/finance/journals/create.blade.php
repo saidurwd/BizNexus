@@ -1,9 +1,9 @@
 @extends('layouts.erp')
 
-@section('title', 'Create Journal Entry')
+@section('title', __('Create Journal Entry'))
 
 @section('content_header')
-    <h1>Create Journal Entry</h1>
+    <h1>{{ __('Create Journal Entry') }}</h1>
 @endsection
 
 @section('content')
@@ -15,8 +15,8 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="journal_date">Journal Date</label>
+                        <div class="mb-3">
+                            <label for="journal_date">{{ __('Journal Date') }}</label>
                             <input type="date" class="form-control @error('journal_date') is-invalid @enderror" 
                                    id="journal_date" name="journal_date" value="{{ old('journal_date', now()->format('Y-m-d')) }}" required>
                             @error('journal_date')
@@ -25,10 +25,10 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="fiscal_period_id">Fiscal Period</label>
+                        <div class="mb-3">
+                            <label for="fiscal_period_id">{{ __('Fiscal Period') }}</label>
                             <select class="form-control" id="fiscal_period_id" name="fiscal_period_id">
-                                <option value="">Select Period</option>
+                                <option value="">{{ __('Select Period') }}</option>
                                 @foreach($fiscalPeriods as $period)
                                     <option value="{{ $period->id }}" {{ old('fiscal_period_id') == $period->id ? 'selected' : '' }}>
                                         {{ $period->fiscalYear->name }} - {{ $period->period_name }}
@@ -41,29 +41,29 @@
 
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="form-group">
-                            <label for="description">Description</label>
+                        <div class="mb-3">
+                            <label for="description">{{ __('Description') }}</label>
                             <input type="text" class="form-control" id="description" name="description" 
-                                   value="{{ old('description') }}" placeholder="Enter description">
+                                   value="{{ old('description') }}" placeholder="{{ __('Enter description') }}">
                         </div>
                     </div>
                 </div>
 
                 <div class="mt-4">
-                    <h5>Journal Lines</h5>
+                    <h5>{{ __('Journal Lines') }}</h5>
                     <div class="table-responsive">
                         <table class="table table-bordered" id="journalLinesTable">
                             <thead>
                                 <tr>
-                                    <th>Account</th>
-                                    <th>Description</th>
-                                    <th class="text-right">Debit</th>
-                                    <th class="text-right">Credit</th>
-                                    <th>Cost Center</th>
-                                    <th>Department</th>
-                                    <th>Branch</th>
-                                    <th>Business Unit</th>
-                                    <th>Tax</th>
+                                    <th>{{ __('Account') }}</th>
+                                    <th>{{ __('Description') }}</th>
+                                    <th class="text-end">{{ __('Debit') }}</th>
+                                    <th class="text-end">{{ __('Credit') }}</th>
+                                    <th>{{ __('Cost Center') }}</th>
+                                    <th>{{ __('Department') }}</th>
+                                    <th>{{ __('Branch') }}</th>
+                                    <th>{{ __('Business Unit') }}</th>
+                                    <th>{{ __('Tax') }}</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -71,7 +71,7 @@
                                 <tr class="line-row">
                                     <td>
                                         <select class="form-control account-select" name="lines[0][account_id]" required>
-                                            <option value="">Select Account</option>
+                                            <option value="">{{ __('Select Account') }}</option>
                                             @foreach($accounts as $account)
                                                 <option value="{{ $account->id }}" @selected(old('lines.0.account_id') == $account->id)>
                                                     {{ $account->account_code }} — {{ $account->account_name }}
@@ -80,19 +80,19 @@
                                         </select>
                                     </td>
                                     <td>
-                                        <input type="text" class="form-control" name="lines[0][description]" placeholder="Description" value="{{ old('lines.0.description') }}">
+                                        <input type="text" class="form-control" name="lines[0][description]" placeholder="{{ __('Description') }}" value="{{ old('lines.0.description') }}">
                                     </td>
                                     <td>
-                                        <input type="number" class="form-control text-right debit-input" name="lines[0][debit]" 
+                                        <input type="number" class="form-control text-end debit-input" name="lines[0][debit]" 
                                                step="0.01" min="0" value="{{ old('lines.0.debit', 0) }}">
                                     </td>
                                     <td>
-                                        <input type="number" class="form-control text-right credit-input" name="lines[0][credit]" 
+                                        <input type="number" class="form-control text-end credit-input" name="lines[0][credit]" 
                                                step="0.01" min="0" value="{{ old('lines.0.credit', 0) }}">
                                     </td>
                                     <td>
                                         <select class="form-control" name="lines[0][cost_center_id]">
-                                            <option value="">Select</option>
+                                            <option value="">{{ __('Select') }}</option>
                                             @foreach($costCenters as $cc)
                                                 <option value="{{ $cc->id }}" {{ old('lines.0.cost_center_id') == $cc->id ? 'selected' : '' }}>
                                                     {{ $cc->name }}
@@ -102,7 +102,7 @@
                                     </td>
                                     <td>
                                         <select class="form-control" name="lines[0][department_id]">
-                                            <option value="">Select</option>
+                                            <option value="">{{ __('Select') }}</option>
                                             @foreach($departments as $dept)
                                                 <option value="{{ $dept->id }}" {{ old('lines.0.department_id') == $dept->id ? 'selected' : '' }}>
                                                     {{ $dept->name }}
@@ -112,7 +112,7 @@
                                     </td>
                                     <td>
                                         <select class="form-control" name="lines[0][branch_id]">
-                                            <option value="">Select</option>
+                                            <option value="">{{ __('Select') }}</option>
                                             @foreach($branches as $branch)
                                                 <option value="{{ $branch->id }}" {{ old('lines.0.branch_id') == $branch->id ? 'selected' : '' }}>
                                                     {{ $branch->name }}
@@ -122,7 +122,7 @@
                                     </td>
                                     <td>
                                         <select class="form-control" name="lines[0][business_unit_id]">
-                                            <option value="">Select</option>
+                                            <option value="">{{ __('Select') }}</option>
                                             @foreach($businessUnits as $bu)
                                                 <option value="{{ $bu->id }}" {{ old('lines.0.business_unit_id') == $bu->id ? 'selected' : '' }}>
                                                     {{ $bu->name }}
@@ -132,7 +132,7 @@
                                     </td>
                                     <td>
                                         <select class="form-control" name="lines[0][tax_id]">
-                                            <option value="">Select</option>
+                                            <option value="">{{ __('Select') }}</option>
                                             @foreach($taxes as $tax)
                                                 <option value="{{ $tax->id }}" {{ old('lines.0.tax_id') == $tax->id ? 'selected' : '' }}>
                                                     {{ $tax->tax_name }}
@@ -149,7 +149,7 @@
                                 <tr class="line-row">
                                     <td>
                                         <select class="form-control account-select" name="lines[1][account_id]" required>
-                                            <option value="">Select Account</option>
+                                            <option value="">{{ __('Select Account') }}</option>
                                             @foreach($accounts as $account)
                                                 <option value="{{ $account->id }}" @selected(old('lines.1.account_id') == $account->id)>
                                                     {{ $account->account_code }} — {{ $account->account_name }}
@@ -158,19 +158,19 @@
                                         </select>
                                     </td>
                                     <td>
-                                        <input type="text" class="form-control" name="lines[1][description]" placeholder="Description" value="{{ old('lines.1.description') }}">
+                                        <input type="text" class="form-control" name="lines[1][description]" placeholder="{{ __('Description') }}" value="{{ old('lines.1.description') }}">
                                     </td>
                                     <td>
-                                        <input type="number" class="form-control text-right debit-input" name="lines[1][debit]" 
+                                        <input type="number" class="form-control text-end debit-input" name="lines[1][debit]" 
                                                step="0.01" min="0" value="{{ old('lines.1.debit', 0) }}">
                                     </td>
                                     <td>
-                                        <input type="number" class="form-control text-right credit-input" name="lines[1][credit]" 
+                                        <input type="number" class="form-control text-end credit-input" name="lines[1][credit]" 
                                                step="0.01" min="0" value="{{ old('lines.1.credit', 0) }}">
                                     </td>
                                     <td>
                                         <select class="form-control" name="lines[1][cost_center_id]">
-                                            <option value="">Select</option>
+                                            <option value="">{{ __('Select') }}</option>
                                             @foreach($costCenters as $cc)
                                                 <option value="{{ $cc->id }}" {{ old('lines.1.cost_center_id') == $cc->id ? 'selected' : '' }}>
                                                     {{ $cc->name }}
@@ -180,7 +180,7 @@
                                     </td>
                                     <td>
                                         <select class="form-control" name="lines[1][department_id]">
-                                            <option value="">Select</option>
+                                            <option value="">{{ __('Select') }}</option>
                                             @foreach($departments as $dept)
                                                 <option value="{{ $dept->id }}" {{ old('lines.1.department_id') == $dept->id ? 'selected' : '' }}>
                                                     {{ $dept->name }}
@@ -190,7 +190,7 @@
                                     </td>
                                     <td>
                                         <select class="form-control" name="lines[1][branch_id]">
-                                            <option value="">Select</option>
+                                            <option value="">{{ __('Select') }}</option>
                                             @foreach($branches as $branch)
                                                 <option value="{{ $branch->id }}" {{ old('lines.1.branch_id') == $branch->id ? 'selected' : '' }}>
                                                     {{ $branch->name }}
@@ -200,7 +200,7 @@
                                     </td>
                                     <td>
                                         <select class="form-control" name="lines[1][business_unit_id]">
-                                            <option value="">Select</option>
+                                            <option value="">{{ __('Select') }}</option>
                                             @foreach($businessUnits as $bu)
                                                 <option value="{{ $bu->id }}" {{ old('lines.1.business_unit_id') == $bu->id ? 'selected' : '' }}>
                                                     {{ $bu->name }}
@@ -210,7 +210,7 @@
                                     </td>
                                     <td>
                                         <select class="form-control" name="lines[1][tax_id]">
-                                            <option value="">Select</option>
+                                            <option value="">{{ __('Select') }}</option>
                                             @foreach($taxes as $tax)
                                                 <option value="{{ $tax->id }}" {{ old('lines.1.tax_id') == $tax->id ? 'selected' : '' }}>
                                                     {{ $tax->tax_name }}
@@ -227,11 +227,11 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <td colspan="5" class="text-right"><strong>Totals:</strong></td>
-                                    <td class="text-right">
+                                    <td colspan="5" class="text-end"><strong>{{ __('Totals:') }}</strong></td>
+                                    <td class="text-end">
                                         <strong id="totalDebit">0.00</strong>
                                     </td>
-                                    <td class="text-right">
+                                    <td class="text-end">
                                         <strong id="totalCredit">0.00</strong>
                                     </td>
                                     <td colspan="3">
@@ -244,15 +244,15 @@
                         </table>
                     </div>
                     <div id="balanceWarning" class="text-danger d-none">
-                        <i class="bi bi-exclamation-triangle"></i> Journal is not balanced!
+                        <i class="bi bi-exclamation-triangle"></i> {{ __('Journal is not balanced!') }}
                     </div>
                 </div>
 
-                <div class="form-group mt-4">
+                <div class="mb-3 mt-4">
                     <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
-                        Create Journal
+                        {{ __('Create Journal') }}
                     </button>
-                    <a href="{{ route('finance.journals.index') }}" class="btn btn-secondary">Cancel</a>
+                    <a href="{{ route('finance.journals.index') }}" class="btn btn-secondary">{{ __('Cancel') }}</a>
                 </div>
             </form>
         </div>
@@ -339,11 +339,11 @@
                     <input type="text" class="form-control" name="lines[${lineIndex}][description]" placeholder="Description">
                 </td>
                 <td>
-                    <input type="number" class="form-control text-right debit-input" name="lines[${lineIndex}][debit]" 
+                    <input type="number" class="form-control text-end debit-input" name="lines[${lineIndex}][debit]" 
                            step="0.01" min="0" value="0">
                 </td>
                 <td>
-                    <input type="number" class="form-control text-right credit-input" name="lines[${lineIndex}][credit]" 
+                    <input type="number" class="form-control text-end credit-input" name="lines[${lineIndex}][credit]" 
                            step="0.01" min="0" value="0">
                 </td>
                 <td>

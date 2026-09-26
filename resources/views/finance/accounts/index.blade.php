@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Chart of Accounts')
+@section('title', __('Chart of Accounts'))
 
 @section('content_header')
-    <h1>Chart of Accounts</h1>
+    <h1>{{ __('Chart of Accounts') }}</h1>
     <div class="mt-2">
         <a href="{{ route('finance.accounts.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Add Account
+            <i class="bi bi-plus-circle"></i> {{ __('Add Account') }}
         </a>
     </div>
 @endsection
@@ -14,19 +14,19 @@
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Account List</h3>
+            <h3 class="card-title">{{ __('Account List') }}</h3>
         </div>
         <div class="card-body table-responsive">
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Category</th>
-                        <th>Normal Balance</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('Code') }}</th>
+                        <th>{{ __('Name') }}</th>
+                        <th>{{ __('Type') }}</th>
+                        <th>{{ __('Category') }}</th>
+                        <th>{{ __('Normal Balance') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -57,7 +57,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">No accounts found</td>
+                            <td colspan="7" class="text-center">{{ __('No accounts found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

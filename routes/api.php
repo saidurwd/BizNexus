@@ -11,7 +11,6 @@ use Modules\Finance\Controllers\PaymentController;
 use Modules\Finance\Controllers\ReceiptController;
 use Modules\Finance\Controllers\ReportController;
 use Modules\Finance\Controllers\SupplierController;
-use Modules\Finance\Controllers\SupplierDebitNoteController;
 use Modules\Finance\Controllers\SupplierInvoiceController;
 
 Route::prefix('v1')->group(function () {
@@ -61,15 +60,6 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'api.company'])->group(function
         Route::post('/supplier-invoices/{id}/approve', [SupplierInvoiceController::class, 'approve'])->middleware('permission:finance.supplier-invoices.approve')->whereNumber('id');
         Route::post('/supplier-invoices/{id}/reject', [SupplierInvoiceController::class, 'reject'])->middleware('permission:finance.supplier-invoices.reject')->whereNumber('id');
         Route::post('/supplier-invoices/{id}/cancel', [SupplierInvoiceController::class, 'cancel'])->middleware('permission:finance.supplier-invoices.cancel')->whereNumber('id');
-
-        Route::get('/supplier-debit-notes', [SupplierDebitNoteController::class, 'index'])->middleware('permission:finance.supplier-debit-notes.view');
-        Route::post('/supplier-debit-notes', [SupplierDebitNoteController::class, 'store'])->middleware('permission:finance.supplier-debit-notes.create');
-        Route::get('/supplier-debit-notes/{id}', [SupplierDebitNoteController::class, 'show'])->middleware('permission:finance.supplier-debit-notes.view')->whereNumber('id');
-        Route::post('/supplier-debit-notes/{id}/post', [SupplierDebitNoteController::class, 'post'])->middleware('permission:finance.supplier-debit-notes.post')->whereNumber('id');
-        Route::post('/supplier-debit-notes/{id}/submit', [SupplierDebitNoteController::class, 'submit'])->middleware('permission:finance.supplier-debit-notes.submit')->whereNumber('id');
-        Route::post('/supplier-debit-notes/{id}/approve', [SupplierDebitNoteController::class, 'approve'])->middleware('permission:finance.supplier-debit-notes.approve')->whereNumber('id');
-        Route::post('/supplier-debit-notes/{id}/reject', [SupplierDebitNoteController::class, 'reject'])->middleware('permission:finance.supplier-debit-notes.approve')->whereNumber('id');
-        Route::post('/supplier-debit-notes/{id}/cancel', [SupplierDebitNoteController::class, 'cancel'])->middleware('permission:finance.supplier-debit-notes.cancel')->whereNumber('id');
 
         Route::get('/customers', [CustomerController::class, 'index'])->middleware('permission:finance.customers.view');
         Route::post('/customers', [CustomerController::class, 'store'])->middleware('permission:finance.customers.create');

@@ -209,7 +209,7 @@ return [
     'register_url' => false,
     'password_reset_url' => 'password/reset',
     'password_email_url' => 'password/email',
-    'profile_url' => false,
+    'profile_url' => 'profile',
 
     /*
     |--------------------------------------------------------------------------
@@ -801,43 +801,154 @@ return [
             'type' => 'sidebar-menu-search',
             'text' => 'search',
         ],
+        ['text' => 'Home', 'url' => 'dashboard', 'icon' => 'bi bi-house'],
+        ['text' => 'Approvals', 'url' => 'workflows', 'icon' => 'bi bi-inbox', 'can' => 'core.workflow.view'],
+        ['text' => 'Notifications', 'url' => 'notifications', 'icon' => 'bi bi-bell', 'can' => 'core.notifications.view'],
+
+        ['header' => 'FINANCE'],
         [
-            'text' => 'User Management',
+            'text' => 'Sales & Receivables',
+            'icon' => 'bi bi-graph-up-arrow',
+            'submenu' => [
+                ['text' => 'Customers', 'url' => 'finance/customers', 'icon' => 'bi bi-people', 'can' => 'finance.customers.view'],
+                ['text' => 'Customer Invoices', 'url' => 'finance/customer-invoices', 'icon' => 'bi bi-receipt', 'can' => 'finance.customer-invoices.view'],
+                ['text' => 'Credit Notes', 'url' => 'finance/customer-credit-notes', 'icon' => 'bi bi-arrow-counterclockwise', 'can' => 'finance.customer-credit-notes.view'],
+                ['text' => 'Receipts', 'url' => 'finance/receipts', 'icon' => 'bi bi-cash-coin', 'can' => 'finance.receipts.view'],
+                ['text' => 'Customer Statements', 'url' => 'finance/customer-statements', 'icon' => 'bi bi-file-earmark-person', 'can' => 'finance.customers.view'],
+                ['text' => 'Receivables Ageing', 'url' => 'finance/ar-aging', 'icon' => 'bi bi-hourglass-split', 'can' => 'finance.reports.view'],
+            ],
+        ],
+        [
+            'text' => 'Purchasing & Payables',
+            'icon' => 'bi bi-bag',
+            'submenu' => [
+                ['text' => 'Suppliers', 'url' => 'finance/suppliers', 'icon' => 'bi bi-truck', 'can' => 'finance.suppliers.view'],
+                ['text' => 'Supplier Invoices', 'url' => 'finance/supplier-invoices', 'icon' => 'bi bi-file-earmark-text', 'can' => 'finance.supplier-invoices.view'],
+                ['text' => 'Supplier Credit Notes', 'url' => 'finance/supplier-credit-notes', 'icon' => 'bi bi-file-earmark-minus', 'can' => 'finance.supplier-credit-notes.view'],
+                ['text' => 'Payments', 'url' => 'finance/payments', 'icon' => 'bi bi-send', 'can' => 'finance.payments.view'],
+                ['text' => 'Supplier Statements', 'url' => 'finance/supplier-statements', 'icon' => 'bi bi-file-earmark-person', 'can' => 'finance.suppliers.view'],
+                ['text' => 'Payables Ageing', 'url' => 'finance/ap-aging', 'icon' => 'bi bi-hourglass-split', 'can' => 'finance.reports.view'],
+            ],
+        ],
+        [
+            'text' => 'Cash & Bank',
+            'icon' => 'bi bi-bank',
+            'submenu' => [
+                ['text' => 'Bank Accounts', 'url' => 'finance/bank-accounts', 'icon' => 'bi bi-building', 'can' => 'finance.bank-accounts.view'],
+                ['text' => 'Cash Accounts', 'url' => 'finance/cash-accounts', 'icon' => 'bi bi-wallet2', 'can' => 'finance.cash-accounts.view'],
+                ['text' => 'Bank Receipts', 'url' => 'finance/bank-receipts', 'icon' => 'bi bi-arrow-down-circle', 'can' => 'finance.bank-transactions.view'],
+                ['text' => 'Bank Payments', 'url' => 'finance/bank-payments', 'icon' => 'bi bi-arrow-up-circle', 'can' => 'finance.bank-transactions.view'],
+                ['text' => 'Reconciliation', 'url' => 'finance/bank-reconciliation', 'icon' => 'bi bi-check2-square', 'can' => 'finance.bank-reconciliation.view'],
+                ['text' => 'Bank Book', 'url' => 'finance/reports/bank-book', 'icon' => 'bi bi-journal', 'can' => 'finance.reports.view'],
+                ['text' => 'Cash Book', 'url' => 'finance/reports/cash-book', 'icon' => 'bi bi-journal', 'can' => 'finance.reports.view'],
+            ],
+        ],
+        [
+            'text' => 'General Ledger',
+            'icon' => 'bi bi-journal-text',
+            'submenu' => [
+                ['text' => 'New Journal', 'url' => 'finance/journals/create', 'icon' => 'bi bi-plus-circle', 'can' => 'finance.journals.create'],
+                ['text' => 'Journals', 'url' => 'finance/journals', 'icon' => 'bi bi-list-ul', 'can' => 'finance.journals.view'],
+                ['text' => 'Recurring Journals', 'url' => 'finance/recurring-journals', 'icon' => 'bi bi-arrow-repeat', 'can' => 'finance.recurring-journals.view'],
+                ['text' => 'Chart of Accounts', 'url' => 'finance/accounts', 'icon' => 'bi bi-diagram-3', 'can' => 'finance.accounts.view'],
+                ['text' => 'FX Revaluation', 'url' => 'finance/fx-revaluations', 'icon' => 'bi bi-currency-exchange', 'can' => 'finance.fx-revaluation.view'],
+                ['text' => 'Periods & Year End', 'url' => 'periods', 'icon' => 'bi bi-calendar-range', 'can' => 'core.periods.view'],
+            ],
+        ],
+        [
+            'text' => 'Tax',
+            'icon' => 'bi bi-percent',
+            'submenu' => [
+                ['text' => 'Tax Return', 'url' => 'finance/tax-return', 'icon' => 'bi bi-file-earmark-text', 'can' => 'finance.reports.view'],
+                ['text' => 'Tax Codes', 'url' => 'finance/taxes', 'icon' => 'bi bi-list-ul', 'can' => 'finance.taxes.view'],
+                ['text' => 'Tax Rules', 'url' => 'finance/tax-rules', 'icon' => 'bi bi-signpost', 'can' => 'finance.taxes.view'],
+            ],
+        ],
+        [
+            'text' => 'Group',
+            'icon' => 'bi bi-diagram-2',
+            'submenu' => [
+                ['text' => 'Intercompany', 'url' => 'finance/intercompany', 'icon' => 'bi bi-arrow-left-right', 'can' => 'finance.intercompany.view'],
+                ['text' => 'Consolidation', 'url' => 'finance/consolidation', 'icon' => 'bi bi-diagram-2', 'can' => 'finance.consolidation.view'],
+            ],
+        ],
+        [
+            'text' => 'Planning',
+            'icon' => 'bi bi-bullseye',
+            'submenu' => [
+                ['text' => 'Budgets', 'url' => 'finance/budgets', 'icon' => 'bi bi-list-check', 'can' => 'finance.budgets.view'],
+                ['text' => 'Budget vs Actual', 'url' => 'finance/budget-vs-actual', 'icon' => 'bi bi-bar-chart', 'can' => 'finance.reports.view'],
+                ['text' => 'Management Reports', 'url' => 'finance/reports/management', 'icon' => 'bi bi-clipboard-data', 'can' => 'finance.reports.view'],
+            ],
+        ],
+        [
+            'text' => 'Reports',
+            'icon' => 'bi bi-bar-chart-line',
+            'submenu' => [
+                ['text' => 'Trial Balance', 'url' => 'finance/reports/trial-balance', 'icon' => 'bi bi-table', 'can' => 'finance.reports.view'],
+                ['text' => 'Profit & Loss', 'url' => 'finance/reports/profit-loss', 'icon' => 'bi bi-graph-up', 'can' => 'finance.reports.view'],
+                ['text' => 'Balance Sheet', 'url' => 'finance/reports/balance-sheet', 'icon' => 'bi bi-card-checklist', 'can' => 'finance.reports.view'],
+                ['text' => 'Cash Flow', 'url' => 'finance/reports/cash-flow', 'icon' => 'bi bi-water', 'can' => 'finance.reports.view'],
+                ['text' => 'General Ledger', 'url' => 'finance/reports/general-ledger', 'icon' => 'bi bi-book', 'can' => 'finance.ledger.view'],
+                ['text' => 'Payment Register', 'url' => 'finance/reports/payment-register', 'icon' => 'bi bi-list-columns', 'can' => 'finance.reports.view'],
+                ['text' => 'Receipt Register', 'url' => 'finance/reports/receipt-register', 'icon' => 'bi bi-list-columns', 'can' => 'finance.reports.view'],
+            ],
+        ],
+
+        ['header' => 'SETTINGS'],
+        [
+            'text' => 'Users & Access',
             'icon' => 'bi bi-people',
             'submenu' => [
                 ['text' => 'Users', 'url' => 'users', 'icon' => 'bi bi-person', 'can' => 'core.users.view'],
-            ],
-        ],
-        [
-            'text' => 'Authorization',
-            'icon' => 'bi bi-shield-lock',
-            'submenu' => [
                 ['text' => 'Roles', 'url' => 'roles', 'icon' => 'bi bi-shield-check', 'can' => 'core.roles.view'],
                 ['text' => 'Permissions', 'url' => 'permissions', 'icon' => 'bi bi-key', 'can' => 'core.permissions.view'],
+                ['text' => 'Approval Workflows', 'url' => 'workflows/definitions', 'icon' => 'bi bi-diagram-3', 'can' => 'core.workflow.manage'],
             ],
         ],
         [
-            'text' => 'Company Context',
-            'icon' => 'bi bi-building',
+            'text' => 'Security & Audit',
+            'icon' => 'bi bi-shield-lock',
+            'submenu' => [
+                ['text' => 'Audit Logs', 'url' => 'audit', 'icon' => 'bi bi-journal-check', 'can' => 'core.audit.view'],
+                ['text' => 'Activity Logs', 'url' => 'security/activity', 'icon' => 'bi bi-activity', 'can' => 'core.activity-logs.view'],
+                ['text' => 'Security Events', 'url' => 'security/events', 'icon' => 'bi bi-exclamation-shield', 'can' => 'core.security-events.view'],
+                ['text' => 'Login History', 'url' => 'security/logins', 'icon' => 'bi bi-box-arrow-in-right', 'can' => 'core.login-history.view'],
+            ],
+        ],
+        [
+            'text' => 'System',
+            'icon' => 'bi bi-cpu',
+            'submenu' => [
+                ['text' => 'System Health', 'url' => 'system/health', 'icon' => 'bi bi-heart-pulse', 'can' => 'core.system.view'],
+                ['text' => 'Queue Monitor', 'url' => 'system/queue', 'icon' => 'bi bi-stack', 'can' => 'core.system.view'],
+                ['text' => 'Scheduled Jobs', 'url' => 'system/schedule', 'icon' => 'bi bi-clock-history', 'can' => 'core.system.view'],
+                ['text' => 'About', 'url' => 'system/about', 'icon' => 'bi bi-info-circle', 'can' => 'core.system.view'],
+            ],
+        ],
+        [
+            'text' => 'Organisation',
+            'icon' => 'bi bi-buildings',
             'submenu' => [
                 ['text' => 'Companies', 'url' => 'companies', 'icon' => 'bi bi-building', 'can' => 'core.companies.view'],
                 ['text' => 'Branches', 'url' => 'branches', 'icon' => 'bi bi-shop', 'can' => 'core.branches.view'],
                 ['text' => 'Departments', 'url' => 'departments', 'icon' => 'bi bi-diagram-3', 'can' => 'core.departments.view'],
+                ['text' => 'Cost Centers', 'url' => 'finance/cost-centers', 'icon' => 'bi bi-pie-chart', 'can' => 'finance.costcenters.view'],
             ],
         ],
         [
-            'text' => 'Administration',
-            'icon' => 'bi bi-gear',
+            'text' => 'Finance Setup',
+            'icon' => 'bi bi-sliders',
             'submenu' => [
-                ['header' => 'Financial Setup'],
+                ['text' => 'Account Determination', 'url' => 'finance/account-mappings', 'icon' => 'bi bi-signpost-split', 'can' => 'finance.accounts.view'],
+                ['text' => 'Data Import', 'url' => 'finance/imports', 'icon' => 'bi bi-upload', 'can' => 'finance.data-import.use'],
+                ['text' => 'Number Series', 'url' => 'finance/number-series', 'icon' => 'bi bi-123', 'can' => 'finance.number-series.view'],
+                ['text' => 'Payment Terms', 'url' => 'finance/payment-terms', 'icon' => 'bi bi-calendar-check', 'can' => 'finance.payment-terms.view'],
                 ['text' => 'Exchange Rates', 'url' => 'exchange-rates', 'icon' => 'bi bi-currency-exchange', 'can' => 'core.exchange-rates.view'],
-                ['text' => 'Accounting Periods', 'url' => 'periods', 'icon' => 'bi bi-calendar-range', 'can' => 'core.periods.view'],
-                ['text' => 'Workflow', 'url' => 'workflows', 'icon' => 'bi bi-diagram-3', 'can' => 'core.workflow.view'],
-                ['header' => 'Audit & Compliance'],
-                ['text' => 'Audit Logs', 'url' => 'audit', 'icon' => 'bi bi-journal-text', 'can' => 'core.audit.view'],
-                ['text' => 'Notifications', 'icon' => 'bi bi-bell', 'url' => 'notifications', 'can' => 'core.notifications.view'],
             ],
         ],
+
+        // Planned modules (not built yet):
         // ============================================================
         // ERP CORE MODULES - Uncomment as you implement them
         // ============================================================
@@ -905,291 +1016,21 @@ return [
         //         ['text' => 'Tasks', 'url' => 'projects/tasks', 'icon' => 'bi bi-check2-square'],
         //     ],
         // ],
-
         // ============================================================
         // FINANCE MODULE
         // ============================================================
-        [
-            'text' => 'FINANCE',
-            'icon' => 'bi bi-calculator',
-            'submenu' => [
-                // Dashboard Menu
-                [
-                    'text' => 'Dashboard',
-                    'url' => 'finance/dashboard', 'can' => 'finance.dashboard.view',
-                    'icon' => 'bi bi-speedometer',
-                ],
-                // Chart of Accounts
-                [
-                    'text' => 'Chart of Accounts',
-                    'url' => 'finance/accounts', 'can' => 'finance.accounts.view',
-                    'icon' => 'bi bi-diagram-3',
-                ],
-                [
-                    'text' => 'Intercompany',
-                    'url' => 'finance/intercompany', 'can' => 'finance.intercompany.view',
-                    'icon' => 'bi bi-arrow-left-right',
-                ],
-                [
-                    'text' => 'Consolidation',
-                    'url' => 'finance/consolidation', 'can' => 'finance.consolidation.view',
-                    'icon' => 'bi bi-diagram-2',
-                ],
-                [
-                    'text' => 'FX Revaluation',
-                    'url' => 'finance/fx-revaluations', 'can' => 'finance.fx-revaluation.view',
-                    'icon' => 'bi bi-currency-exchange',
-                ],
-                [
-                    'text' => 'Account Determination',
-                    'url' => 'finance/account-mappings', 'can' => 'finance.accounts.view',
-                    'icon' => 'bi bi-signpost-split',
-                ],
-                // Journals
-                [
-                    'text' => 'Journals',
-                    'icon' => 'bi bi-journal-text',
-                    'submenu' => [
-                        [
-                            'text' => 'Journal Entry',
-                            'url' => 'finance/journals/create', 'can' => 'finance.journals.create',
-                            'icon' => 'bi bi-plus-circle',
-                        ],
-                        [
-                            'text' => 'Journal Register',
-                            'url' => 'finance/journals', 'can' => 'finance.journals.view',
-                            'icon' => 'bi bi-list-ul',
-                        ],
-                        [
-                            'text' => 'Recurring Journals',
-                            'url' => 'finance/recurring-journals', 'can' => 'finance.recurring-journals.view',
-                            'icon' => 'bi bi-arrow-repeat',
-                        ],
-                    ],
-                ],
+        // Dashboard Menu
+        // Chart of Accounts
+        // Journals
+        // General Ledger
+        // Accounts Payable
+        // Accounts Receivable
+        // Cash & Bank
+        // Budget
+        // Tax
+        // Cost Centers
+        // Reports
 
-                // General Ledger
-                [
-                    'text' => 'General Ledger',
-                    'url' => 'finance/general-ledger', 'can' => 'finance.ledger.view',
-                    'icon' => 'bi bi-book',
-                ],
-
-                // Accounts Payable
-                [
-                    'text' => 'Accounts Payable',
-                    'icon' => 'bi bi-cart-dash',
-                    'submenu' => [
-                        [
-                            'text' => 'Suppliers',
-                            'url' => 'finance/suppliers', 'can' => 'finance.suppliers.view',
-                            'icon' => 'bi bi-people',
-                        ],
-                        [
-                            'text' => 'Supplier Invoices',
-                            'url' => 'finance/supplier-invoices', 'can' => 'finance.supplier-invoices.view',
-                            'icon' => 'bi bi-file-text',
-                        ],
-                        [
-                            'text' => 'Supplier Credit Notes',
-                            'url' => 'finance/supplier-credit-notes',
-                            'icon' => 'bi bi-file-earmark-minus',
-                            'can' => 'finance.suppliers.view',
-                        ],
-                        [
-                            'text' => 'Supplier Debit Notes',
-                            'url' => 'finance/supplier-debit-notes',
-                            'icon' => 'bi bi-file-earmark-plus',
-                            'can' => 'finance.suppliers.view',
-                        ],
-                        [
-                            'text' => 'Payments',
-                            'url' => 'finance/payments', 'can' => 'finance.payments.view',
-                            'icon' => 'bi bi-cash-stack',
-                        ],
-                        [
-                            'text' => 'AP Aging',
-                            'url' => 'finance/ap-aging', 'can' => 'finance.reports.view',
-                            'icon' => 'bi bi-clock-history',
-                        ],
-                    ],
-                ],
-
-                // Accounts Receivable
-                [
-                    'text' => 'Accounts Receivable',
-                    'icon' => 'bi bi-cart-plus',
-                    'submenu' => [
-                        [
-                            'text' => 'Customers',
-                            'url' => 'finance/customers', 'can' => 'finance.customers.view',
-                            'icon' => 'bi bi-people',
-                        ],
-                        [
-                            'text' => 'Customer Invoices',
-                            'url' => 'finance/customer-invoices', 'can' => 'finance.customer-invoices.view',
-                            'icon' => 'bi bi-file-text',
-                        ],
-                        [
-                            'text' => 'Receipts',
-                            'url' => 'finance/receipts', 'can' => 'finance.receipts.view',
-                            'icon' => 'bi bi-cash-stack',
-                        ],
-                        [
-                            'text' => 'AR Aging',
-                            'url' => 'finance/ar-aging', 'can' => 'finance.reports.view',
-                            'icon' => 'bi bi-clock-history',
-                        ],
-                    ],
-                ],
-
-                // Cash & Bank
-                [
-                    'text' => 'Cash & Bank',
-                    'icon' => 'bi bi-bank',
-                    'submenu' => [
-                        [
-                            'text' => 'Cash Accounts',
-                            'url' => 'finance/cash-accounts', 'can' => 'finance.cash-accounts.view',
-                            'icon' => 'bi bi-wallet2',
-                        ],
-                        [
-                            'text' => 'Bank Accounts',
-                            'url' => 'finance/bank-accounts', 'can' => 'finance.bank-accounts.view',
-                            'icon' => 'bi bi-building',
-                        ],
-                        [
-                            'text' => 'Bank Receipts',
-                            'url' => 'finance/bank-receipts', 'can' => 'finance.bank-transactions.view',
-                            'icon' => 'bi bi-arrow-down-circle',
-                        ],
-                        [
-                            'text' => 'Bank Payments',
-                            'url' => 'finance/bank-payments', 'can' => 'finance.bank-transactions.view',
-                            'icon' => 'bi bi-arrow-up-circle',
-                        ],
-                        [
-                            'text' => 'Reconciliation',
-                            'url' => 'finance/bank-reconciliation', 'can' => 'finance.bank-reconciliation.view',
-                            'icon' => 'bi bi-check2-square',
-                        ],
-                    ],
-                ],
-
-                // Budget
-                [
-                    'text' => 'Budget',
-                    'icon' => 'bi bi-calculator',
-                    'submenu' => [
-                        [
-                            'text' => 'Budgets',
-                            'url' => 'finance/budgets',
-                            'icon' => 'bi bi-list-check',
-                            'can' => 'finance.budgets.view',
-                        ],
-                        [
-                            'text' => 'Budget vs Actual',
-                            'url' => 'finance/budget-vs-actual',
-                            'icon' => 'bi bi-bar-chart',
-                            'can' => 'finance.budgets.view',
-                        ],
-                    ],
-                ],
-
-                // Tax
-                [
-                    'text' => 'Tax',
-                    'icon' => 'bi bi-percent',
-                    'submenu' => [
-                        ['text' => 'Tax Codes', 'url' => 'finance/taxes', 'can' => 'finance.taxes.view', 'icon' => 'bi bi-list-ul'],
-                        ['text' => 'Tax Rules', 'url' => 'finance/tax-rules', 'can' => 'finance.taxes.view', 'icon' => 'bi bi-signpost'],
-                        ['text' => 'Tax Return', 'url' => 'finance/tax-return', 'can' => 'finance.reports.view', 'icon' => 'bi bi-file-earmark-text'],
-                    ],
-                ],
-
-                // Cost Centers
-                [
-                    'text' => 'Cost Centers',
-                    'url' => 'finance/cost-centers', 'can' => 'finance.costcenters.view',
-                    'icon' => 'bi bi-pie-chart',
-                ],
-
-                // Reports
-                [
-                    'text' => 'Reports',
-                    'icon' => 'bi bi-graph-up',
-                    'submenu' => [
-                        [
-                            'text' => 'General Ledger',
-                            'url' => 'finance/reports/general-ledger', 'can' => 'finance.ledger.view',
-                            'icon' => 'bi bi-book',
-                        ],
-                        [
-                            'text' => 'Trial Balance',
-                            'url' => 'finance/reports/trial-balance', 'can' => 'finance.reports.view',
-                            'icon' => 'bi bi-bar-chart-fill',
-                        ],
-                        [
-                            'text' => 'Profit & Loss',
-                            'url' => 'finance/reports/profit-loss', 'can' => 'finance.reports.view',
-                            'icon' => 'bi bi-graph-up',
-                        ],
-                        [
-                            'text' => 'Balance Sheet',
-                            'url' => 'finance/reports/balance-sheet', 'can' => 'finance.reports.view',
-                            'icon' => 'bi bi-card-checklist',
-                        ],
-                        [
-                            'text' => 'Cash Flow',
-                            'url' => 'finance/reports/cash-flow', 'can' => 'finance.reports.view',
-                            'icon' => 'bi bi-water',
-                        ],
-                        [
-                            'text' => 'AP Reports',
-                            'url' => 'finance/reports/ap', 'can' => 'finance.reports.view',
-                            'icon' => 'bi bi-cart-dash',
-                        ],
-                        [
-                            'text' => 'AR Reports',
-                            'url' => 'finance/reports/ar', 'can' => 'finance.reports.view',
-                            'icon' => 'bi bi-cart-plus',
-                        ],
-                        [
-                            'text' => 'Payment Register',
-                            'url' => 'finance/reports/payment-register', 'can' => 'finance.reports.view',
-                            'icon' => 'bi bi-cash-stack',
-                        ],
-                        [
-                            'text' => 'Receipt Register',
-                            'url' => 'finance/reports/receipt-register', 'can' => 'finance.reports.view',
-                            'icon' => 'bi bi-wallet2',
-                        ],
-                        [
-                            'text' => 'Cash Book',
-                            'url' => 'finance/reports/cash-book', 'can' => 'finance.reports.view',
-                            'icon' => 'bi bi-book',
-                        ],
-                        [
-                            'text' => 'Bank Book',
-                            'url' => 'finance/reports/bank-book', 'can' => 'finance.reports.view',
-                            'icon' => 'bi bi-bank',
-                        ],
-                        [
-                            'text' => 'Management Reports',
-                            'url' => 'finance/reports/management', 'can' => 'finance.reports.view',
-                            'icon' => 'bi bi-clipboard-data',
-                        ],
-                    ],
-                ],
-            ],
-        ],
-
-        ['header' => 'account_settings'],
-        [
-            'text' => 'profile',
-            'url' => 'profile',
-            'icon' => 'bi bi-person',
-        ],
     ],
 
     /*

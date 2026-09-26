@@ -5,6 +5,7 @@ namespace Modules\Finance\Services;
 use Carbon\Carbon;
 use Modules\Core\Services\DefaultAccountService;
 use Modules\Finance\Enums\AccountPurpose;
+use Modules\Finance\Enums\CashFlowCategory;
 use Modules\Finance\Exceptions\MissingAccountMappingException;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\Journal;
@@ -225,138 +226,129 @@ class FinancialReportService
         return bcsub($totalCredit, $totalDebit, 4);
     }
 
-    public function getDashboardData(int $companyId): array
-    {
-        $asOfDate = Carbon::now();
-
-        $assetAccounts = Account::where('company_id', $companyId)
-            ->whereIn('account_type', ['ASSET'])
-            ->postable()
-            ->get();
-
-        $revenueAccounts = Account::where('company_id', $companyId)
-            ->where('account_type', 'REVENUE')
-            ->postable()
-            ->get();
-
-        $expenseAccounts = Account::where('company_id', $companyId)
-            ->where('account_type', 'EXPENSE')
-            ->postable()
-            ->get();
-
-        $liabilityAccounts = Account::where('company_id', $companyId)
-            ->whereIn('account_type', ['LIABILITY'])
-            ->postable()
-            ->get();
-
-        $totalAssets = 0;
-        $totalRevenue = 0;
-        $totalExpenses = 0;
-        $totalLiabilities = 0;
-
-        foreach ($assetAccounts as $account) {
-            $totalAssets = bcadd($totalAssets, $this->getAccountBalance($account->id, null, $asOfDate, null), 4);
-        }
-
-        foreach ($revenueAccounts as $account) {
-            $totalRevenue = bcadd($totalRevenue, $this->getAccountBalance($account->id, null, $asOfDate, null), 4);
-        }
-
-        foreach ($expenseAccounts as $account) {
-            $totalExpenses = bcadd($totalExpenses, $this->getAccountBalance($account->id, null, $asOfDate, null), 4);
-        }
-
-        foreach ($liabilityAccounts as $account) {
-            $totalLiabilities = bcadd($totalLiabilities, $this->getAccountBalance($account->id, null, $asOfDate, null), 4);
-        }
-
-        [$cashAccount, $bankAccount, $receivableAccount, $payableAccount] = array_map(
-            fn (AccountPurpose $purpose) => $this->mappedAccount($companyId, $purpose),
-            [AccountPurpose::Cash, AccountPurpose::Bank, AccountPurpose::Receivable, AccountPurpose::Payable]
-        );
-
-        return [
-            'total_revenue' => $totalRevenue,
-            'total_expenses' => $totalExpenses,
-            'net_profit' => bcsub($totalRevenue, $totalExpenses, 4),
-            'total_assets' => $totalAssets,
-            'total_liabilities' => $totalLiabilities,
-            'total_equity' => bcsub($totalAssets, $totalLiabilities, 4),
-            'cash_balance' => $cashAccount ? $this->getAccountBalance($cashAccount->id, null, $asOfDate, null) : 0,
-            'bank_balance' => $bankAccount ? $this->getAccountBalance($bankAccount->id, null, $asOfDate, null) : 0,
-            'accounts_receivable' => $receivableAccount ? $this->getAccountBalance($receivableAccount->id, null, $asOfDate, null) : 0,
-            'accounts_payable' => $payableAccount ? $this->getAccountBalance($payableAccount->id, null, $asOfDate, null) : 0,
-        ];
-    }
-
+    /**
+     * Statement of cash flows (IAS 7, direct method). Every posted movement on a cash-and-equivalents account
+     * is classified by the account on the other side of the entry (its cash flow category, operating when
+     * unclassified). Revaluation of foreign-currency cash is shown separately as the effect of exchange rates.
+     *
+     * @return array{start_date: string, end_date: string, opening_cash: string, closing_cash: string, operating_activities: list<array{description: string, amount: string}>, investing_activities: list<array{description: string, amount: string}>, financing_activities: list<array{description: string, amount: string}>, operating_total: string, investing_total: string, financing_total: string, fx_effect: string, net_change: string, is_reconciled: bool}
+     */
     public function getCashFlow(int $companyId, ?Carbon $startDate = null, ?Carbon $endDate = null): array
     {
-        $startDate = $startDate ?: Carbon::now()->startOfMonth();
-        $endDate = $endDate ?: Carbon::now()->endOfMonth();
+        $startDate = ($startDate ?: Carbon::now()->startOfMonth())->copy()->startOfDay();
+        $endDate = ($endDate ?: Carbon::now()->endOfMonth())->copy()->startOfDay();
+        $cashAccountIds = $this->cashAccountIds($companyId);
 
-        $operatingActivities = [];
-        $investingActivities = [];
-        $financingActivities = [];
-
-        $operatingTotal = 0;
-        $investingTotal = 0;
-        $financingTotal = 0;
-
-        $journalLines = JournalLine::whereHas('journal', function ($q) use ($companyId, $startDate, $endDate) {
-            $q->where('company_id', $companyId)
-                ->whereIn('status', Journal::LEDGER_STATUSES)
-                ->whereBetween('journal_date', [$startDate, $endDate]);
-        })
-            ->with('account')
+        $journals = Journal::where('company_id', $companyId)
+            ->posted()
+            ->whereDate('journal_date', '>=', $startDate->toDateString())
+            ->whereDate('journal_date', '<=', $endDate->toDateString())
+            ->whereHas('lines', fn ($query) => $query->whereIn('account_id', $cashAccountIds))
+            ->with('lines.account')
             ->get();
 
-        foreach ($journalLines as $line) {
-            $amount = (float) $line->debit - (float) $line->credit;
-            $accountCode = $line->account->account_code ?? '';
+        $byCategory = ['operating' => [], 'investing' => [], 'financing' => []];
+        $fxEffect = '0.0000';
 
-            if (str_starts_with($accountCode, '1110') || str_starts_with($accountCode, '1120')) {
-                $operatingActivities[] = [
-                    'description' => $line->description ?? $line->account->account_name ?? 'Operating Activity',
-                    'amount' => $amount,
-                ];
-                $operatingTotal += $amount;
-            } elseif (str_starts_with($accountCode, '1200') || str_starts_with($accountCode, '1300')) {
-                $investingActivities[] = [
-                    'description' => $line->description ?? $line->account->account_name ?? 'Investing Activity',
-                    'amount' => $amount,
-                ];
-                $investingTotal += $amount;
-            } elseif (str_starts_with($accountCode, '2100') || str_starts_with($accountCode, '2200')) {
-                $financingActivities[] = [
-                    'description' => $line->description ?? $line->account->account_name ?? 'Financing Activity',
-                    'amount' => $amount,
-                ];
-                $financingTotal += $amount;
+        foreach ($journals as $journal) {
+            $cashLines = $journal->lines->filter(fn (JournalLine $line) => in_array((int) $line->account_id, $cashAccountIds, true));
+            $cashMovement = $cashLines->reduce(fn (string $total, JournalLine $line) => bcadd($total, bcsub((string) $line->debit, (string) $line->credit, 4), 4), '0.0000');
+
+            if ($cashLines->contains(fn (JournalLine $line) => $line->line_type === JournalLine::TYPE_FX_REVALUATION)) {
+                $fxEffect = bcadd($fxEffect, $cashMovement, 4);
+
+                continue;
+            }
+
+            if (bccomp($cashMovement, '0', 4) === 0) {
+                continue;
+            }
+
+            foreach ($journal->lines->reject(fn (JournalLine $line) => in_array((int) $line->account_id, $cashAccountIds, true)) as $line) {
+                $category = match ($line->account?->cash_flow_category) {
+                    CashFlowCategory::Investing => 'investing',
+                    CashFlowCategory::Financing => 'financing',
+                    default => 'operating',
+                };
+                $description = trim(($line->account?->account_code ?? '').' '.($line->account?->account_name ?? ''));
+                $byCategory[$category][$description] = bcadd($byCategory[$category][$description] ?? '0.0000', bcsub((string) $line->credit, (string) $line->debit, 4), 4);
             }
         }
 
+        $activities = [];
+        $totals = [];
+        foreach ($byCategory as $category => $amounts) {
+            ksort($amounts);
+            $activities[$category] = collect($amounts)
+                ->reject(fn (string $amount) => bccomp($amount, '0', 4) === 0)
+                ->map(fn (string $amount, string $description) => ['description' => $description, 'amount' => $amount])
+                ->values()
+                ->all();
+            $totals[$category] = array_reduce($amounts, fn (string $total, string $amount) => bcadd($total, $amount, 4), '0.0000');
+        }
+
+        $openingCash = $this->cashBalance($cashAccountIds, $startDate->copy()->subDay());
+        $closingCash = $this->cashBalance($cashAccountIds, $endDate);
+        $netChange = bcadd(bcadd(bcadd($totals['operating'], $totals['investing'], 4), $totals['financing'], 4), $fxEffect, 4);
+
         return [
-            'start_date' => $startDate->format('Y-m-d'),
-            'end_date' => $endDate->format('Y-m-d'),
-            'operating_activities' => $operatingActivities,
-            'investing_activities' => $investingActivities,
-            'financing_activities' => $financingActivities,
-            'operating_total' => $operatingTotal,
-            'investing_total' => $investingTotal,
-            'financing_total' => $financingTotal,
-            'net_change' => $operatingTotal + $investingTotal + $financingTotal,
+            'start_date' => $startDate->toDateString(),
+            'end_date' => $endDate->toDateString(),
+            'opening_cash' => $openingCash,
+            'closing_cash' => $closingCash,
+            'operating_activities' => $activities['operating'],
+            'investing_activities' => $activities['investing'],
+            'financing_activities' => $activities['financing'],
+            'operating_total' => $totals['operating'],
+            'investing_total' => $totals['investing'],
+            'financing_total' => $totals['financing'],
+            'fx_effect' => $fxEffect,
+            'net_change' => $netChange,
+            'is_reconciled' => bccomp(bcadd($openingCash, $netChange, 4), $closingCash, 4) === 0,
         ];
     }
 
     /**
-     * The account determined for the purpose, or null when the company has not mapped one.
+     * Accounts classified as cash and cash equivalents, or the mapped cash and bank accounts when none are classified.
+     *
+     * @return list<int>
      */
-    protected function mappedAccount(int $companyId, AccountPurpose $purpose): ?Account
+    protected function cashAccountIds(int $companyId): array
     {
-        try {
-            return Account::find(app(DefaultAccountService::class)->forPurpose($companyId, $purpose));
-        } catch (MissingAccountMappingException) {
-            return null;
+        $classified = Account::where('company_id', $companyId)
+            ->where('cash_flow_category', CashFlowCategory::CashAndEquivalents)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        if ($classified !== []) {
+            return $classified;
         }
+
+        return collect([AccountPurpose::Cash, AccountPurpose::Bank])
+            ->map(function (AccountPurpose $purpose) use ($companyId) {
+                try {
+                    return app(DefaultAccountService::class)->forPurpose($companyId, $purpose);
+                } catch (MissingAccountMappingException) {
+                    return null;
+                }
+            })
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  list<int>  $accountIds
+     */
+    protected function cashBalance(array $accountIds, Carbon $asOf): string
+    {
+        $totals = JournalLine::whereIn('account_id', $accountIds)
+            ->whereHas('journal', fn ($query) => $query->posted()->whereDate('journal_date', '<=', $asOf->toDateString()))
+            ->selectRaw('COALESCE(SUM(debit), 0) as total_debit, COALESCE(SUM(credit), 0) as total_credit')
+            ->first();
+
+        return bcsub((string) $totals->total_debit, (string) $totals->total_credit, 4);
     }
 }

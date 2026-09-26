@@ -3,17 +3,20 @@
 namespace Modules\Finance\Models;
 
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Core\Concerns\HasAttachments;
 use Modules\Core\Models\Company;
 use Modules\Core\Models\Currency;
+use Modules\Core\Services\CompanyContextService;
 use Modules\Finance\Scopes\BranchScope;
 
 class SupplierInvoice extends Model
 {
-    use BelongsToCompany;
+    use BelongsToCompany, HasAttachments;
 
     protected $fillable = [
         'company_id',
@@ -141,6 +144,14 @@ class SupplierInvoice extends Model
         return bccomp($this->outstanding_amount, 0, 4) === 0;
     }
 
+    /**
+     * Credit notes received against this invoice.
+     */
+    public function creditNotes(): HasMany
+    {
+        return $this->hasMany(SupplierCreditNote::class);
+    }
+
     public function getPaidAmount(): float
     {
         return (float) bcsub($this->total_amount, $this->outstanding_amount, 4);
@@ -151,8 +162,11 @@ class SupplierInvoice extends Model
         $paidAmount = $this->allocations()
             ->whereHas('payment', fn ($q) => $q->where('status', 'POSTED'))
             ->sum('amount');
+        $creditedAmount = $this->creditNotes()
+            ->where('status', SupplierCreditNote::STATUS_POSTED)
+            ->sum('applied_amount');
 
-        $this->outstanding_amount = (float) bcsub($this->total_amount, $paidAmount, 4);
+        $this->outstanding_amount = (float) bcsub(bcsub((string) $this->total_amount, (string) $paidAmount, 4), (string) $creditedAmount, 4);
 
         if (bccomp($this->outstanding_amount, 0, 4) <= 0) {
             $this->status = self::STATUS_PAID;
@@ -162,13 +176,18 @@ class SupplierInvoice extends Model
         }
     }
 
-    public function getDaysOutstanding(): int
+    /**
+     * Days past the due date at the given date (the company's business date by default); 0 when not yet due or paid.
+     */
+    public function getDaysOutstanding(?CarbonInterface $asOf = null): int
     {
         if ($this->isPaid()) {
             return 0;
         }
 
-        return (int) abs(now()->diffInDays($this->due_date));
+        $asOf ??= app(CompanyContextService::class)->today();
+
+        return max(0, (int) $this->due_date->copy()->startOfDay()->diffInDays($asOf->copy()->startOfDay(), false));
     }
 
     public function scopePending($query)

@@ -2,15 +2,18 @@
 
 namespace Modules\Finance\Services;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
+use Modules\Core\Services\ApprovalNotifier;
 use Modules\Core\Services\AuditService;
 use Modules\Core\Services\CompanyContextService;
-use Modules\Core\Support\Money;
 use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
+use Modules\Core\Support\Formatter;
 use Modules\Finance\Events\CustomerInvoiceApproved;
+use Modules\Finance\Models\Customer;
 use Modules\Finance\Models\CustomerInvoice;
 use Modules\Finance\Services\Concerns\EnforcesSegregationOfDuties;
 use Modules\Workflow\Services\WorkflowService;
@@ -33,7 +36,7 @@ class CustomerInvoiceService
                 'customer_id' => $data['customer_id'],
                 'invoice_number' => $data['invoice_number'] ?? $this->documentNumber->generateNumber($data['company_id'], 'CI'),
                 'invoice_date' => $data['invoice_date'],
-                'due_date' => $data['due_date'],
+                'due_date' => $data['due_date'] ?? Customer::findOrFail($data['customer_id'])->dueDateFor(Carbon::parse($data['invoice_date']))->toDateString(),
                 'currency_id' => $data['currency_id'] ?? null,
                 'exchange_rate' => $data['exchange_rate'] ?? app(ExchangeRateService::class)->rateForDocument(app(CompanyContextService::class)->getActiveCompanyId(), $data['currency_id'] ?? null, $data['invoice_date']),
                 'subtotal' => 0,
@@ -46,7 +49,6 @@ class CustomerInvoiceService
                 'created_by' => Auth::id(),
             ]);
 
-
             foreach ($data['lines'] ?? [] as $lineData) {
                 $invoice->lines()->create([
                     'account_id' => $lineData['account_id'],
@@ -57,8 +59,6 @@ class CustomerInvoiceService
                     'tax_id' => $lineData['tax_id'] ?? null,
                     'supply_type' => $lineData['supply_type'] ?? null,
                     'is_reverse_charge' => (bool) ($lineData['is_reverse_charge'] ?? false),
-                'supply_type' => $lineData['supply_type'] ?? null,
-                'is_reverse_charge' => (bool) ($lineData['is_reverse_charge'] ?? false),
                     'tax_amount' => 0,
                     'discount_amount' => $lineData['discount_amount'] ?? 0,
                     'total_amount' => 0,
@@ -102,41 +102,11 @@ class CustomerInvoiceService
             $company = $invoice->company;
 
             $documentTax = app(DocumentTaxService::class);
-            $calculations = $documentTax->calculations($invoice);
-            $currency = $invoice->currency?->code ?? $company->baseCurrency?->code ?? 'XXX';
-            $receivable = Money::zero($currency);
-            $journalLines = [];
-
-            foreach ($invoice->lines as $line) {
-                $calculation = $calculations[$line->id];
-
-                $journalLines[] = [
-                    'account_id' => $line->account_id,
-                    'description' => $line->description,
-                    'debit' => 0,
-                    'credit' => $calculation->net->amount,
-                ];
-
-                if (! $line->is_reverse_charge) {
-                    foreach ($calculation->components as $component) {
-                        $journalLines[] = [
-                            'account_id' => $documentTax->requireAccount($component->tax->output_account_id, $component->tax->tax_code, 'output'),
-                            'description' => "Output {$component->tax->tax_code} on {$line->description}",
-                            'debit' => 0,
-                            'credit' => $component->amount->amount,
-                        ];
-                    }
-                }
-
-                $receivable = $receivable->plus($line->is_reverse_charge ? $calculation->net : $calculation->gross());
-            }
-
-            array_unshift($journalLines, [
-                'account_id' => $customer->receivable_account_id ?? $this->getDefaultReceivableAccount($company->id),
-                'description' => "Invoice {$invoice->invoice_number} to {$customer->name}",
-                'debit' => $receivable->amount,
-                'credit' => 0,
-            ]);
+            $journalLines = app(DocumentJournalBuilder::class)->sales(
+                $invoice,
+                $customer->receivable_account_id ?? $this->getDefaultReceivableAccount($company->id),
+                "Invoice {$invoice->invoice_number} to {$customer->name}",
+            )['lines'];
 
             $journal = $this->journalService->postFromSource([
                 'company_id' => $invoice->company_id,
@@ -180,6 +150,8 @@ class CustomerInvoiceService
             throw new InvalidAccountingTransactionException('Only draft invoices can be submitted');
         }
 
+        $this->ensureWithinCreditLimit($invoice);
+
         $invoice->update(['status' => CustomerInvoice::STATUS_SUBMITTED]);
 
         $this->audit->logCustom('Finance', 'CustomerInvoice', $invoice->id, 'SUBMIT', [
@@ -195,6 +167,8 @@ class CustomerInvoiceService
         } catch (\Throwable $e) {
             // Workflow definitions may not be seeded yet
         }
+
+        app(ApprovalNotifier::class)->documentSubmitted($invoice->company_id, 'finance.customer-invoices.approve', __('Customer invoice'), $invoice->invoice_number, route('finance.customer-invoices.show', $invoice->id), (string) $invoice->total_amount, $invoice->currency?->code);
 
         return $invoice->fresh();
     }
@@ -288,9 +262,9 @@ class CustomerInvoiceService
 
         $invoice->update([
             'customer_id' => $data['customer_id'],
-            'invoice_number' => $data['invoice_number'],
+            'invoice_number' => $data['invoice_number'] ?? $invoice->invoice_number,
             'invoice_date' => $data['invoice_date'],
-            'due_date' => $data['due_date'],
+            'due_date' => $data['due_date'] ?? Customer::findOrFail($data['customer_id'])->dueDateFor(Carbon::parse($data['invoice_date']))->toDateString(),
             'currency_id' => $data['currency_id'] ?? null,
             'exchange_rate' => $data['exchange_rate'] ?? app(ExchangeRateService::class)->rateForDocument(app(CompanyContextService::class)->getActiveCompanyId(), $data['currency_id'] ?? null, $data['invoice_date']),
             'discount_amount' => $data['discount_amount'] ?? 0,
@@ -298,7 +272,6 @@ class CustomerInvoiceService
         ]);
 
         $invoice->lines()->delete();
-
 
         foreach ($data['lines'] ?? [] as $lineData) {
             $invoice->lines()->create([
@@ -320,5 +293,38 @@ class CustomerInvoiceService
         app(DocumentTaxService::class)->recalculate($invoice);
 
         return $invoice->fresh();
+    }
+
+    /**
+     * Refuse (or, in "warn" mode, flag) an invoice that takes the customer's open receivables above their credit
+     * limit. Amounts are compared in the functional currency.
+     */
+    public function ensureWithinCreditLimit(CustomerInvoice $invoice): void
+    {
+        $mode = config('finance.controls.credit_limit', 'block');
+        $customer = $invoice->customer;
+
+        if ($mode === 'off' || $customer?->credit_limit === null) {
+            return;
+        }
+
+        $open = app(ReceiptService::class)->getARAging((int) $invoice->company_id, $customer->id)['total'];
+        $exposure = bcadd($open, bcmul((string) $invoice->total_amount, (string) ($invoice->exchange_rate ?: 1), 4), 4);
+
+        if (bccomp($exposure, (string) $customer->credit_limit, 4) <= 0) {
+            return;
+        }
+
+        $message = __(':customer would owe :exposure, above the credit limit of :limit.', [
+            'customer' => $customer->name,
+            'exposure' => Formatter::amount($exposure),
+            'limit' => Formatter::amount($customer->credit_limit),
+        ]);
+
+        if ($mode === 'block') {
+            throw new InvalidAccountingTransactionException($message);
+        }
+
+        session()->flash('warning', $message);
     }
 }

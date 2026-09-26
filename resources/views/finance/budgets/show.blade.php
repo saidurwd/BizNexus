@@ -1,6 +1,6 @@
 @extends('layouts.erp')
 
-@section('title', 'Budget Details')
+@section('title', __('Budget Details'))
 
 @section('content_header')
     <h1>Budget: {{ $budget->name }}</h1>
@@ -9,17 +9,17 @@
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Budget Information</h3>
+            <h3 class="card-title">{{ __('Budget Information') }}</h3>
             <div class="card-tools">
                 @if($budget->isDraft())
                     <a href="{{ route('finance.budgets.edit', $budget->id) }}" class="btn btn-sm btn-warning">
-                        <i class="bi bi-pencil"></i> Edit
+                        <i class="bi bi-pencil"></i> {{ __('Edit') }}
                     </a>
-                    <form action="{{ route('finance.budgets.destroy', $budget->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure?')">
+                    <form action="{{ route('finance.budgets.destroy', $budget->id) }}" method="POST" class="d-inline" onsubmit="return confirm(@js(__('Are you sure?')))">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-sm btn-danger">
-                            <i class="bi bi-trash"></i> Delete
+                            <i class="bi bi-trash"></i> {{ __('Delete') }}
                         </button>
                     </form>
                 @endif
@@ -28,15 +28,15 @@
         <div class="card-body">
             <table class="table table-sm">
                 <tr>
-                    <th width="200">Name</th>
+                    <th width="200">{{ __('Name') }}</th>
                     <td>{{ $budget->name }}</td>
                 </tr>
                 <tr>
-                    <th>Fiscal Year</th>
+                    <th>{{ __('Fiscal Year') }}</th>
                     <td>{{ $budget->fiscalYear?->name ?? '-' }}</td>
                 </tr>
                 <tr>
-                    <th>Status</th>
+                    <th>{{ __('Status') }}</th>
                     <td>
                         @php
                             $badgeClass = 'secondary';
@@ -51,11 +51,11 @@
                     </td>
                 </tr>
                 <tr>
-                    <th>Description</th>
+                    <th>{{ __('Description') }}</th>
                     <td>{{ $budget->description ?? '-' }}</td>
                 </tr>
                 <tr>
-                    <th>Created At</th>
+                    <th>{{ __('Created At') }}</th>
                     <td>{{ $budget->created_at->format('Y-m-d H:i:s') }}</td>
                 </tr>
             </table>
@@ -64,10 +64,10 @@
 
     <div class="card mt-4">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h3 class="card-title">Budget Lines</h3>
+            <h3 class="card-title">{{ __('Budget Lines') }}</h3>
         @if($budget->isDraft())
-            <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addLineModal">
-                <i class="bi bi-plus-circle"></i> Add Line
+            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addLineModal">
+                <i class="bi bi-plus-circle"></i> {{ __('Add Line') }}
             </button>
         @endif
     </div>
@@ -75,12 +75,12 @@
         <table class="table table-bordered">
             <thead>
                 <tr>
-                    <th>Account</th>
-                    <th>Cost Center</th>
-                    <th>Period</th>
-                    <th class="text-right">Budget Amount</th>
+                    <th>{{ __('Account') }}</th>
+                    <th>{{ __('Cost Center') }}</th>
+                    <th>{{ __('Period') }}</th>
+                    <th class="text-end">{{ __('Budget Amount') }}</th>
                     @if($budget->isDraft())
-                        <th class="text-center">Actions</th>
+                        <th class="text-center">{{ __('Actions') }}</th>
                     @endif
                 </tr>
             </thead>
@@ -90,7 +90,7 @@
                         <td>{{ $line->account?->account_code ?? '-' }} - {{ $line->account?->account_name ?? '-' }}</td>
                         <td>{{ $line->costCenter?->name ?? '-' }}</td>
                         <td>{{ $line->period }}</td>
-                        <td class="text-right">{{ number_format($line->budget_amount, 2) }}</td>
+                        <td class="text-end">{{ Formatter::amount($line->budget_amount) }}</td>
                         @if($budget->isDraft())
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm btn-warning edit-line-btn"
@@ -100,10 +100,10 @@
                                     data-cost_center_id="{{ $line->cost_center_id }}"
                                     data-period="{{ $line->period }}"
                                     data-budget_amount="{{ $line->budget_amount }}"
-                                    data-toggle="modal" data-target="#editLineModal">
+                                    data-bs-toggle="modal" data-bs-target="#editLineModal">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                                <form action="{{ route('finance.budgets.lines.destroy', [$budget->id, $line->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this line?')">
+                                <form action="{{ route('finance.budgets.lines.destroy', [$budget->id, $line->id]) }}" method="POST" class="d-inline" onsubmit="return confirm(@js(__('Delete this line?')))">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-danger">
@@ -115,15 +115,15 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="{{ $budget->isDraft() ? 5 : 4 }}" class="text-center">No budget lines found</td>
+                        <td colspan="{{ $budget->isDraft() ? 5 : 4 }}" class="text-center">{{ __('No budget lines found') }}</td>
                     </tr>
                 @endforelse
             </tbody>
             @if($budget->lines->isNotEmpty())
                 <tfoot>
                     <tr class="table-active">
-                        <td colspan="3" class="text-right font-weight-bold">Total:</td>
-                        <td class="text-right font-weight-bold">{{ number_format($budget->lines->sum('budget_amount'), 2) }}</td>
+                        <td colspan="3" class="text-end fw-bold">{{ __('Total:') }}</td>
+                        <td class="text-end fw-bold">{{ Formatter::amount($budget->lines->sum('budget_amount')) }}</td>
                         @if($budget->isDraft())
                             <td></td>
                         @endif
@@ -135,28 +135,28 @@
     </div>
 
     <div class="mt-4 mb-3">
-        <a href="{{ route('finance.budgets.index') }}" class="btn btn-secondary">Back</a>
+        <a href="{{ route('finance.budgets.index') }}" class="btn btn-secondary">{{ __('Back') }}</a>
 
         @if($budget->isDraft())
-            <form action="{{ route('finance.budgets.submit', $budget->id) }}" method="POST" class="d-inline ml-2">
+            <form action="{{ route('finance.budgets.submit', $budget->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
-                <button type="submit" class="btn btn-success" onclick="return confirm('Submit this budget for approval?')">
-                    <i class="bi bi-send"></i> Submit for Approval
+                <button type="submit" class="btn btn-success" onclick="return confirm(@js(__('Submit this budget for approval?')))">
+                    <i class="bi bi-send"></i> {{ __('Submit for Approval') }}
                 </button>
             </form>
         @endif
 
         @if($budget->status === \Modules\Finance\Models\Budget::STATUS_SUBMITTED)
-            <form action="{{ route('finance.budgets.approve', $budget->id) }}" method="POST" class="d-inline ml-2">
+            <form action="{{ route('finance.budgets.approve', $budget->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
-                <button type="submit" class="btn btn-success" onclick="return confirm('Approve this budget?')">
-                    <i class="bi bi-check-circle"></i> Approve
+                <button type="submit" class="btn btn-success" onclick="return confirm(@js(__('Approve this budget?')))">
+                    <i class="bi bi-check-circle"></i> {{ __('Approve') }}
                 </button>
             </form>
-            <form action="{{ route('finance.budgets.reject', $budget->id) }}" method="POST" class="d-inline ml-2">
+            <form action="{{ route('finance.budgets.reject', $budget->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
-                <button type="submit" class="btn btn-danger" onclick="return confirm('Reject this budget?')">
-                    <i class="bi bi-x-circle"></i> Reject
+                <button type="submit" class="btn btn-danger" onclick="return confirm(@js(__('Reject this budget?')))">
+                    <i class="bi bi-x-circle"></i> {{ __('Reject') }}
                 </button>
             </form>
         @endif
@@ -168,16 +168,14 @@
                 <form action="{{ route('finance.budgets.lines.store', $budget->id) }}" method="POST" class="modal-content">
                     @csrf
                     <div class="modal-header">
-                        <h5 class="modal-title">Add Budget Line</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <h5 class="modal-title">{{ __('Add Budget Line') }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="form-group">
-                            <label>Account</label>
+                        <div class="mb-3">
+                            <label>{{ __('Account') }}</label>
                             <select class="form-control" name="account_id" required>
-                                <option value="">Select Account</option>
+                                <option value="">{{ __('Select Account') }}</option>
                                 @php
                                     $expenseAccounts = \Modules\Finance\Models\Account::where('company_id', $budget->company_id)
                                         ->where('account_type', 'EXPENSE')
@@ -189,10 +187,10 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Cost Center</label>
+                        <div class="mb-3">
+                            <label>{{ __('Cost Center') }}</label>
                             <select class="form-control" name="cost_center_id">
-                                <option value="">Select Cost Center</option>
+                                <option value="">{{ __('Select Cost Center') }}</option>
                                 @php
                                     $costCenters = \Modules\Core\Models\CostCenter::where('company_id', $budget->company_id)->get(['id', 'name']);
                                 @endphp
@@ -201,18 +199,18 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Period (1-12)</label>
+                        <div class="mb-3">
+                            <label>{{ __('Period (1-12)') }}</label>
                             <input type="number" class="form-control" name="period" min="1" max="12" required>
                         </div>
-                        <div class="form-group">
-                            <label>Budget Amount</label>
+                        <div class="mb-3">
+                            <label>{{ __('Budget Amount') }}</label>
                             <input type="number" step="0.0001" class="form-control" name="budget_amount" required>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Add Line</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('Add Line') }}</button>
                     </div>
                 </form>
             </div>
@@ -224,16 +222,14 @@
                     @csrf
                     @method('PUT')
                     <div class="modal-header">
-                        <h5 class="modal-title">Edit Budget Line</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <h5 class="modal-title">{{ __('Edit Budget Line') }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="form-group">
-                            <label>Account</label>
+                        <div class="mb-3">
+                            <label>{{ __('Account') }}</label>
                             <select class="form-control" name="account_id" required>
-                                <option value="">Select Account</option>
+                                <option value="">{{ __('Select Account') }}</option>
                                 @php
                                     $expenseAccounts = \Modules\Finance\Models\Account::where('company_id', $budget->company_id)
                                         ->where('account_type', 'EXPENSE')
@@ -245,27 +241,27 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Cost Center</label>
+                        <div class="mb-3">
+                            <label>{{ __('Cost Center') }}</label>
                             <select class="form-control" name="cost_center_id">
-                                <option value="">Select Cost Center</option>
+                                <option value="">{{ __('Select Cost Center') }}</option>
                                 @foreach($costCenters as $costCenter)
                                     <option value="{{ $costCenter->id }}">{{ $costCenter->name }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Period (1-12)</label>
+                        <div class="mb-3">
+                            <label>{{ __('Period (1-12)') }}</label>
                             <input type="number" class="form-control" name="period" min="1" max="12" required>
                         </div>
-                        <div class="form-group">
-                            <label>Budget Amount</label>
+                        <div class="mb-3">
+                            <label>{{ __('Budget Amount') }}</label>
                             <input type="number" step="0.0001" class="form-control" name="budget_amount" required>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Update Line</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('Update Line') }}</button>
                     </div>
                 </form>
             </div>

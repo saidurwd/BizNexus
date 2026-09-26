@@ -1,37 +1,32 @@
-<x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600">
-        Please select the company and branch you want to work with.
-    </div>
+@extends('adminlte::auth.auth-page', ['authType' => 'login'])
+
+@section('title', __('Select company'))
+
+@section('auth_header', __('Select your company'))
+
+@section('auth_body')
+    <p class="text-body-secondary">{{ __('Choose the company and branch you want to work in.') }}</p>
 
     <form method="POST" action="{{ route('company.selection.submit') }}" id="company-selection-form">
         @csrf
-
-        <div>
-            <x-input-label for="company_id" value="Company" />
-            <select id="company_id" name="company_id" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
-                <option value="">Select a company</option>
-                @foreach($companies as $company)
-                    <option value="{{ $company->id }}" {{ old('company_id') == $company->id ? 'selected' : '' }}>
-                        {{ $company->code }} — {{ $company->name }}
-                    </option>
+        <div class="mb-3">
+            <label for="company_id" class="form-label">{{ __('Company') }}</label>
+            <select id="company_id" name="company_id" class="form-select @error('company_id') is-invalid @enderror" required>
+                <option value="">{{ __('Select a company') }}</option>
+                @foreach ($companies as $company)
+                    <option value="{{ $company->id }}" @selected(old('company_id') == $company->id)>{{ $company->code }} — {{ $company->name }}</option>
                 @endforeach
             </select>
-            <x-input-error :messages="$errors->get('company_id')" class="mt-2" />
+            @error('company_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
         </div>
-
-        <div class="mt-4">
-            <x-input-label for="branch_id" value="Branch" />
-            <select id="branch_id" name="branch_id" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" disabled>
-                <option value="">Select a company first</option>
+        <div class="mb-3">
+            <label for="branch_id" class="form-label">{{ __('Branch') }}</label>
+            <select id="branch_id" name="branch_id" class="form-select @error('branch_id') is-invalid @enderror" disabled>
+                <option value="">{{ __('Select a company first') }}</option>
             </select>
-            <x-input-error :messages="$errors->get('branch_id')" class="mt-2" />
+            @error('branch_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
         </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
-                Continue
-            </x-primary-button>
-        </div>
+        <button type="submit" class="btn btn-primary w-100">{{ __('Continue') }}</button>
     </form>
 
     <script>
@@ -80,4 +75,4 @@
             });
     });
     </script>
-</x-guest-layout>
+@endsection

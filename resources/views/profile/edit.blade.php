@@ -1,9 +1,9 @@
 @extends('layouts.erp')
 
-@section('title', 'Profile')
+@section('title', __('Profile'))
 
 @section('content_header')
-    <h1>Profile</h1>
+    <h1>{{ __('Profile') }}</h1>
 @endsection
 
 @section('content')
@@ -11,7 +11,7 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">User Information</h3>
+                    <h3 class="card-title">{{ __('User Information') }}</h3>
                 </div>
                 <div class="card-body text-center">
                     <div class="mb-3">
@@ -37,15 +37,15 @@
             @endphp
 
             @if($companies->count() > 1)
-                <div class="card mt-3">
+                <div class="card mt-3" id="switch-company">
                     <div class="card-header">
-                        <h3 class="card-title">Change Company & Branch</h3>
+                        <h3 class="card-title">{{ __('Change Company & Branch') }}</h3>
                     </div>
                     <div class="card-body">
                         <form method="POST" action="{{ route('company.switch') }}" id="company-branch-switch-form">
                             @csrf
-                            <div class="form-group">
-                                <label for="company_id">Company</label>
+                            <div class="mb-3">
+                                <label for="company_id">{{ __('Company') }}</label>
                                 <select class="form-control" name="company_id" id="profile_company_id" required>
                                     @foreach($companies as $company)
                                         <option value="{{ $company->id }}" {{ $company->id == $activeCompanyId ? 'selected' : '' }}>
@@ -55,10 +55,10 @@
                                 </select>
                             </div>
 
-                            <div class="form-group" id="branch-select-group" style="display: none;">
-                                <label for="branch_id">Branch</label>
+                            <div class="mb-3" id="branch-select-group" style="display: none;">
+                                <label for="branch_id">{{ __('Branch') }}</label>
                                 <select class="form-control" name="branch_id" id="profile_branch_id" disabled>
-                                    <option value="">Select a company first</option>
+                                    <option value="">{{ __('Select a company first') }}</option>
                                 </select>
                             </div>
                         </form>
@@ -135,7 +135,7 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Update Profile Information</h3>
+                    <h3 class="card-title">{{ __('Update Profile Information') }}</h3>
                 </div>
                 <div class="card-body">
                     @include('profile.partials.update-profile-information-form')
@@ -144,7 +144,7 @@
 
             <div class="card mt-4">
                 <div class="card-header">
-                    <h3 class="card-title">Update Password</h3>
+                    <h3 class="card-title">{{ __('Update Password') }}</h3>
                 </div>
                 <div class="card-body">
                     @include('profile.partials.update-password-form')
@@ -153,7 +153,7 @@
 
             <div class="card mt-4" id="approval-delegation">
                 <div class="card-header">
-                    <h3 class="card-title">Approval Delegation</h3>
+                    <h3 class="card-title">{{ __('Approval Delegation') }}</h3>
                 </div>
                 <div class="card-body">
                     @include('profile.partials.approval-delegation-form')
@@ -162,7 +162,7 @@
 
             <div class="card mt-4" id="two-factor">
                 <div class="card-header">
-                    <h3 class="card-title">Two-Factor Authentication</h3>
+                    <h3 class="card-title">{{ __('Two-Factor Authentication') }}</h3>
                 </div>
                 <div class="card-body">
                     @include('profile.partials.two-factor-authentication-form')
@@ -171,7 +171,7 @@
 
             <div class="card mt-4">
                 <div class="card-header">
-                    <h3 class="card-title text-danger">Delete Account</h3>
+                    <h3 class="card-title text-danger">{{ __('Delete Account') }}</h3>
                 </div>
                 <div class="card-body">
                     @include('profile.partials.delete-user-form')

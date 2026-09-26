@@ -2,198 +2,150 @@
 
 namespace Modules\Finance\Controllers\Web;
 
+use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Modules\Core\Services\CompanyContextService;
-use Modules\Core\Services\PermissionService;
+use Illuminate\View\View;
+use Modules\Core\Exceptions\InvalidAccountingTransactionException;
+use Modules\Core\Models\Currency;
+use Modules\Finance\Controllers\Concerns\FiltersDocumentLists;
 use Modules\Finance\Controllers\Controller;
+use Modules\Finance\Models\Account;
 use Modules\Finance\Models\Supplier;
 use Modules\Finance\Models\SupplierCreditNote;
 use Modules\Finance\Models\SupplierInvoice;
+use Modules\Finance\Models\Tax;
+use Modules\Finance\Requests\StoreSupplierCreditNoteRequest;
 use Modules\Finance\Services\SupplierCreditNoteService;
 
 class SupplierCreditNoteController extends Controller
 {
-    public function __construct(
-        CompanyContextService $companyContext,
-        PermissionService $permissionService,
-        protected SupplierCreditNoteService $creditNoteService
-    ) {
-        parent::__construct($companyContext, $permissionService);
+    use FiltersDocumentLists;
+
+    public function index(Request $request): View
+    {
+        $query = SupplierCreditNote::with(['supplier', 'currency', 'invoice']);
+        $filters = $this->applyListFilters($query, $request, 'credit_note_date', ['credit_note_number', 'reason'], 'supplier');
+        $creditNotes = $query->orderByDesc('credit_note_date')->orderByDesc('id')->paginate(20)->withQueryString();
+
+        return view('finance.supplier-credit-notes.index', compact('creditNotes', 'filters'));
     }
 
-    public function index()
+    /**
+     * A new credit note, prefilled from ?invoice= with that invoice's supplier, currency and lines.
+     */
+    public function create(Request $request): View
     {
+        $invoice = $request->filled('invoice')
+            ? SupplierInvoice::with('lines')->whereIn('status', [SupplierInvoice::STATUS_POSTED, SupplierInvoice::STATUS_PARTIALLY_PAID, SupplierInvoice::STATUS_PAID])->findOrFail($request->integer('invoice'))
+            : null;
 
-        $creditNotes = SupplierCreditNote::with(['supplier', 'invoice'])
-            ->orderByDesc('credit_note_date')
-            ->get();
-
-        return view('finance.supplier-credit-notes.index', compact('creditNotes'));
+        return view('finance.supplier-credit-notes.create', ['invoice' => $invoice, ...$this->formData()]);
     }
 
-    public function create()
+    public function store(StoreSupplierCreditNoteRequest $request, SupplierCreditNoteService $service): RedirectResponse
     {
+        $creditNote = $service->create([...$request->validated(), 'company_id' => $this->getActiveCompanyId()]);
 
-        $suppliers = Supplier::where('status', 'active')->get();
-        $invoices = SupplierInvoice::whereIn('status', ['POSTED', 'PARTIALLY_PAID', 'PAID'])
-            ->get();
-
-        return view('finance.supplier-credit-notes.create', compact('suppliers', 'invoices'));
+        return redirect()->route('finance.supplier-credit-notes.show', $creditNote->id)
+            ->with('success', __('Credit note :number saved as a draft.', ['number' => $creditNote->credit_note_number]));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function show(int $id): View
     {
-
-        $validated = $request->validate([
-            'supplier_id' => 'required|exists:suppliers,id',
-            'supplier_invoice_id' => 'nullable|exists:supplier_invoices,id',
-            'credit_note_number' => 'required|string|max:50|unique:supplier_credit_notes,credit_note_number',
-            'credit_note_date' => 'required|date',
-            'subtotal' => 'required|numeric|min:0',
-            'tax_amount' => 'required|numeric|min:0',
-            'total_amount' => 'required|numeric|min:0',
-            'reason' => 'nullable|string',
-        ]);
-
-        $validated['company_id'] = $this->getActiveCompanyId();
-        $validated['status'] = SupplierCreditNote::STATUS_DRAFT;
-        $validated['created_by'] = auth()->id();
-        $validated['updated_by'] = auth()->id();
-
-        SupplierCreditNote::create($validated);
-
-        return redirect()->route('finance.supplier-credit-notes.index')
-            ->with('success', 'Credit note created successfully.');
-    }
-
-    public function show(int $id)
-    {
-
-        $creditNote = SupplierCreditNote::with(['supplier', 'invoice'])->findOrFail($id);
+        $creditNote = SupplierCreditNote::with(['supplier', 'currency', 'invoice', 'lines.account', 'lines.tax', 'journal'])->findOrFail($id);
 
         return view('finance.supplier-credit-notes.show', compact('creditNote'));
     }
 
-    public function edit(int $id)
+    public function edit(int $id): View|RedirectResponse
     {
+        $creditNote = SupplierCreditNote::with('lines')->findOrFail($id);
 
-        $creditNote = SupplierCreditNote::findOrFail($id);
-
-        if (! $creditNote->isDraft()) {
-            return redirect()->route('finance.supplier-credit-notes.show', $id)
-                ->with('error', 'Only draft credit notes can be edited.');
+        if (! in_array($creditNote->status, [SupplierCreditNote::STATUS_DRAFT, SupplierCreditNote::STATUS_REJECTED], true)) {
+            return redirect()->route('finance.supplier-credit-notes.show', $id)->with('error', __('Only draft or rejected credit notes can be edited.'));
         }
 
-        $suppliers = Supplier::where('status', 'active')->get();
-        $invoices = SupplierInvoice::whereIn('status', ['POSTED', 'PARTIALLY_PAID', 'PAID'])
-            ->get();
-
-        return view('finance.supplier-credit-notes.edit', compact('creditNote', 'suppliers', 'invoices'));
+        return view('finance.supplier-credit-notes.edit', ['creditNote' => $creditNote, ...$this->formData()]);
     }
 
-    public function update(Request $request, int $id): RedirectResponse
+    public function update(StoreSupplierCreditNoteRequest $request, int $id, SupplierCreditNoteService $service): RedirectResponse
     {
-
-        $creditNote = SupplierCreditNote::findOrFail($id);
-
-        if (! $creditNote->isDraft()) {
-            return redirect()->route('finance.supplier-credit-notes.show', $id)
-                ->with('error', 'Only draft credit notes can be edited.');
-        }
-
-        $validated = $request->validate([
-            'supplier_id' => 'required|exists:suppliers,id',
-            'supplier_invoice_id' => 'nullable|exists:supplier_invoices,id',
-            'credit_note_number' => 'required|string|max:50|unique:supplier_credit_notes,credit_note_number,'.$id,
-            'credit_note_date' => 'required|date',
-            'subtotal' => 'required|numeric|min:0',
-            'tax_amount' => 'required|numeric|min:0',
-            'total_amount' => 'required|numeric|min:0',
-            'reason' => 'nullable|string',
-        ]);
-
-        $validated['updated_by'] = auth()->id();
-
-        $creditNote->update($validated);
-
-        return redirect()->route('finance.supplier-credit-notes.show', $id)
-            ->with('success', 'Credit note updated successfully.');
+        return $this->act($id, fn (SupplierCreditNote $creditNote) => $service->update($creditNote, $request->validated()), __('Credit note updated.'));
     }
 
     public function destroy(int $id): RedirectResponse
     {
-
         $creditNote = SupplierCreditNote::findOrFail($id);
 
         if (! $creditNote->isDraft()) {
-            return redirect()->route('finance.supplier-credit-notes.index')
-                ->with('error', 'Only draft credit notes can be deleted.');
+            return back()->with('error', __('Only draft credit notes can be deleted.'));
         }
 
         $creditNote->delete();
 
-        return redirect()->route('finance.supplier-credit-notes.index')
-            ->with('success', 'Credit note deleted successfully.');
+        return redirect()->route('finance.supplier-credit-notes.index')->with('success', __('Credit note deleted.'));
     }
 
-    public function submit(int $id): RedirectResponse
+    public function submit(int $id, SupplierCreditNoteService $service): RedirectResponse
     {
-
-        $creditNote = SupplierCreditNote::findOrFail($id);
-
-        if (! $creditNote->isDraft()) {
-            return back()->with('error', 'Only draft credit notes can be submitted.');
-        }
-
-        $creditNote->update(['status' => 'submitted']);
-
-        return back()->with('success', 'Credit note submitted successfully.');
+        return $this->act($id, fn (SupplierCreditNote $creditNote) => $service->submit($creditNote), __('Credit note submitted for approval.'));
     }
 
-    public function approve(int $id): RedirectResponse
+    public function approve(int $id, SupplierCreditNoteService $service): RedirectResponse
     {
-
-        $creditNote = SupplierCreditNote::findOrFail($id);
-
-        if ($creditNote->status !== 'submitted') {
-            return back()->with('error', 'Only submitted credit notes can be approved.');
-        }
-
-        $creditNote->update(['status' => 'approved']);
-
-        return back()->with('success', 'Credit note approved successfully.');
+        return $this->act($id, fn (SupplierCreditNote $creditNote) => $service->approve($creditNote), __('Credit note approved.'));
     }
 
-    public function post(int $id): RedirectResponse
+    public function reject(Request $request, int $id, SupplierCreditNoteService $service): RedirectResponse
     {
+        $reason = $request->validate(['reason' => ['nullable', 'string', 'max:1000']])['reason'] ?? null;
 
+        return $this->act($id, fn (SupplierCreditNote $creditNote) => $service->reject($creditNote, $reason), __('Credit note rejected.'));
+    }
+
+    public function post(int $id, SupplierCreditNoteService $service): RedirectResponse
+    {
+        return $this->act($id, fn (SupplierCreditNote $creditNote) => $service->post($creditNote), __('Credit note posted.'));
+    }
+
+    public function cancel(int $id, SupplierCreditNoteService $service): RedirectResponse
+    {
+        return $this->act($id, fn (SupplierCreditNote $creditNote) => $service->cancel($creditNote), __('Credit note cancelled.'));
+    }
+
+    /**
+     * Run a lifecycle action and return to the credit note with its outcome.
+     *
+     * @param  Closure(SupplierCreditNote): mixed  $action
+     */
+    protected function act(int $id, Closure $action, string $success): RedirectResponse
+    {
         $creditNote = SupplierCreditNote::findOrFail($id);
-
-        if ($creditNote->status !== 'approved') {
-            return back()->with('error', 'Only approved credit notes can be posted.');
-        }
 
         try {
-            $this->creditNoteService->postCreditNote($creditNote);
-        } catch (\Exception $e) {
-            return back()->with('error', 'Failed to post credit note: '.$e->getMessage());
+            $action($creditNote);
+        } catch (InvalidAccountingTransactionException $exception) {
+            return back()->withInput()->with('error', $exception->getMessage());
         }
 
-        return back()->with('success', 'Credit note posted successfully.');
+        return redirect()->route('finance.supplier-credit-notes.show', $id)->with('success', $success);
     }
 
-    public function cancel(int $id): RedirectResponse
+    /**
+     * @return array<string, mixed>
+     */
+    protected function formData(): array
     {
-
-        $creditNote = SupplierCreditNote::findOrFail($id);
-
-        if (in_array($creditNote->status, ['posted', 'cancelled'])) {
-            return back()->with('error', 'Posted or cancelled credit notes cannot be cancelled.');
-        }
-
-        $creditNote->update(['status' => 'cancelled']);
-
-        return back()->with('success', 'Credit note cancelled successfully.');
+        return [
+            'suppliers' => Supplier::where('status', 'active')->orderBy('name')->get(),
+            'invoices' => SupplierInvoice::with('currency')
+                ->whereIn('status', [SupplierInvoice::STATUS_POSTED, SupplierInvoice::STATUS_PARTIALLY_PAID, SupplierInvoice::STATUS_PAID])
+                ->orderByDesc('invoice_date')
+                ->get(['id', 'supplier_id', 'invoice_number', 'invoice_date', 'currency_id', 'total_amount', 'outstanding_amount']),
+            'accounts' => Account::postable()->active()->orderBy('account_code')->get(['id', 'account_code', 'account_name']),
+            'taxes' => Tax::where('status', 'active')->orderBy('tax_code')->get(),
+            'currencies' => Currency::where('status', 'active')->orderBy('code')->get(),
+        ];
     }
 }

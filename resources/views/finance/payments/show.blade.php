@@ -1,6 +1,6 @@
 @extends('layouts.erp')
 
-@section('title', 'Payment Details')
+@section('title', __('Payment Details'))
 
 @section('content_header')
     <h1>Payment: {{ $payment->payment_number }}</h1>
@@ -11,43 +11,43 @@
         <div class="card-body">
             <table class="table table-sm">
                 <tr>
-                    <th width="200">Payment Number</th>
+                    <th width="200">{{ __('Payment Number') }}</th>
                     <td>{{ $payment->payment_number }}</td>
                 </tr>
                 <tr>
-                    <th>Payment Date</th>
+                    <th>{{ __('Payment Date') }}</th>
                     <td>{{ $payment->payment_date->format('Y-m-d') }}</td>
                 </tr>
                 <tr>
-                    <th>Payment Type</th>
+                    <th>{{ __('Payment Type') }}</th>
                     <td>{{ $payment->payment_method }}</td>
                 </tr>
                 <tr>
-                    <th>Payment Account</th>
+                    <th>{{ __('Payment Account') }}</th>
                     <td>{{ $payment->bankAccount?->gl_account?->account_name ?? '-' }}</td>
                 </tr>
                 <tr>
-                    <th>Amount</th>
-                    <td>{{ number_format($payment->amount, 2) }}</td>
+                    <th>{{ __('Amount') }}</th>
+                    <td>{{ Formatter::amount($payment->amount, $payment->currency?->code) }}</td>
                 </tr>
                 <tr>
-                    <th>Payee Type</th>
+                    <th>{{ __('Payee Type') }}</th>
                     <td>{{ $payment->payee_type }}</td>
                 </tr>
                 <tr>
-                    <th>Payee Name</th>
+                    <th>{{ __('Payee Name') }}</th>
                     <td>{{ $payment->payee_name }}</td>
                 </tr>
                 <tr>
-                    <th>Reference</th>
+                    <th>{{ __('Reference') }}</th>
                     <td>{{ $payment->reference ?? '-' }}</td>
                 </tr>
                 <tr>
-                    <th>Description</th>
+                    <th>{{ __('Description') }}</th>
                     <td>{{ $payment->description ?? '-' }}</td>
                 </tr>
                 <tr>
-                    <th>Status</th>
+                    <th>{{ __('Status') }}</th>
                     <td>
                         <span class="badge bg-{{ $payment->status === 'POSTED' ? 'success' : ($payment->status === 'DRAFT' ? 'secondary' : 'warning') }}">
                             {{ $payment->status }}
@@ -59,6 +59,7 @@
     </div>
 
     <div class="mt-4">
-        <a href="{{ route('finance.payments.index') }}" class="btn btn-secondary">Back</a>
+        <a href="{{ route('finance.payments.index') }}" class="btn btn-secondary">{{ __('Back') }}</a>
     </div>
+    <x-attachments :document="$payment" type="payments" />
 @endsection

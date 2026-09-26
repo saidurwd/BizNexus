@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Recurring Journals')
+@section('title', __('Recurring Journals'))
 
 @section('content_header')
-    <h1>Recurring Journals</h1>
+    <h1>{{ __('Recurring Journals') }}</h1>
     <div class="mt-2">
         <a href="{{ route('finance.recurring-journals.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Add Recurring Journal
+            <i class="bi bi-plus-circle"></i> {{ __('Add Recurring Journal') }}
         </a>
     </div>
 @endsection
@@ -17,11 +17,11 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Frequency</th>
-                        <th>Next Run Date</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('Name') }}</th>
+                        <th>{{ __('Frequency') }}</th>
+                        <th>{{ __('Next Run Date') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -50,7 +50,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center">No recurring journals found</td>
+                            <td colspan="5" class="text-center">{{ __('No recurring journals found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

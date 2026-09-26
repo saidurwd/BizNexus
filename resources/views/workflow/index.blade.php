@@ -1,9 +1,9 @@
 @extends('layouts.erp')
 
-@section('title', 'Workflow Dashboard')
+@section('title', __('Workflow Dashboard'))
 
 @section('content_header')
-    <h1>Workflow Dashboard</h1>
+    <h1>{{ __('Workflow Dashboard') }}</h1>
 @endsection
 
 @section('content')
@@ -14,16 +14,16 @@
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">{{ ucfirst(str_replace('_', ' ', $entityType)) }}</h3>
-                            <span class="badge bg-warning float-right">{{ count($approvals) }} Pending</span>
+                            <span class="badge bg-warning float-end">{{ count($approvals) }} Pending</span>
                         </div>
                         <div class="card-body p-0">
                             <table class="table table-bordered table-striped mb-0">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>Current State</th>
-                                        <th>Role</th>
-                                        <th>Action</th>
+                                        <th>{{ __('Current State') }}</th>
+                                        <th>{{ __('Role') }}</th>
+                                        <th>{{ __('Action') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -54,27 +54,27 @@
         <div class="card">
             <div class="card-body text-center py-5">
                 <i class="bi bi-check-circle text-success" style="font-size: 48px;"></i>
-                <h3 class="mt-3">No Pending Approvals</h3>
-                <p class="text-muted">All workflows are up to date.</p>
+                <h3 class="mt-3">{{ __('No Pending Approvals') }}</h3>
+                <p class="text-muted">{{ __('All workflows are up to date.') }}</p>
             </div>
         </div>
     @endif
 
     <div class="card mt-4">
         <div class="card-header">
-            <h3 class="card-title">Recent Workflow Instances</h3>
+            <h3 class="card-title">{{ __('Recent Workflow Instances') }}</h3>
         </div>
         <div class="card-body table-responsive">
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Entity Type</th>
-                        <th>Entity ID</th>
-                        <th>Current State</th>
-                        <th>Started At</th>
-                        <th>Completed At</th>
-                        <th>Status</th>
+                        <th>{{ __('Entity Type') }}</th>
+                        <th>{{ __('Entity ID') }}</th>
+                        <th>{{ __('Current State') }}</th>
+                        <th>{{ __('Started At') }}</th>
+                        <th>{{ __('Completed At') }}</th>
+                        <th>{{ __('Status') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -88,15 +88,15 @@
                             <td>{{ $instance->completed_at?->format('Y-m-d H:i') ?? '-' }}</td>
                             <td>
                                 @if($instance->completed_at)
-                                    <span class="badge bg-success">Completed</span>
+                                    <span class="badge bg-success">{{ __('Completed') }}</span>
                                 @else
-                                    <span class="badge bg-warning">In Progress</span>
+                                    <span class="badge bg-warning">{{ __('In Progress') }}</span>
                                 @endif
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">No workflow instances found</td>
+                            <td colspan="7" class="text-center">{{ __('No workflow instances found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -1,6 +1,6 @@
 @extends('layouts.erp')
 
-@section('title', 'Edit Journal Entry')
+@section('title', __('Edit Journal Entry'))
 
 @section('content_header')
     <h1>Edit Journal Entry: {{ $journal->journal_number }}</h1>
@@ -16,8 +16,8 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="journal_date">Journal Date</label>
+                        <div class="mb-3">
+                            <label for="journal_date">{{ __('Journal Date') }}</label>
                             <input type="date" class="form-control @error('journal_date') is-invalid @enderror" 
                                    id="journal_date" name="journal_date" value="{{ old('journal_date', $journal->journal_date->format('Y-m-d')) }}" required>
                             @error('journal_date')
@@ -26,23 +26,23 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="description">Description</label>
+                        <div class="mb-3">
+                            <label for="description">{{ __('Description') }}</label>
                             <input type="text" class="form-control" id="description" name="description" 
-                                   value="{{ old('description', $journal->description) }}" placeholder="Enter description">
+                                   value="{{ old('description', $journal->description) }}" placeholder="{{ __('Enter description') }}">
                         </div>
                     </div>
                 </div>
 
                 <div class="mt-4">
-                    <h5>Journal Lines</h5>
+                    <h5>{{ __('Journal Lines') }}</h5>
                     <table class="table table-bordered" id="journalLinesTable">
                         <thead>
                             <tr>
-                                <th>Account</th>
-                                <th>Description</th>
-                                <th class="text-right">Debit</th>
-                                <th class="text-right">Credit</th>
+                                <th>{{ __('Account') }}</th>
+                                <th>{{ __('Description') }}</th>
+                                <th class="text-end">{{ __('Debit') }}</th>
+                                <th class="text-end">{{ __('Credit') }}</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -51,7 +51,7 @@
                                 <tr class="line-row">
                                     <td>
                                         <select class="form-control account-select" name="lines[{{ $index }}][account_id]" required>
-                                            <option value="">Select Account</option>
+                                            <option value="">{{ __('Select Account') }}</option>
                                             @foreach($accounts as $account)
                                                 <option value="{{ $account->id }}" @selected(($line['account_id'] ?? $journal->lines[$index]->account_id ?? null) == $account->id)>
                                                     {{ $account->account_code }} — {{ $account->account_name }}
@@ -60,14 +60,14 @@
                                         </select>
                                     </td>
                                     <td>
-                                        <input type="text" class="form-control" name="lines[{{ $index }}][description]" placeholder="Description" value="{{ $line['description'] ?? $journal->lines[$index]->description ?? '' }}">
+                                        <input type="text" class="form-control" name="lines[{{ $index }}][description]" placeholder="{{ __('Description') }}" value="{{ $line['description'] ?? $journal->lines[$index]->description ?? '' }}">
                                     </td>
                                     <td>
-                                        <input type="number" class="form-control text-right debit-input" name="lines[{{ $index }}][debit]" 
+                                        <input type="number" class="form-control text-end debit-input" name="lines[{{ $index }}][debit]" 
                                                step="0.01" min="0" value="{{ $line['debit'] ?? $journal->lines[$index]->debit ?? 0 }}">
                                     </td>
                                     <td>
-                                        <input type="number" class="form-control text-right credit-input" name="lines[{{ $index }}][credit]" 
+                                        <input type="number" class="form-control text-end credit-input" name="lines[{{ $index }}][credit]" 
                                                step="0.01" min="0" value="{{ $line['credit'] ?? $journal->lines[$index]->credit ?? 0 }}">
                                     </td>
                                     <td>
@@ -82,12 +82,12 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="2" class="text-right"><strong>Totals:</strong></td>
-                                <td class="text-right">
-                                    <strong id="totalDebit">{{ number_format($journal->total_debit, 2) }}</strong>
+                                <td colspan="2" class="text-end"><strong>{{ __('Totals:') }}</strong></td>
+                                <td class="text-end">
+                                    <strong id="totalDebit">{{ Formatter::amount($journal->total_debit) }}</strong>
                                 </td>
-                                <td class="text-right">
-                                    <strong id="totalCredit">{{ number_format($journal->total_credit, 2) }}</strong>
+                                <td class="text-end">
+                                    <strong id="totalCredit">{{ Formatter::amount($journal->total_credit) }}</strong>
                                 </td>
                                 <td>
                                     <button type="button" class="btn btn-success btn-sm" id="addLine">
@@ -98,15 +98,15 @@
                         </tfoot>
                     </table>
                     <div id="balanceWarning" class="text-danger d-none">
-                        <i class="bi bi-exclamation-triangle"></i> Journal is not balanced!
+                        <i class="bi bi-exclamation-triangle"></i> {{ __('Journal is not balanced!') }}
                     </div>
                 </div>
 
-                <div class="form-group mt-4">
+                <div class="mb-3 mt-4">
                     <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
-                        Update Journal
+                        {{ __('Update Journal') }}
                     </button>
-                    <a href="{{ route('finance.journals.show', $journal->id) }}" class="btn btn-secondary">Cancel</a>
+                    <a href="{{ route('finance.journals.show', $journal->id) }}" class="btn btn-secondary">{{ __('Cancel') }}</a>
                 </div>
             </form>
         </div>
@@ -163,11 +163,11 @@
                     <input type="text" class="form-control" name="lines[${lineIndex}][description]" placeholder="Description">
                 </td>
                 <td>
-                    <input type="number" class="form-control text-right debit-input" name="lines[${lineIndex}][debit]" 
+                    <input type="number" class="form-control text-end debit-input" name="lines[${lineIndex}][debit]" 
                            step="0.01" min="0" value="0">
                 </td>
                 <td>
-                    <input type="number" class="form-control text-right credit-input" name="lines[${lineIndex}][credit]" 
+                    <input type="number" class="form-control text-end credit-input" name="lines[${lineIndex}][credit]" 
                            step="0.01" min="0" value="0">
                 </td>
                 <td>

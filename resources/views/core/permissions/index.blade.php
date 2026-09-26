@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Permissions')
+@section('title', __('Permissions'))
 
 @section('content_header')
-    <h1>Permissions</h1>
+    <h1>{{ __('Permissions') }}</h1>
     <div class="mt-2">
         <a href="{{ route('core.permissions.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Add Permission
+            <i class="bi bi-plus-circle"></i> {{ __('Add Permission') }}
         </a>
     </div>
 @endsection
@@ -17,11 +17,11 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Slug</th>
-                        <th>Group</th>
-                        <th>Description</th>
-                        <th>Actions</th>
+                        <th>{{ __('Name') }}</th>
+                        <th>{{ __('Slug') }}</th>
+                        <th>{{ __('Group') }}</th>
+                        <th>{{ __('Description') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -48,7 +48,7 @@
                         @endforeach
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center">No permissions found</td>
+                            <td colspan="5" class="text-center">{{ __('No permissions found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

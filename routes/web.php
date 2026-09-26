@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Modules\Core\Controllers\Web\ApprovalDelegationController;
@@ -13,10 +14,13 @@ use Modules\Core\Controllers\Web\NotificationController;
 use Modules\Core\Controllers\Web\PeriodClosingController;
 use Modules\Core\Controllers\Web\PermissionController;
 use Modules\Core\Controllers\Web\RoleController;
+use Modules\Core\Controllers\Web\SecurityLogController;
+use Modules\Core\Controllers\Web\SystemController;
 use Modules\Core\Controllers\Web\UserController;
-use Modules\Finance\Controllers\DashboardController;
+use Modules\Core\Services\DocumentNumberService;
 use Modules\Finance\Controllers\Web\AccountController;
 use Modules\Finance\Controllers\Web\AccountMappingController;
+use Modules\Finance\Controllers\Web\AttachmentController;
 use Modules\Finance\Controllers\Web\BankAccountController;
 use Modules\Finance\Controllers\Web\BankPaymentController;
 use Modules\Finance\Controllers\Web\BankReceiptController;
@@ -27,21 +31,25 @@ use Modules\Finance\Controllers\Web\CashAccountController;
 use Modules\Finance\Controllers\Web\ConsolidationController;
 use Modules\Finance\Controllers\Web\CostCenterController;
 use Modules\Finance\Controllers\Web\CustomerController;
+use Modules\Finance\Controllers\Web\CustomerCreditNoteController;
 use Modules\Finance\Controllers\Web\CustomerInvoiceController;
 use Modules\Finance\Controllers\Web\CustomerStatementController;
+use Modules\Finance\Controllers\Web\DataImportController;
 use Modules\Finance\Controllers\Web\EInvoiceController;
 use Modules\Finance\Controllers\Web\FxRevaluationController;
 use Modules\Finance\Controllers\Web\IntercompanyController;
 use Modules\Finance\Controllers\Web\JournalController;
+use Modules\Finance\Controllers\Web\NumberSeriesController;
 use Modules\Finance\Controllers\Web\PaymentController;
+use Modules\Finance\Controllers\Web\PaymentTermController;
 use Modules\Finance\Controllers\Web\ReceiptController;
 use Modules\Finance\Controllers\Web\RecurringJournalController;
 use Modules\Finance\Controllers\Web\ReportController;
+use Modules\Finance\Controllers\Web\ReportExportController;
+use Modules\Finance\Controllers\Web\SalesDocumentPdfController;
 use Modules\Finance\Controllers\Web\SupplierController;
 use Modules\Finance\Controllers\Web\SupplierCreditNoteController;
-use Modules\Finance\Controllers\Web\SupplierDebitNoteController;
 use Modules\Finance\Controllers\Web\SupplierInvoiceController;
-use Modules\Finance\Controllers\Web\SupplierInvoiceLineController;
 use Modules\Finance\Controllers\Web\SupplierStatementController;
 use Modules\Finance\Controllers\Web\TaxController;
 use Modules\Finance\Controllers\Web\TaxReturnController;
@@ -88,6 +96,20 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
     // Audit
     Route::get('/audit', [AuditController::class, 'index'])->middleware('permission:core.audit.view')->name('core.audit.index');
     Route::get('/audit/{id}', [AuditController::class, 'show'])->middleware('permission:core.audit.view')->name('core.audit.show');
+
+    // Security & Audit
+    Route::get('/security/activity', [SecurityLogController::class, 'activity'])->middleware('permission:core.activity-logs.view')->name('core.activity-logs.index');
+    Route::get('/security/events', [SecurityLogController::class, 'events'])->middleware('permission:core.security-events.view')->name('core.security-events.index');
+    Route::get('/security/logins', [SecurityLogController::class, 'logins'])->middleware('permission:core.login-history.view')->name('core.login-history.index');
+
+    // System
+    Route::get('/system/health', [SystemController::class, 'health'])->middleware('permission:core.system.view')->name('core.system.health');
+    Route::get('/system/queue', [SystemController::class, 'queue'])->middleware('permission:core.system.view')->name('core.system.queue');
+    Route::post('/system/queue/failed/retry-all', [SystemController::class, 'retryAllFailedJobs'])->middleware('permission:core.system.manage')->name('core.system.queue.retry-all');
+    Route::post('/system/queue/failed/{uuid}/retry', [SystemController::class, 'retryFailedJob'])->middleware('permission:core.system.manage')->name('core.system.queue.retry');
+    Route::delete('/system/queue/failed/{uuid}', [SystemController::class, 'forgetFailedJob'])->middleware('permission:core.system.manage')->name('core.system.queue.forget');
+    Route::get('/system/schedule', [SystemController::class, 'schedule'])->middleware('permission:core.system.view')->name('core.system.schedule');
+    Route::get('/system/about', [SystemController::class, 'about'])->middleware('permission:core.system.view')->name('core.system.about');
 
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('core.notifications.index');
@@ -137,15 +159,10 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
     Route::delete('/departments/{id}', [DepartmentController::class, 'destroy'])->middleware('permission:core.departments.delete')->name('core.departments.destroy');
 
     // Main Dashboard
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', HomeController::class)->name('dashboard');
 
     // Finance Module
     Route::prefix('finance')->name('finance.')->group(function () {
-
-        // Finance Dashboard
-        Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('permission:finance.dashboard.view')->name('dashboard');
 
         // Chart of Accounts
         Route::get('/accounts', [AccountController::class, 'index'])->middleware('permission:finance.accounts.view')->name('accounts.index');
@@ -192,7 +209,6 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::delete('/journals/lines/{lineId}', [JournalController::class, 'removeLine'])->middleware('permission:finance.journals.update')->name('journals.lines.destroy');
 
         // General Ledger
-        Route::get('/general-ledger', [JournalController::class, 'generalLedger'])->middleware('permission:finance.ledger.view')->name('general-ledger');
 
         // Accounts Payable
         Route::get('/ap-aging', [ReportController::class, 'apAging'])->middleware('permission:finance.reports.view')->name('ap-aging');
@@ -218,6 +234,9 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::get('/customers/create', [CustomerController::class, 'create'])->middleware('permission:finance.customers.create')->name('customers.create');
         Route::post('/customers', [CustomerController::class, 'store'])->middleware('permission:finance.customers.create')->name('customers.store');
         Route::get('/customers/{id}', [CustomerController::class, 'show'])->middleware('permission:finance.customers.view')->name('customers.show');
+        Route::get('/customers/{id}/edit', [CustomerController::class, 'edit'])->whereNumber('id')->middleware('permission:finance.customers.update')->name('customers.edit');
+        Route::put('/customers/{id}', [CustomerController::class, 'update'])->whereNumber('id')->middleware('permission:finance.customers.update')->name('customers.update');
+        Route::delete('/customers/{id}', [CustomerController::class, 'destroy'])->whereNumber('id')->middleware('permission:finance.customers.delete')->name('customers.destroy');
 
         // Reports
         Route::prefix('reports')->name('reports.')->group(function () {
@@ -226,14 +245,12 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
             Route::get('/profit-loss', [ReportController::class, 'profitLoss'])->middleware('permission:finance.reports.view')->name('profit-loss');
             Route::get('/balance-sheet', [ReportController::class, 'balanceSheet'])->middleware('permission:finance.reports.view')->name('balance-sheet');
             Route::get('/cash-flow', [ReportController::class, 'cashFlow'])->middleware('permission:finance.reports.view')->name('cash-flow');
-            Route::get('/ap', [ReportController::class, 'apAging'])->middleware('permission:finance.reports.view')->name('ap');
-            Route::get('/ar', [ReportController::class, 'arAging'])->middleware('permission:finance.reports.view')->name('ar');
             Route::get('/payment-register', [ReportController::class, 'paymentRegister'])->middleware('permission:finance.reports.view')->name('payment-register');
             Route::get('/receipt-register', [ReportController::class, 'receiptRegister'])->middleware('permission:finance.reports.view')->name('receipt-register');
             Route::get('/cash-book', [ReportController::class, 'cashBook'])->middleware('permission:finance.reports.view')->name('cash-book');
             Route::get('/bank-book', [ReportController::class, 'bankBook'])->middleware('permission:finance.reports.view')->name('bank-book');
             Route::get('/management', [ReportController::class, 'management'])->middleware('permission:finance.reports.view')->name('management');
-            Route::post('/generate-async', [ReportController::class, 'generateAsync'])->middleware('permission:finance.reports.export')->name('generate-async');
+            Route::get('/export/{report}', ReportExportController::class)->whereIn('report', ReportExportController::REPORTS)->middleware('permission:finance.reports.export')->name('export');
         });
 
         // Payments
@@ -270,9 +287,6 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::post('/supplier-invoices/{id}/reject', [SupplierInvoiceController::class, 'reject'])->middleware('permission:finance.supplier-invoices.reject')->name('supplier-invoices.reject');
         Route::post('/supplier-invoices/{id}/post', [SupplierInvoiceController::class, 'post'])->middleware('permission:finance.supplier-invoices.post')->name('supplier-invoices.post');
         Route::post('/supplier-invoices/{id}/cancel', [SupplierInvoiceController::class, 'cancel'])->middleware('permission:finance.supplier-invoices.cancel')->name('supplier-invoices.cancel');
-        Route::post('/supplier-invoices/{invoiceId}/lines', [SupplierInvoiceLineController::class, 'store'])->middleware('permission:finance.supplier-invoices.update')->name('supplier-invoices.lines.store');
-        Route::put('/supplier-invoices/{invoiceId}/lines/{lineId}', [SupplierInvoiceLineController::class, 'update'])->middleware('permission:finance.supplier-invoices.update')->name('supplier-invoices.lines.update');
-        Route::delete('/supplier-invoices/{invoiceId}/lines/{lineId}', [SupplierInvoiceLineController::class, 'destroy'])->middleware('permission:finance.supplier-invoices.update')->name('supplier-invoices.lines.destroy');
 
         // Supplier Credit Notes
         Route::get('/supplier-credit-notes', [SupplierCreditNoteController::class, 'index'])->middleware('permission:finance.supplier-credit-notes.view')->name('supplier-credit-notes.index');
@@ -284,21 +298,11 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::delete('/supplier-credit-notes/{id}', [SupplierCreditNoteController::class, 'destroy'])->middleware('permission:finance.supplier-credit-notes.delete')->name('supplier-credit-notes.destroy');
         Route::post('/supplier-credit-notes/{id}/submit', [SupplierCreditNoteController::class, 'submit'])->middleware('permission:finance.supplier-credit-notes.submit')->name('supplier-credit-notes.submit');
         Route::post('/supplier-credit-notes/{id}/approve', [SupplierCreditNoteController::class, 'approve'])->middleware('permission:finance.supplier-credit-notes.approve')->name('supplier-credit-notes.approve');
+        Route::post('/supplier-credit-notes/{id}/reject', [SupplierCreditNoteController::class, 'reject'])->middleware('permission:finance.supplier-credit-notes.reject')->name('supplier-credit-notes.reject');
         Route::post('/supplier-credit-notes/{id}/post', [SupplierCreditNoteController::class, 'post'])->middleware('permission:finance.supplier-credit-notes.post')->name('supplier-credit-notes.post');
         Route::post('/supplier-credit-notes/{id}/cancel', [SupplierCreditNoteController::class, 'cancel'])->middleware('permission:finance.supplier-credit-notes.cancel')->name('supplier-credit-notes.cancel');
 
         // Supplier Debit Notes
-        Route::get('/supplier-debit-notes', [SupplierDebitNoteController::class, 'index'])->middleware('permission:finance.supplier-debit-notes.view')->name('supplier-debit-notes.index');
-        Route::get('/supplier-debit-notes/create', [SupplierDebitNoteController::class, 'create'])->middleware('permission:finance.supplier-debit-notes.create')->name('supplier-debit-notes.create');
-        Route::post('/supplier-debit-notes', [SupplierDebitNoteController::class, 'store'])->middleware('permission:finance.supplier-debit-notes.create')->name('supplier-debit-notes.store');
-        Route::get('/supplier-debit-notes/{id}', [SupplierDebitNoteController::class, 'show'])->middleware('permission:finance.supplier-debit-notes.view')->name('supplier-debit-notes.show');
-        Route::get('/supplier-debit-notes/{id}/edit', [SupplierDebitNoteController::class, 'edit'])->middleware('permission:finance.supplier-debit-notes.update')->name('supplier-debit-notes.edit');
-        Route::put('/supplier-debit-notes/{id}', [SupplierDebitNoteController::class, 'update'])->middleware('permission:finance.supplier-debit-notes.update')->name('supplier-debit-notes.update');
-        Route::delete('/supplier-debit-notes/{id}', [SupplierDebitNoteController::class, 'destroy'])->middleware('permission:finance.supplier-debit-notes.delete')->name('supplier-debit-notes.destroy');
-        Route::post('/supplier-debit-notes/{id}/post', [SupplierDebitNoteController::class, 'post'])->middleware('permission:finance.supplier-debit-notes.post')->name('supplier-debit-notes.post');
-        Route::post('/supplier-debit-notes/{id}/submit', [SupplierDebitNoteController::class, 'submit'])->middleware('permission:finance.supplier-debit-notes.submit')->name('supplier-debit-notes.submit');
-        Route::post('/supplier-debit-notes/{id}/approve', [SupplierDebitNoteController::class, 'approve'])->middleware('permission:finance.supplier-debit-notes.approve')->name('supplier-debit-notes.approve');
-        Route::post('/supplier-debit-notes/{id}/cancel', [SupplierDebitNoteController::class, 'cancel'])->middleware('permission:finance.supplier-debit-notes.cancel')->name('supplier-debit-notes.cancel');
 
         // Supplier Statements
         Route::get('/supplier-statements', [SupplierStatementController::class, 'index'])->middleware('permission:finance.suppliers.view')->name('supplier-statements.index');
@@ -318,6 +322,47 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::post('/customer-invoices/{id}/post', [CustomerInvoiceController::class, 'post'])->middleware('permission:finance.customer-invoices.post')->name('customer-invoices.post');
         Route::post('/customer-invoices/{id}/cancel', [CustomerInvoiceController::class, 'cancel'])->middleware('permission:finance.customer-invoices.cancel')->name('customer-invoices.cancel');
         Route::get('/customer-invoices/{id}/e-invoice', [EInvoiceController::class, 'show'])->whereNumber('id')->middleware('permission:finance.customer-invoices.view')->name('customer-invoices.e-invoice');
+        Route::get('/customer-invoices/{id}/pdf', [SalesDocumentPdfController::class, 'invoice'])->whereNumber('id')->middleware('permission:finance.customer-invoices.view')->name('customer-invoices.pdf');
+        Route::get('/customer-credit-notes/{id}/pdf', [SalesDocumentPdfController::class, 'creditNote'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.view')->name('customer-credit-notes.pdf');
+
+        // Data Import: each kind of data needs its own create permission.
+        Route::get('/imports', [DataImportController::class, 'index'])->middleware('permission:finance.data-import.use')->name('imports.index');
+        foreach (DataImportController::TYPES as $importType => $definition) {
+            Route::get("/imports/{$importType}/template", [DataImportController::class, 'template'])->defaults('type', $importType)->middleware("permission:{$definition['permission']}")->name('imports.template.'.$importType);
+            Route::post("/imports/{$importType}", [DataImportController::class, 'preview'])->defaults('type', $importType)->middleware("permission:{$definition['permission']}")->name('imports.preview.'.$importType);
+            Route::post("/imports/{$importType}/{token}", [DataImportController::class, 'confirm'])->defaults('type', $importType)->middleware("permission:{$definition['permission']}")->name('imports.confirm.'.$importType);
+        }
+
+        // Number Series
+        Route::get('/number-series', [NumberSeriesController::class, 'index'])->middleware('permission:finance.number-series.view')->name('number-series.index');
+        Route::put('/number-series/{documentType}', [NumberSeriesController::class, 'update'])->whereIn('documentType', array_keys(DocumentNumberService::TYPES))->middleware('permission:finance.number-series.manage')->name('number-series.update');
+
+        // Payment Terms
+        Route::get('/payment-terms', [PaymentTermController::class, 'index'])->middleware('permission:finance.payment-terms.view')->name('payment-terms.index');
+        Route::post('/payment-terms', [PaymentTermController::class, 'store'])->middleware('permission:finance.payment-terms.manage')->name('payment-terms.store');
+        Route::put('/payment-terms/{id}', [PaymentTermController::class, 'update'])->whereNumber('id')->middleware('permission:finance.payment-terms.manage')->name('payment-terms.update');
+        Route::delete('/payment-terms/{id}', [PaymentTermController::class, 'destroy'])->whereNumber('id')->middleware('permission:finance.payment-terms.manage')->name('payment-terms.destroy');
+
+        // Customer Credit Notes
+        Route::get('/customer-credit-notes', [CustomerCreditNoteController::class, 'index'])->middleware('permission:finance.customer-credit-notes.view')->name('customer-credit-notes.index');
+        Route::get('/customer-credit-notes/create', [CustomerCreditNoteController::class, 'create'])->middleware('permission:finance.customer-credit-notes.create')->name('customer-credit-notes.create');
+        Route::post('/customer-credit-notes', [CustomerCreditNoteController::class, 'store'])->middleware('permission:finance.customer-credit-notes.create')->name('customer-credit-notes.store');
+        Route::get('/customer-credit-notes/{id}', [CustomerCreditNoteController::class, 'show'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.view')->name('customer-credit-notes.show');
+        Route::get('/customer-credit-notes/{id}/edit', [CustomerCreditNoteController::class, 'edit'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.update')->name('customer-credit-notes.edit');
+        Route::put('/customer-credit-notes/{id}', [CustomerCreditNoteController::class, 'update'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.update')->name('customer-credit-notes.update');
+        Route::delete('/customer-credit-notes/{id}', [CustomerCreditNoteController::class, 'destroy'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.delete')->name('customer-credit-notes.destroy');
+        Route::post('/customer-credit-notes/{id}/submit', [CustomerCreditNoteController::class, 'submit'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.submit')->name('customer-credit-notes.submit');
+        Route::post('/customer-credit-notes/{id}/approve', [CustomerCreditNoteController::class, 'approve'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.approve')->name('customer-credit-notes.approve');
+        Route::post('/customer-credit-notes/{id}/reject', [CustomerCreditNoteController::class, 'reject'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.reject')->name('customer-credit-notes.reject');
+        Route::post('/customer-credit-notes/{id}/post', [CustomerCreditNoteController::class, 'post'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.post')->name('customer-credit-notes.post');
+        Route::post('/customer-credit-notes/{id}/cancel', [CustomerCreditNoteController::class, 'cancel'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.cancel')->name('customer-credit-notes.cancel');
+
+        // Attachments: viewing needs the document's view permission, attaching and removing its create permission.
+        foreach (array_keys(AttachmentController::DOCUMENTS) as $documentType) {
+            Route::post("/{$documentType}/{id}/attachments", [AttachmentController::class, 'store'])->whereNumber('id')->defaults('documentType', $documentType)->middleware("permission:finance.{$documentType}.create")->name("{$documentType}.attachments.store");
+            Route::get("/{$documentType}/{id}/attachments/{attachment}", [AttachmentController::class, 'download'])->whereNumber(['id', 'attachment'])->defaults('documentType', $documentType)->middleware("permission:finance.{$documentType}.view")->name("{$documentType}.attachments.download");
+            Route::delete("/{$documentType}/{id}/attachments/{attachment}", [AttachmentController::class, 'destroy'])->whereNumber(['id', 'attachment'])->defaults('documentType', $documentType)->middleware("permission:finance.{$documentType}.create")->name("{$documentType}.attachments.destroy");
+        }
 
         // Customer Statements
         Route::get('/customer-statements', [CustomerStatementController::class, 'index'])->middleware('permission:finance.customers.view')->name('customer-statements.index');

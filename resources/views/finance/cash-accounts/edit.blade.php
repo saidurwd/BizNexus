@@ -1,9 +1,9 @@
 @extends('layouts.erp')
 
-@section('title', 'Edit Cash Account - BizNexus')
+@section('title', __('Edit Cash Account - BizNexus'))
 
 @section('content_header')
-    <h1>Edit Cash Account</h1>
+    <h1>{{ __('Edit Cash Account') }}</h1>
 @endsection
 
 @section('content')
@@ -15,14 +15,14 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="code">Code</label>
+                        <div class="mb-3">
+                            <label for="code">{{ __('Code') }}</label>
                             <input type="text" class="form-control" name="code" value="{{ old('code', $cashAccount->code) }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="name">Name</label>
+                        <div class="mb-3">
+                            <label for="name">{{ __('Name') }}</label>
                             <input type="text" class="form-control" name="name" value="{{ old('name', $cashAccount->name) }}" required>
                         </div>
                     </div>
@@ -30,10 +30,10 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="gl_account_id">GL Account</label>
+                        <div class="mb-3">
+                            <label for="gl_account_id">{{ __('GL Account') }}</label>
                             <select name="gl_account_id" class="form-control" required>
-                                <option value="">Select GL Account</option>
+                                <option value="">{{ __('Select GL Account') }}</option>
                                 @foreach($glOptions as $opt)
                                     <option value="{{ $opt->id }}" @selected(old('gl_account_id', $cashAccount->gl_account_id) == $opt->id)>
                                         {{ $opt->account_code }} — {{ $opt->account_name }}
@@ -43,12 +43,12 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="account_type">Account Type</label>
+                        <div class="mb-3">
+                            <label for="account_type">{{ __('Account Type') }}</label>
                             <select name="account_type" class="form-control">
-                                <option value="CASH" @selected(old('account_type', $cashAccount->account_type) == 'CASH')>Cash</option>
-                                <option value="PETTY_CASH" @selected(old('account_type', $cashAccount->account_type) == 'PETTY_CASH')>Petty Cash</option>
-                                <option value="BANK" @selected(old('account_type', $cashAccount->account_type) == 'BANK')>Bank</option>
+                                <option value="CASH" @selected(old('account_type', $cashAccount->account_type) == 'CASH')>{{ __('Cash') }}</option>
+                                <option value="PETTY_CASH" @selected(old('account_type', $cashAccount->account_type) == 'PETTY_CASH')>{{ __('Petty Cash') }}</option>
+                                <option value="BANK" @selected(old('account_type', $cashAccount->account_type) == 'BANK')>{{ __('Bank') }}</option>
                             </select>
                         </div>
                     </div>
@@ -56,35 +56,35 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="currency_code">Currency Code</label>
+                        <div class="mb-3">
+                            <label for="currency_code">{{ __('Currency Code') }}</label>
                             <input type="text" class="form-control" name="currency_code" value="{{ old('currency_code', $cashAccount->currency_code) }}" maxlength="3" required>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="opening_balance">Opening Balance</label>
+                        <div class="mb-3">
+                            <label for="opening_balance">{{ __('Opening Balance') }}</label>
                             <input type="number" class="form-control" name="opening_balance" step="0.01" min="0" value="{{ old('opening_balance', $cashAccount->opening_balance) }}" required>
                         </div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="status">Status</label>
+                <div class="mb-3">
+                    <label for="status">{{ __('Status') }}</label>
                     <select name="status" class="form-control">
-                        <option value="active" @selected(old('status', $cashAccount->status) == 'active')>Active</option>
-                        <option value="inactive" @selected(old('status', $cashAccount->status) == 'inactive')>Inactive</option>
+                        <option value="active" @selected(old('status', $cashAccount->status) == 'active')>{{ __('Active') }}</option>
+                        <option value="inactive" @selected(old('status', $cashAccount->status) == 'inactive')>{{ __('Inactive') }}</option>
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label for="notes">Notes</label>
+                <div class="mb-3">
+                    <label for="notes">{{ __('Notes') }}</label>
                     <textarea class="form-control" name="notes" rows="3">{{ old('notes', $cashAccount->notes) }}</textarea>
                 </div>
 
-                <div class="form-group">
-                    <button type="submit" class="btn btn-primary">Update Cash Account</button>
-                    <a href="{{ route('finance.cash-accounts.index') }}" class="btn btn-secondary">Cancel</a>
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-primary">{{ __('Update Cash Account') }}</button>
+                    <a href="{{ route('finance.cash-accounts.index') }}" class="btn btn-secondary">{{ __('Cancel') }}</a>
                 </div>
             </form>
         </div>

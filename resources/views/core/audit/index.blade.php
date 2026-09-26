@@ -1,24 +1,24 @@
 @extends('layouts.erp')
 
-@section('title', 'Audit Logs')
+@section('title', __('Audit Logs'))
 
 @section('content_header')
-    <h1>Audit Logs</h1>
+    <h1>{{ __('Audit Logs') }}</h1>
 @endsection
 
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Filters</h3>
+            <h3 class="card-title">{{ __('Filters') }}</h3>
         </div>
         <div class="card-body">
             <form method="GET" action="{{ route('core.audit.index') }}" class="form-inline">
                 <div class="row">
                     <div class="col-md-2">
-                        <div class="form-group">
-                            <label>Module</label>
+                        <div class="mb-3">
+                            <label>{{ __('Module') }}</label>
                             <select name="module" class="form-control">
-                                <option value="">All Modules</option>
+                                <option value="">{{ __('All Modules') }}</option>
                                 @foreach($modules as $module)
                                     <option value="{{ $module }}" {{ request('module') == $module ? 'selected' : '' }}>
                                         {{ ucfirst($module) }}
@@ -28,10 +28,10 @@
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <div class="form-group">
-                            <label>Entity Type</label>
+                        <div class="mb-3">
+                            <label>{{ __('Entity Type') }}</label>
                             <select name="entity_type" class="form-control">
-                                <option value="">All Types</option>
+                                <option value="">{{ __('All Types') }}</option>
                                 @foreach($entityTypes as $type)
                                     <option value="{{ $type }}" {{ request('entity_type') == $type ? 'selected' : '' }}>
                                         {{ $type }}
@@ -41,10 +41,10 @@
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <div class="form-group">
-                            <label>Action</label>
+                        <div class="mb-3">
+                            <label>{{ __('Action') }}</label>
                             <select name="action" class="form-control">
-                                <option value="">All Actions</option>
+                                <option value="">{{ __('All Actions') }}</option>
                                 @foreach($actions as $action)
                                     <option value="{{ $action }}" {{ request('action') == $action ? 'selected' : '' }}>
                                         {{ $action }}
@@ -54,10 +54,10 @@
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <div class="form-group">
-                            <label>User</label>
+                        <div class="mb-3">
+                            <label>{{ __('User') }}</label>
                             <select name="user_id" class="form-control">
-                                <option value="">All Users</option>
+                                <option value="">{{ __('All Users') }}</option>
                                 @foreach($users as $user)
                                     <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
                                         {{ $user->name }} ({{ $user->email }})
@@ -67,31 +67,31 @@
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <div class="form-group">
-                            <label>Date From</label>
+                        <div class="mb-3">
+                            <label>{{ __('Date From') }}</label>
                             <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <div class="form-group">
-                            <label>Date To</label>
+                        <div class="mb-3">
+                            <label>{{ __('Date To') }}</label>
                             <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <div class="form-group">
-                            <label>Search</label>
-                            <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ request('search') }}">
+                        <div class="mb-3">
+                            <label>{{ __('Search') }}</label>
+                            <input type="text" name="search" class="form-control" placeholder="{{ __('Search...') }}" value="{{ request('search') }}">
                         </div>
                     </div>
                 </div>
                 <div class="row mt-3">
                     <div class="col-12">
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-funnel"></i> Filter
+                            <i class="bi bi-funnel"></i> {{ __('Filter') }}
                         </button>
                         <a href="{{ route('core.audit.index') }}" class="btn btn-default">
-                            <i class="bi bi-x-circle"></i> Clear
+                            <i class="bi bi-x-circle"></i> {{ __('Clear') }}
                         </a>
                     </div>
                 </div>
@@ -104,13 +104,13 @@
             <table class="table table-bordered table-striped table-hover">
                 <thead>
                     <tr>
-                        <th>Date & Time</th>
-                        <th>User</th>
-                        <th>Module</th>
-                        <th>Entity</th>
-                        <th>Action</th>
-                        <th>IP Address</th>
-                        <th class="text-center">Details</th>
+                        <th>{{ __('Date & Time') }}</th>
+                        <th>{{ __('User') }}</th>
+                        <th>{{ __('Module') }}</th>
+                        <th>{{ __('Entity') }}</th>
+                        <th>{{ __('Action') }}</th>
+                        <th>{{ __('IP Address') }}</th>
+                        <th class="text-center">{{ __('Details') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -144,13 +144,13 @@
                             <td><code>{{ $log->ip_address ?? '-' }}</code></td>
                             <td class="text-center">
                                 <a href="{{ route('core.audit.show', $log->id) }}" class="btn btn-sm btn-info">
-                                    <i class="bi bi-eye"></i> View
+                                    <i class="bi bi-eye"></i> {{ __('View') }}
                                 </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">No audit logs found</td>
+                            <td colspan="7" class="text-center">{{ __('No audit logs found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

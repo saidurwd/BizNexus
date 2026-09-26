@@ -1,49 +1,37 @@
 @extends('layouts.erp')
 
-@section('title', 'Journal Entries')
+@section('title', __('Journal Entries'))
 
 @section('content_header')
-    <h1>Journal Entries</h1>
+    <h1>{{ __('Journal Entries') }}</h1>
     <div class="mt-2">
         <a href="{{ route('finance.journals.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> New Journal Entry
+            <i class="bi bi-plus-circle"></i> {{ __('New Journal Entry') }}
         </a>
     </div>
 @endsection
 
 @section('content')
+    <x-finance.list-filters :filters="$filters" :statuses="['DRAFT', 'SUBMITTED', 'APPROVED', 'POSTED', 'REVERSED', 'REJECTED', 'CANCELLED']" :search-label="__('Journal number or description')" />
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Journal Register</h3>
+            <h3 class="card-title">{{ __('Journal Register') }}</h3>
             @if($company)
-                <span class="text-muted ml-2">({{ $company->code }} — {{ $company->name }})</span>
+                <span class="text-muted ms-2">({{ $company->code }} — {{ $company->name }})</span>
             @endif
-            <div class="card-tools">
-                <form method="GET" action="{{ route('finance.journals.index') }}" class="form-inline">
-                    <select name="status" class="form-control form-control-sm" onchange="this.form.submit()">
-                        <option value="">All Statuses</option>
-                        <option value="DRAFT" {{ request('status') === 'DRAFT' ? 'selected' : '' }}>Draft</option>
-                        <option value="SUBMITTED" {{ request('status') === 'SUBMITTED' ? 'selected' : '' }}>Submitted</option>
-                        <option value="APPROVED" {{ request('status') === 'APPROVED' ? 'selected' : '' }}>Approved</option>
-                        <option value="POSTED" {{ request('status') === 'POSTED' ? 'selected' : '' }}>Posted</option>
-                        <option value="REJECTED" {{ request('status') === 'REJECTED' ? 'selected' : '' }}>Rejected</option>
-                        <option value="CANCELLED" {{ request('status') === 'CANCELLED' ? 'selected' : '' }}>Cancelled</option>
-                    </select>
-                </form>
-            </div>
         </div>
         <div class="card-body table-responsive">
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Date</th>
+                        <th>{{ __('Date') }}</th>
                         <th>Journal #</th>
-                        <th>Description</th>
-                        <th>Period</th>
-                        <th class="text-right">Total Debit</th>
-                        <th class="text-right">Total Credit</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('Description') }}</th>
+                        <th>{{ __('Period') }}</th>
+                        <th class="text-end">{{ __('Total Debit') }}</th>
+                        <th class="text-end">{{ __('Total Credit') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -53,8 +41,8 @@
                             <td>{{ $journal->journal_number }}</td>
                             <td>{{ $journal->description ?: '-' }}</td>
                             <td>{{ $journal->fiscalPeriod?->period_name ?? '-' }}</td>
-                            <td class="text-right">{{ number_format($journal->total_debit, 2) }}</td>
-                            <td class="text-right">{{ number_format($journal->total_credit, 2) }}</td>
+                            <td class="text-end">{{ Formatter::amount($journal->total_debit) }}</td>
+                            <td class="text-end">{{ Formatter::amount($journal->total_credit) }}</td>
                             <td>
                                 <span class="badge bg-{{ $journal->status === 'POSTED' ? 'success' : ($journal->status === 'DRAFT' ? 'secondary' : ($journal->status === 'APPROVED' ? 'info' : ($journal->status === 'REJECTED' ? 'danger' : ($journal->status === 'CANCELLED' ? 'dark' : 'warning')))) }}">
                                     {{ $journal->status }}
@@ -71,7 +59,7 @@
                             <td colspan="8" class="text-center">
                                 No journals found for {{ $company?->name ?? 'this company' }}.
                                 @if($company && \Modules\Finance\Models\Journal::where('company_id', $company->id)->count() == 0)
-                                    <br><small class="text-muted">You can <a href="{{ route('finance.journals.create') }}">create a new journal entry</a> or switch to a different company.</small>
+                                    <br><small class="text-muted">{{ __('You can') }} <a href="{{ route('finance.journals.create') }}">{{ __('create a new journal entry') }}</a> {{ __('or switch to a different company.') }}</small>
                                 @endif
                             </td>
                         </tr>

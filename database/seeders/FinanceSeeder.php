@@ -10,11 +10,11 @@ use Modules\Core\Models\FiscalYear;
 use Modules\Core\Models\Tenant;
 use Modules\Core\Services\AccountingPeriodService;
 use Modules\Core\Services\CompanyContextService;
-use Modules\Core\Services\DocumentNumberService;
 use Modules\Finance\Enums\AccountPurpose;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\AccountCategory;
 use Modules\Finance\Models\AccountMapping;
+use Modules\Finance\Models\PaymentTerm;
 
 class FinanceSeeder extends Seeder
 {
@@ -71,13 +71,13 @@ class FinanceSeeder extends Seeder
                 'status' => 'active',
             ]
         );
+        PaymentTerm::createDefaultsFor($company->id);
 
         app(CompanyContextService::class)->runAs($company->id, function () use ($company) {
             $this->createFiscalYear($company);
             $this->createChartOfAccounts($company);
             $this->classifyAccounts();
             $this->mapAutomaticPostingAccounts($company);
-            $this->initializeDocumentSequences($company);
         });
     }
 
@@ -286,17 +286,6 @@ class FinanceSeeder extends Seeder
                 ['company_id' => $company->id, 'purpose' => $purpose],
                 ['account_id' => Account::where('account_code', $accountCode)->value('id')]
             );
-        }
-    }
-
-    protected function initializeDocumentSequences(Company $company): void
-    {
-        $fiscalYear = $company->currentFiscalYear()->first();
-
-        if ($fiscalYear) {
-            app(DocumentNumberService::class)->initializeDefaultsForCompany($company->id, $fiscalYear->id);
-        } else {
-            app(DocumentNumberService::class)->initializeDefaultsForCompany($company->id);
         }
     }
 }

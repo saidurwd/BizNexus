@@ -1,9 +1,9 @@
 @extends('layouts.erp')
 
-@section('title', 'Edit Budget')
+@section('title', __('Edit Budget'))
 
 @section('content_header')
-    <h1>Edit Budget</h1>
+    <h1>{{ __('Edit Budget') }}</h1>
 @endsection
 
 @section('content')
@@ -13,29 +13,29 @@
                 @csrf
                 @method('PUT')
 
-                <div class="form-group">
-                    <label for="name">Budget Name</label>
+                <div class="mb-3">
+                    <label for="name">{{ __('Budget Name') }}</label>
                     <input type="text" class="form-control" name="name" value="{{ old('name', $budget->name) }}" required>
                 </div>
 
-                <div class="form-group mt-3">
-                    <label for="description">Description</label>
+                <div class="mb-3 mt-3">
+                    <label for="description">{{ __('Description') }}</label>
                     <textarea class="form-control" name="description" rows="3">{{ old('description', $budget->description) }}</textarea>
                 </div>
 
-                <div class="form-group mt-3">
-                    <label for="status">Status</label>
+                <div class="mb-3 mt-3">
+                    <label for="status">{{ __('Status') }}</label>
                     <select class="form-control" name="status" required>
-                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_DRAFT }}" {{ $budget->status === \Modules\Finance\Models\Budget::STATUS_DRAFT ? 'selected' : '' }}>Draft</option>
-                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_SUBMITTED }}" {{ $budget->status === \Modules\Finance\Models\Budget::STATUS_SUBMITTED ? 'selected' : '' }}>Submitted</option>
-                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_APPROVED }}" {{ $budget->status === \Modules\Finance\Models\Budget::STATUS_APPROVED ? 'selected' : '' }}>Approved</option>
-                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_REJECTED }}" {{ $budget->status === \Modules\Finance\Models\Budget::STATUS_REJECTED ? 'selected' : '' }}>Rejected</option>
+                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_DRAFT }}" {{ $budget->status === \Modules\Finance\Models\Budget::STATUS_DRAFT ? 'selected' : '' }}>{{ __('Draft') }}</option>
+                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_SUBMITTED }}" {{ $budget->status === \Modules\Finance\Models\Budget::STATUS_SUBMITTED ? 'selected' : '' }}>{{ __('Submitted') }}</option>
+                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_APPROVED }}" {{ $budget->status === \Modules\Finance\Models\Budget::STATUS_APPROVED ? 'selected' : '' }}>{{ __('Approved') }}</option>
+                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_REJECTED }}" {{ $budget->status === \Modules\Finance\Models\Budget::STATUS_REJECTED ? 'selected' : '' }}>{{ __('Rejected') }}</option>
                     </select>
                 </div>
 
-                <div class="form-group mt-4">
-                    <button type="submit" class="btn btn-primary">Update Budget</button>
-                    <a href="{{ route('finance.budgets.show', $budget->id) }}" class="btn btn-secondary">Cancel</a>
+                <div class="mb-3 mt-4">
+                    <button type="submit" class="btn btn-primary">{{ __('Update Budget') }}</button>
+                    <a href="{{ route('finance.budgets.show', $budget->id) }}" class="btn btn-secondary">{{ __('Cancel') }}</a>
                 </div>
             </form>
         </div>

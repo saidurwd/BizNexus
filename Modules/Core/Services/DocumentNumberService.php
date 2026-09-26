@@ -7,18 +7,27 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Models\NumberSequence;
 
+/**
+ * Gapless document numbers per company (journals restart each fiscal year). Each company may change a
+ * series' prefix and format; a new fiscal year's series follows the company's latest settings.
+ */
 class DocumentNumberService
 {
-    protected array $defaultDocumentTypes = [
-        'JV' => ['prefix' => 'JV', 'format' => '{PREFIX}-{YEAR}-{SEQUENCE:6}'],
-        'PV' => ['prefix' => 'PV', 'format' => '{PREFIX}-{YEAR}-{SEQUENCE:6}'],
-        'RV' => ['prefix' => 'RV', 'format' => '{PREFIX}-{YEAR}-{SEQUENCE:6}'],
-        'BRV' => ['prefix' => 'BRV', 'format' => '{PREFIX}-{YEAR}-{SEQUENCE:6}'],
-        'BPV' => ['prefix' => 'BPV', 'format' => '{PREFIX}-{YEAR}-{SEQUENCE:6}'],
-        'SI' => ['prefix' => 'SI', 'format' => '{PREFIX}-{YEAR}-{SEQUENCE:6}'],
-        'CI' => ['prefix' => 'CI', 'format' => '{PREFIX}-{YEAR}-{SEQUENCE:6}'],
-        'SP' => ['prefix' => 'SP', 'format' => '{PREFIX}-{YEAR}-{SEQUENCE:6}'],
-        'CR' => ['prefix' => 'CR', 'format' => '{PREFIX}-{YEAR}-{SEQUENCE:6}'],
+    public const DEFAULT_FORMAT = '{PREFIX}-{YEAR}-{SEQUENCE:6}';
+
+    /**
+     * Document types that are numbered, with their default prefix.
+     *
+     * @var array<string, array{label: string, prefix: string}>
+     */
+    public const TYPES = [
+        'JV' => ['label' => 'Journals', 'prefix' => 'JV'],
+        'CI' => ['label' => 'Customer invoices', 'prefix' => 'CI'],
+        'CN' => ['label' => 'Customer credit notes', 'prefix' => 'CN'],
+        'RV' => ['label' => 'Customer receipts', 'prefix' => 'RV'],
+        'SI' => ['label' => 'Supplier invoices (when the supplier gives no number)', 'prefix' => 'SI'],
+        'SCN' => ['label' => 'Supplier credit notes', 'prefix' => 'SCN'],
+        'PV' => ['label' => 'Supplier payments', 'prefix' => 'PV'],
     ];
 
     /**
@@ -33,13 +42,15 @@ class DocumentNumberService
                 ->when($fiscalYearId, fn ($query) => $query->where('fiscal_year_id', $fiscalYearId), fn ($query) => $query->whereNull('fiscal_year_id'));
 
             if (! $sequenceQuery()->exists()) {
+                $settings = $this->settings($companyId, $documentType);
+
                 try {
                     NumberSequence::create([
                         'company_id' => $companyId,
                         'document_type' => $documentType,
                         'fiscal_year_id' => $fiscalYearId,
-                        'prefix' => $this->defaultDocumentTypes[$documentType]['prefix'] ?? $documentType,
-                        'format' => $this->defaultDocumentTypes[$documentType]['format'] ?? '{PREFIX}-{YEAR}-{SEQUENCE:6}',
+                        'prefix' => $settings['prefix'],
+                        'format' => $settings['format'],
                         'last_number' => 0,
                         'is_active' => true,
                     ]);
@@ -53,68 +64,25 @@ class DocumentNumberService
     }
 
     /**
+     * The prefix and format a company uses for a document type: its latest series, or the defaults.
+     *
+     * @return array{prefix: string, format: string}
+     */
+    public function settings(int $companyId, string $documentType): array
+    {
+        $latest = NumberSequence::where('company_id', $companyId)->where('document_type', $documentType)->latest('id')->first();
+
+        return [
+            'prefix' => $latest?->prefix ?? self::TYPES[$documentType]['prefix'] ?? $documentType,
+            'format' => $latest?->format ?? self::DEFAULT_FORMAT,
+        ];
+    }
+
+    /**
      * Temporary reference for a document that has not been issued its official number yet.
      */
     public function draftReference(int $documentId): string
     {
         return sprintf('DRAFT-%06d', $documentId);
-    }
-
-    public function initializeDefaultsForCompany(int $companyId, ?int $fiscalYearId = null): void
-    {
-        foreach ($this->defaultDocumentTypes as $type => $config) {
-            NumberSequence::firstOrCreate(
-                [
-                    'company_id' => $companyId,
-                    'document_type' => $type,
-                    'fiscal_year_id' => $fiscalYearId,
-                ],
-                [
-                    'prefix' => $config['prefix'],
-                    'format' => $config['format'],
-                    'last_number' => 0,
-                    'is_active' => true,
-                ]
-            );
-        }
-    }
-
-    public function resetSequence(int $companyId, string $documentType, ?int $fiscalYearId = null): void
-    {
-        NumberSequence::where('company_id', $companyId)
-            ->where('document_type', $documentType)
-            ->when($fiscalYearId, fn ($q) => $q->where('fiscal_year_id', $fiscalYearId))
-            ->when(! $fiscalYearId, fn ($q) => $q->whereNull('fiscal_year_id'))
-            ->update(['last_number' => 0]);
-    }
-
-    public function getCurrentNumber(int $companyId, string $documentType, ?int $fiscalYearId = null): int
-    {
-        $sequence = NumberSequence::where('company_id', $companyId)
-            ->where('document_type', $documentType)
-            ->when($fiscalYearId, fn ($q) => $q->where('fiscal_year_id', $fiscalYearId))
-            ->when(! $fiscalYearId, fn ($q) => $q->whereNull('fiscal_year_id'))
-            ->first();
-
-        return $sequence?->last_number ?? 0;
-    }
-
-    public function previewNumber(int $companyId, string $documentType, ?int $fiscalYearId = null): string
-    {
-        $sequence = NumberSequence::firstOrCreate(
-            [
-                'company_id' => $companyId,
-                'document_type' => $documentType,
-                'fiscal_year_id' => $fiscalYearId,
-            ],
-            [
-                'prefix' => $documentType,
-                'format' => '{PREFIX}-{YEAR}-{SEQUENCE:6}',
-                'last_number' => 0,
-                'is_active' => true,
-            ]
-        );
-
-        return $sequence->generateNumber();
     }
 }

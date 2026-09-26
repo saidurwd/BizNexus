@@ -1,74 +1,52 @@
 @extends('layouts.erp')
 
-@section('title', 'Supplier Credit Notes')
+@section('title', __('Supplier credit notes'))
 
 @section('content_header')
-    <h1>Supplier Credit Notes</h1>
-    <div class="mt-2">
-        <a href="{{ route('finance.supplier-credit-notes.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> New Credit Note
-        </a>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h1 class="m-0">{{ __('Supplier credit notes') }}</h1>
+        @can('finance.supplier-credit-notes.create')
+            <a href="{{ route('finance.supplier-credit-notes.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> {{ __('New credit note') }}</a>
+        @endcan
     </div>
 @endsection
 
 @section('content')
+    <x-finance.list-filters :filters="$filters" :statuses="['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'POSTED', 'CANCELLED']" :search-label="__('Credit note number, reason or supplier')" />
+
     <div class="card">
-        <div class="card-body table-responsive">
-            <table class="table table-bordered table-striped">
+        <div class="card-body table-responsive p-0">
+            <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th>Credit Note #</th>
-                        <th>Date</th>
-                        <th>Supplier</th>
-                        <th>Related Invoice</th>
-                        <th class="text-right">Total Amount</th>
-                        <th>Status</th>
-                        <th class="text-center">Actions</th>
+                        <th>{{ __('Number') }}</th>
+                        <th>{{ __('Date') }}</th>
+                        <th>{{ __('Supplier') }}</th>
+                        <th>{{ __('Invoice credited') }}</th>
+                        <th class="text-end">{{ __('Total') }}</th>
+                        <th>{{ __('Status') }}</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($creditNotes as $note)
+                    @forelse ($creditNotes as $creditNote)
                         <tr>
-                            <td>{{ $note->credit_note_number }}</td>
-                            <td>{{ $note->credit_note_date->format('Y-m-d') }}</td>
-                            <td>{{ $note->supplier?->name ?? '-' }}</td>
-                            <td>{{ $note->invoice?->invoice_number ?? '-' }}</td>
-                            <td class="text-right">{{ number_format($note->total_amount, 2) }}</td>
-                            <td>
-                                @php
-                                    $badgeClass = 'secondary';
-                                    if ($note->status === 'posted') $badgeClass = 'success';
-                                    elseif ($note->status === 'approved') $badgeClass = 'info';
-                                    elseif ($note->status === 'submitted') $badgeClass = 'warning';
-                                    elseif ($note->status === 'cancelled') $badgeClass = 'danger';
-                                @endphp
-                                <span class="badge bg-{{ $badgeClass }}">{{ ucfirst($note->status) }}</span>
-                            </td>
-                            <td class="text-center">
-                                <a href="{{ route('finance.supplier-credit-notes.show', $note->id) }}" class="btn btn-sm btn-info">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                @if($note->isDraft())
-                                    <a href="{{ route('finance.supplier-credit-notes.edit', $note->id) }}" class="btn btn-sm btn-warning">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <form action="{{ route('finance.supplier-credit-notes.destroy', $note->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this credit note?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
-                                @endif
-                            </td>
+                            <td><a href="{{ route('finance.supplier-credit-notes.show', $creditNote->id) }}">{{ $creditNote->credit_note_number }}</a></td>
+                            <td>{{ Formatter::date($creditNote->credit_note_date) }}</td>
+                            <td>{{ $creditNote->supplier?->name }}</td>
+                            <td>{{ $creditNote->invoice?->invoice_number ?? '—' }}</td>
+                            <td class="text-end">{{ Formatter::amount($creditNote->total_amount, $creditNote->currency?->code) }} <small class="text-body-secondary">{{ $creditNote->currency?->code }}</small></td>
+                            <td><x-status-badge :status="$creditNote->status" /></td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">No credit notes found</td>
+                            <td colspan="6" class="text-center text-body-secondary py-4">{{ __('No credit notes yet.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
+        @if ($creditNotes->hasPages())
+            <div class="card-footer">{{ $creditNotes->links() }}</div>
+        @endif
     </div>
 @endsection

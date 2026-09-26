@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 use LogicException;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\BankAccount;
@@ -48,9 +49,12 @@ class Company extends Model
         'code',
         'name',
         'legal_name',
+        'logo_path',
         'address',
         'phone',
+        'mobile',
         'email',
+        'website',
         'tax_number',
         'country_code',
         'registration_number',
@@ -142,5 +146,35 @@ class Company extends Model
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
+    }
+
+    /**
+     * Public URL of the logo for screens, or null when the company has none.
+     */
+    public function logoUrl(): ?string
+    {
+        return $this->logo_path ? Storage::disk('public')->url($this->logo_path) : null;
+    }
+
+    /**
+     * The logo inlined as a data URI, for PDFs rendered without web access to the application.
+     */
+    public function logoDataUri(): ?string
+    {
+        $disk = Storage::disk('public');
+
+        if (! $this->logo_path || ! $disk->exists($this->logo_path)) {
+            return null;
+        }
+
+        return 'data:'.$disk->mimeType($this->logo_path).';base64,'.base64_encode($disk->get($this->logo_path));
+    }
+
+    /**
+     * The name printed on documents: the registered legal name when there is one.
+     */
+    public function displayName(): string
+    {
+        return $this->legal_name ?: $this->name;
     }
 }

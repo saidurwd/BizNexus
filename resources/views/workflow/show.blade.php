@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Workflow Details')
+@section('title', __('Workflow Details'))
 
 @section('content_header')
     <h1>Workflow Instance #{{ $instance->id }}</h1>
     <div class="mt-2">
         <a href="{{ route('workflow.index') }}" class="btn btn-default">
-            <i class="bi bi-arrow-left"></i> Back to Dashboard
+            <i class="bi bi-arrow-left"></i> {{ __('Back to Dashboard') }}
         </a>
     </div>
 @endsection
@@ -16,43 +16,43 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">General Information</h3>
+                    <h3 class="card-title">{{ __('General Information') }}</h3>
                 </div>
                 <div class="card-body">
                     <table class="table table-sm">
                         <tr>
-                            <th>Workflow</th>
+                            <th>{{ __('Workflow') }}</th>
                             <td>{{ $instance->definition->name }}</td>
                         </tr>
                         <tr>
-                            <th>Entity Type</th>
+                            <th>{{ __('Entity Type') }}</th>
                             <td>{{ ucfirst(str_replace('_', ' ', $instance->entity_type)) }}</td>
                         </tr>
                         <tr>
-                            <th>Entity ID</th>
+                            <th>{{ __('Entity ID') }}</th>
                             <td>{{ $instance->entity_id }}</td>
                         </tr>
                         <tr>
-                            <th>Current State</th>
+                            <th>{{ __('Current State') }}</th>
                             <td>
                                 <span class="badge bg-info">{{ $instance->current_state }}</span>
                             </td>
                         </tr>
                         <tr>
-                            <th>Started At</th>
+                            <th>{{ __('Started At') }}</th>
                             <td>{{ $instance->started_at?->format('Y-m-d H:i:s') ?? '-' }}</td>
                         </tr>
                         <tr>
-                            <th>Completed At</th>
+                            <th>{{ __('Completed At') }}</th>
                             <td>{{ $instance->completed_at?->format('Y-m-d H:i:s') ?? '-' }}</td>
                         </tr>
                         <tr>
-                            <th>Status</th>
+                            <th>{{ __('Status') }}</th>
                             <td>
                                 @if($instance->completed_at)
-                                    <span class="badge bg-success">Completed</span>
+                                    <span class="badge bg-success">{{ __('Completed') }}</span>
                                 @else
-                                    <span class="badge bg-warning">In Progress</span>
+                                    <span class="badge bg-warning">{{ __('In Progress') }}</span>
                                 @endif
                             </td>
                         </tr>
@@ -62,14 +62,14 @@
 
             <div class="card mt-3">
                 <div class="card-header">
-                    <h3 class="card-title">Available Transitions</h3>
+                    <h3 class="card-title">{{ __('Available Transitions') }}</h3>
                 </div>
                 <div class="card-body">
                     @php
                         $transitions = $instance->getAvailableTransitions();
                     @endphp
                     @if($transitions->isEmpty())
-                        <p class="text-muted">No further transitions available.</p>
+                        <p class="text-muted">{{ __('No further transitions available.') }}</p>
                     @else
                         <ul class="list-unstyled mb-0">
                             @foreach($transitions as $transition)
@@ -86,17 +86,17 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Approvals</h3>
+                    <h3 class="card-title">{{ __('Approvals') }}</h3>
                 </div>
                 <div class="card-body table-responsive">
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th>Approver</th>
-                                <th>Role</th>
-                                <th>Status</th>
-                                <th>Comments</th>
-                                <th>Acted At</th>
+                                <th>{{ __('Approver') }}</th>
+                                <th>{{ __('Role') }}</th>
+                                <th>{{ __('Status') }}</th>
+                                <th>{{ __('Comments') }}</th>
+                                <th>{{ __('Acted At') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -117,7 +117,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center">No approvals found</td>
+                                    <td colspan="5" class="text-center">{{ __('No approvals found') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -127,18 +127,18 @@
 
             <div class="card mt-3">
                 <div class="card-header">
-                    <h3 class="card-title">Action History</h3>
+                    <h3 class="card-title">{{ __('Action History') }}</h3>
                 </div>
                 <div class="card-body table-responsive">
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th>Action</th>
-                                <th>From State</th>
-                                <th>To State</th>
-                                <th>User</th>
-                                <th>Comments</th>
-                                <th>Acted At</th>
+                                <th>{{ __('Action') }}</th>
+                                <th>{{ __('From State') }}</th>
+                                <th>{{ __('To State') }}</th>
+                                <th>{{ __('User') }}</th>
+                                <th>{{ __('Comments') }}</th>
+                                <th>{{ __('Acted At') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -153,7 +153,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center">No actions found</td>
+                                    <td colspan="6" class="text-center">{{ __('No actions found') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>
