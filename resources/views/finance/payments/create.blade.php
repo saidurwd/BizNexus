@@ -53,6 +53,24 @@
                     </div>
                 </div>
 
+                @if ($withholdingTaxes->isNotEmpty())
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="withholding_tax_id">Withholding tax</label>
+                                <select class="form-control" id="withholding_tax_id" name="withholding_tax_id">
+                                    <option value="">None</option>
+                                    @foreach ($withholdingTaxes as $withholdingTax)
+                                        <option value="{{ $withholdingTax->id }}" @selected(old('withholding_tax_id') == $withholdingTax->id)>{{ $withholdingTax->tax_code }} — {{ $withholdingTax->tax_name }}</option>
+                                    @endforeach
+                                </select>
+                                <small class="form-text text-muted">Deducted from the amount paid to the supplier and owed to the tax authority.</small>
+                                @error('withholding_tax_id')<div class="text-danger mt-1">{{ $message }}</div>@enderror
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">

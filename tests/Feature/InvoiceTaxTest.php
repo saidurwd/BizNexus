@@ -5,7 +5,9 @@ use Modules\Core\Models\Company;
 use Modules\Core\Models\FiscalPeriod;
 use Modules\Core\Models\FiscalYear;
 use Modules\Core\Services\CompanyContextService;
+use Modules\Finance\Enums\AccountPurpose;
 use Modules\Finance\Models\Account;
+use Modules\Finance\Models\AccountMapping;
 use Modules\Finance\Models\Customer;
 use Modules\Finance\Models\JournalLine;
 use Modules\Finance\Models\Supplier;
@@ -14,6 +16,7 @@ use Modules\Finance\Models\Tax;
 use Modules\Finance\Models\TaxRule;
 use Modules\Finance\Models\TaxTransaction;
 use Modules\Finance\Services\CustomerInvoiceService;
+use Modules\Finance\Services\PaymentService;
 use Modules\Finance\Services\SupplierInvoiceService;
 
 beforeEach(function () {
@@ -156,3 +159,35 @@ test('a supplier country is chosen from ISO 3166 codes', function () {
         ->put(route('finance.suppliers.update', $this->supplier->id), ['supplier_code' => $this->supplier->supplier_code, 'name' => $this->supplier->name, 'country_code' => 'XX', 'status' => 'active'])
         ->assertSessionHasErrors('country_code');
 });
+
+test('withholding tax is deducted from the payment and owed to the tax authority', function () {
+    $whtPayable = Account::factory()->liability()->create(['company_id' => $this->company->id]);
+    $bank = Account::factory()->asset()->create(['company_id' => $this->company->id]);
+    AccountMapping::create(['company_id' => $this->company->id, 'purpose' => AccountPurpose::Cash, 'account_id' => $bank->id]);
+    $wht = Tax::factory()->create(['company_id' => $this->company->id, 'tax_code' => 'WHT10', 'tax_type' => 'WITHHOLDING_TAX', 'rate' => 10, 'output_account_id' => $whtPayable->id]);
+    $invoice = postPurchase([['account_id' => $this->expense->id, 'description' => 'Consulting', 'quantity' => 1, 'unit_price' => 1000]]);
+    $payments = app(PaymentService::class);
+
+    $this->actingAs($this->clerk);
+    $payment = $payments->submitPayment($payments->createPayment([
+        'company_id' => $this->company->id, 'supplier_id' => $this->supplier->id, 'payment_date' => now()->toDateString(),
+        'amount' => 1000, 'payment_method' => 'CASH', 'withholding_tax_id' => $wht->id,
+        'allocations' => [['invoice_id' => $invoice->id, 'amount' => 1000]],
+    ]));
+    $this->actingAs($this->approver);
+    $payments->postPayment($payments->approvePayment($payment));
+
+    expect($payment->fresh()->withholding_amount)->toEqual('100.0000')
+        ->and(amountOn($this->payable->id))->toEqual('0.0000')
+        ->and(amountOn($bank->id))->toEqual('-900.0000')
+        ->and(amountOn($whtPayable->id))->toEqual('-100.0000')
+        ->and(TaxTransaction::where('payment_id', $payment->id)->value('transaction_type'))->toBe('WITHHOLDING')
+        ->and($invoice->fresh()->status)->toBe(SupplierInvoice::STATUS_PAID);
+});
+
+test('only withholding taxes can be withheld from payments', function () {
+    app(PaymentService::class)->createPayment([
+        'company_id' => $this->company->id, 'supplier_id' => $this->supplier->id, 'payment_date' => now()->toDateString(),
+        'amount' => 100, 'withholding_tax_id' => $this->vat->id,
+    ]);
+})->throws(InvalidAccountingTransactionException::class, 'is not a withholding tax');

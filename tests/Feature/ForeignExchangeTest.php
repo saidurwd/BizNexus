@@ -13,6 +13,7 @@ use Modules\Finance\Exceptions\MissingExchangeRateException;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\AccountMapping;
 use Modules\Finance\Models\Customer;
+use Modules\Finance\Models\CustomerInvoice;
 use Modules\Finance\Models\Journal;
 use Modules\Finance\Models\JournalLine;
 use Modules\Finance\Models\Supplier;
@@ -172,4 +173,26 @@ test('collecting a foreign receivable at a lower rate posts a realised loss and 
 
     expect(functionalBalance($receivable->id))->toEqual('0.0000')
         ->and(functionalBalance($this->mapped['realized_fx_loss']))->toEqual('5000.0000');
+});
+
+test('a fully collected invoice is marked paid', function () {
+    $receivable = Account::factory()->asset()->create(['company_id' => $this->company->id]);
+    $customer = Customer::factory()->create(['company_id' => $this->company->id, 'receivable_account_id' => $receivable->id]);
+    $invoices = app(CustomerInvoiceService::class);
+    $receipts = app(ReceiptService::class);
+    $this->actingAs(companyUser([], $this->company));
+    $invoice = $invoices->submitInvoice($invoices->createInvoice([
+        'company_id' => $this->company->id, 'customer_id' => $customer->id, 'invoice_date' => '2026-09-01', 'due_date' => '2026-09-30',
+        'lines' => [['account_id' => $this->revenue->id, 'description' => 'Services', 'quantity' => 1, 'unit_price' => 500]],
+    ]));
+    $receipt = $receipts->submitReceipt($receipts->createReceipt([
+        'company_id' => $this->company->id, 'customer_id' => $customer->id, 'receipt_date' => '2026-09-20', 'amount' => 500,
+        'allocations' => [['invoice_id' => $invoice->id, 'amount' => 500]],
+    ]));
+    $this->actingAs(companyUser([], $this->company));
+    $invoices->postInvoice($invoices->approveInvoice($invoice));
+    $receipts->postReceipt($receipts->approveReceipt($receipt));
+
+    expect($invoice->fresh()->status)->toBe(CustomerInvoice::STATUS_PAID)
+        ->and($invoice->fresh()->outstanding_amount)->toEqual('0.0000');
 });
