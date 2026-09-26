@@ -910,6 +910,27 @@ return [
 
         ['header' => 'SETTINGS'],
         [
+            'text' => 'Organisation',
+            'icon' => 'bi bi-buildings',
+            'submenu' => [
+                ['text' => 'Companies', 'url' => 'companies', 'icon' => 'bi bi-building', 'can' => 'core.companies.view'],
+                ['text' => 'Branches', 'url' => 'branches', 'icon' => 'bi bi-shop', 'can' => 'core.branches.view'],
+                ['text' => 'Departments', 'url' => 'departments', 'icon' => 'bi bi-diagram-3', 'can' => 'core.departments.view'],
+                ['text' => 'Cost Centers', 'url' => 'finance/cost-centers', 'icon' => 'bi bi-pie-chart', 'can' => 'finance.costcenters.view'],
+            ],
+        ],
+        [
+            'text' => 'Finance Setup',
+            'icon' => 'bi bi-sliders',
+            'submenu' => [
+                ['text' => 'Account Determination', 'url' => 'finance/account-mappings', 'icon' => 'bi bi-signpost-split', 'can' => 'finance.accounts.view'],
+                ['text' => 'Data Import', 'url' => 'finance/imports', 'icon' => 'bi bi-upload', 'can' => 'finance.data-import.use'],
+                ['text' => 'Number Series', 'url' => 'finance/number-series', 'icon' => 'bi bi-123', 'can' => 'finance.number-series.view'],
+                ['text' => 'Payment Terms', 'url' => 'finance/payment-terms', 'icon' => 'bi bi-calendar-check', 'can' => 'finance.payment-terms.view'],
+                ['text' => 'Exchange Rates', 'url' => 'exchange-rates', 'icon' => 'bi bi-currency-exchange', 'can' => 'core.exchange-rates.view'],
+            ],
+        ],
+        [
             'text' => 'Users & Access',
             'icon' => 'bi bi-people',
             'submenu' => [
@@ -937,27 +958,6 @@ return [
                 ['text' => 'Queue Monitor', 'url' => 'system/queue', 'icon' => 'bi bi-stack', 'can' => 'core.system.view'],
                 ['text' => 'Scheduled Jobs', 'url' => 'system/schedule', 'icon' => 'bi bi-clock-history', 'can' => 'core.system.view'],
                 ['text' => 'About', 'url' => 'system/about', 'icon' => 'bi bi-info-circle', 'can' => 'core.system.view'],
-            ],
-        ],
-        [
-            'text' => 'Organisation',
-            'icon' => 'bi bi-buildings',
-            'submenu' => [
-                ['text' => 'Companies', 'url' => 'companies', 'icon' => 'bi bi-building', 'can' => 'core.companies.view'],
-                ['text' => 'Branches', 'url' => 'branches', 'icon' => 'bi bi-shop', 'can' => 'core.branches.view'],
-                ['text' => 'Departments', 'url' => 'departments', 'icon' => 'bi bi-diagram-3', 'can' => 'core.departments.view'],
-                ['text' => 'Cost Centers', 'url' => 'finance/cost-centers', 'icon' => 'bi bi-pie-chart', 'can' => 'finance.costcenters.view'],
-            ],
-        ],
-        [
-            'text' => 'Finance Setup',
-            'icon' => 'bi bi-sliders',
-            'submenu' => [
-                ['text' => 'Account Determination', 'url' => 'finance/account-mappings', 'icon' => 'bi bi-signpost-split', 'can' => 'finance.accounts.view'],
-                ['text' => 'Data Import', 'url' => 'finance/imports', 'icon' => 'bi bi-upload', 'can' => 'finance.data-import.use'],
-                ['text' => 'Number Series', 'url' => 'finance/number-series', 'icon' => 'bi bi-123', 'can' => 'finance.number-series.view'],
-                ['text' => 'Payment Terms', 'url' => 'finance/payment-terms', 'icon' => 'bi bi-calendar-check', 'can' => 'finance.payment-terms.view'],
-                ['text' => 'Exchange Rates', 'url' => 'exchange-rates', 'icon' => 'bi bi-currency-exchange', 'can' => 'core.exchange-rates.view'],
             ],
         ],
 
