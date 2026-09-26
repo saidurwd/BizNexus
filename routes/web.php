@@ -17,6 +17,7 @@ use Modules\Core\Controllers\Web\RoleController;
 use Modules\Core\Controllers\Web\SecurityLogController;
 use Modules\Core\Controllers\Web\SystemController;
 use Modules\Core\Controllers\Web\UserController;
+use Modules\Core\Services\DocumentNumberService;
 use Modules\Finance\Controllers\Web\AccountController;
 use Modules\Finance\Controllers\Web\AccountMappingController;
 use Modules\Finance\Controllers\Web\AttachmentController;
@@ -37,6 +38,7 @@ use Modules\Finance\Controllers\Web\EInvoiceController;
 use Modules\Finance\Controllers\Web\FxRevaluationController;
 use Modules\Finance\Controllers\Web\IntercompanyController;
 use Modules\Finance\Controllers\Web\JournalController;
+use Modules\Finance\Controllers\Web\NumberSeriesController;
 use Modules\Finance\Controllers\Web\PaymentController;
 use Modules\Finance\Controllers\Web\PaymentTermController;
 use Modules\Finance\Controllers\Web\ReceiptController;
@@ -321,6 +323,10 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::get('/customer-invoices/{id}/e-invoice', [EInvoiceController::class, 'show'])->whereNumber('id')->middleware('permission:finance.customer-invoices.view')->name('customer-invoices.e-invoice');
         Route::get('/customer-invoices/{id}/pdf', [SalesDocumentPdfController::class, 'invoice'])->whereNumber('id')->middleware('permission:finance.customer-invoices.view')->name('customer-invoices.pdf');
         Route::get('/customer-credit-notes/{id}/pdf', [SalesDocumentPdfController::class, 'creditNote'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.view')->name('customer-credit-notes.pdf');
+
+        // Number Series
+        Route::get('/number-series', [NumberSeriesController::class, 'index'])->middleware('permission:finance.number-series.view')->name('number-series.index');
+        Route::put('/number-series/{documentType}', [NumberSeriesController::class, 'update'])->whereIn('documentType', array_keys(DocumentNumberService::TYPES))->middleware('permission:finance.number-series.manage')->name('number-series.update');
 
         // Payment Terms
         Route::get('/payment-terms', [PaymentTermController::class, 'index'])->middleware('permission:finance.payment-terms.view')->name('payment-terms.index');
