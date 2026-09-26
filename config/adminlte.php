@@ -823,6 +823,7 @@ return [
             'text' => 'Sales',
             'icon' => 'bi bi-cart-check',
             'submenu' => [
+                ['text' => 'Sales Dashboard', 'url' => 'sales/dashboard', 'icon' => 'bi bi-speedometer2', 'can' => 'sales.orders.view'],
                 ['text' => 'Quotations', 'url' => 'sales/quotations', 'icon' => 'bi bi-file-earmark-richtext', 'can' => 'sales.quotations.view'],
                 ['text' => 'Sales Orders', 'url' => 'sales/orders', 'icon' => 'bi bi-clipboard-check', 'can' => 'sales.orders.view'],
                 ['text' => 'Delivery Notes', 'url' => 'sales/deliveries', 'icon' => 'bi bi-truck', 'can' => 'sales.deliveries.view'],
@@ -842,6 +843,7 @@ return [
             'text' => 'Inventory',
             'icon' => 'bi bi-box-seam',
             'submenu' => [
+                ['text' => 'Inventory Dashboard', 'url' => 'inventory/dashboard', 'icon' => 'bi bi-speedometer2', 'can' => 'inventory.stock.view'],
                 ['text' => 'Products', 'url' => 'inventory/products', 'icon' => 'bi bi-box', 'can' => 'inventory.products.view'],
                 ['text' => 'Stock on Hand', 'url' => 'inventory/stock', 'icon' => 'bi bi-boxes', 'can' => 'inventory.stock.view'],
                 ['text' => 'Stock Movements', 'url' => 'inventory/stock/movements', 'icon' => 'bi bi-arrow-left-right', 'can' => 'inventory.stock.view'],

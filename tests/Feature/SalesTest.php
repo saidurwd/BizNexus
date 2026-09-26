@@ -22,6 +22,7 @@ use Modules\Sales\Models\DeliveryNote;
 use Modules\Sales\Models\Quotation;
 use Modules\Sales\Models\SalesOrder;
 use Modules\Sales\Services\DeliveryService;
+use Modules\Sales\Services\SalesDashboardService;
 use Modules\Sales\Services\SalesOrderCostService;
 
 beforeEach(function () {
@@ -261,4 +262,21 @@ test('confirming an order that needs more than is free warns of a backorder, or 
     config(['inventory.reservation_check' => 'warn']);
     actingInCompany($this->seller, $this->company)->post(route('sales.orders.confirm', $second->id))->assertSessionHas('warning');
     expect($second->fresh()->status)->toBe('CONFIRMED');
+});
+
+test('the sales dashboard shows the pipeline, this month\'s sales and margins', function () {
+    $order = confirmedOrder([[$this->chair, 5, 100]]);
+    $this->actingAs($this->seller);
+    app(DeliveryService::class)->deliver($order, ['delivery_date' => now()->toDateString(), 'lines' => [$order->lines[0]->id => 3]]);
+    $invoice = app(SalesOrderCostService::class)->createInvoice($order->fresh(), ['invoice_date' => now()->toDateString(), 'lines' => [$order->lines[0]->id => 2]]);
+    postSalesInvoice($invoice);
+
+    $summary = app(SalesDashboardService::class)->summary($this->company->id, app(CompanyContextService::class)->today());
+
+    expect($summary)->backlog_value->toBe('200.00000000')->to_invoice_value->toBe('100.00000000')
+        ->and(bccomp($summary['sales_this_month'], '200', 4))->toBe(0)
+        ->and(bccomp($summary['margin_this_month'], '120', 4))->toBe(0)
+        ->and($summary['margin_percent'])->toBe('60.00');
+
+    actingInCompany($this->seller, $this->company)->get(route('sales.dashboard'))->assertOk()->assertSee('CHAIR')->assertSee($this->customer->name);
 });

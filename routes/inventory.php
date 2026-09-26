@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Inventory\Controllers\Web\GoodsReceiptController;
+use Modules\Inventory\Controllers\Web\InventoryDashboardController;
 use Modules\Inventory\Controllers\Web\ProductCategoryController;
 use Modules\Inventory\Controllers\Web\ProductController;
 use Modules\Inventory\Controllers\Web\PurchaseCreditNoteController;
@@ -20,6 +21,8 @@ use Modules\Inventory\Controllers\Web\WarehouseController;
 */
 
 Route::prefix('inventory')->name('inventory.')->group(function () {
+    Route::get('/dashboard', InventoryDashboardController::class)->middleware('permission:inventory.stock.view')->name('dashboard');
+
     // Products
     Route::get('/products', [ProductController::class, 'index'])->middleware('permission:inventory.products.view')->name('products.index');
     Route::get('/products/create', [ProductController::class, 'create'])->middleware('permission:inventory.products.manage')->name('products.create');

@@ -19,6 +19,7 @@ use Modules\Inventory\Models\StockBalance;
 use Modules\Inventory\Models\StockMove;
 use Modules\Inventory\Models\StockTransfer;
 use Modules\Inventory\Models\Warehouse;
+use Modules\Inventory\Services\InventoryDashboardService;
 use Modules\Inventory\Services\StockService;
 
 beforeEach(function () {
@@ -187,4 +188,16 @@ test('a customer invoice line can be for a product delivered from a warehouse', 
     ])->assertSessionHasNoErrors();
 
     expect(CustomerInvoice::sole()->lines->first())->product_id->toBe($this->chair->id)->warehouse_id->toBe($this->west->id);
+});
+
+test('the inventory dashboard shows stock value, ageing and slow movers', function () {
+    postAdjustment('opening', $this->main, [[$this->chair, 10, 10]]);
+    $dashboard = app(InventoryDashboardService::class);
+    $today = app(CompanyContextService::class)->today();
+
+    expect($dashboard->summary($today))->stock_value->toBe('100.0000')->items_in_stock->toBe(1)->slow_value->toBe('100.0000')
+        ->and($dashboard->ageing($today)['0–30'])->toBe('100.0000')
+        ->and($dashboard->slowMovers($today)->first()['product']->sku)->toBe('CHAIR');
+
+    actingInCompany($this->storekeeper, $this->company)->get(route('inventory.dashboard'))->assertOk()->assertSee('CHAIR')->assertSee('Never');
 });
