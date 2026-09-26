@@ -1089,8 +1089,11 @@ return [
                 // Tax
                 [
                     'text' => 'Tax',
-                    'url' => 'finance/taxes', 'can' => 'finance.taxes.view',
                     'icon' => 'bi bi-percent',
+                    'submenu' => [
+                        ['text' => 'Tax Codes', 'url' => 'finance/taxes', 'can' => 'finance.taxes.view', 'icon' => 'bi bi-list-ul'],
+                        ['text' => 'Tax Rules', 'url' => 'finance/tax-rules', 'can' => 'finance.taxes.view', 'icon' => 'bi bi-signpost'],
+                    ],
                 ],
 
                 // Cost Centers

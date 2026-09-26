@@ -96,7 +96,7 @@ class TaxController extends Controller
         $group = Tax::where('is_group', true)->findOrFail($id);
 
         $validated = $request->validate([
-            'component_tax_id' => ['required', Rule::exists('taxes', 'id')->where('company_id', $group->company_id)->where('is_group', false)],
+            'component_tax_id' => ['required', Rule::exists('taxes', 'id')->where('company_id', $group->company_id)->where('is_group', 0)],
             'sequence' => 'required|integer|min:1|max:99',
             'is_compound' => 'boolean',
         ]);
@@ -121,7 +121,7 @@ class TaxController extends Controller
     protected function rules(?int $ignoreId = null): array
     {
         $companyId = $this->getActiveCompanyId();
-        $postableAccount = Rule::exists('accounts', 'id')->where('company_id', $companyId)->where('is_postable', true);
+        $postableAccount = Rule::exists('accounts', 'id')->where('company_id', $companyId)->where('is_postable', 1);
 
         return [
             'tax_code' => ['required', 'string', 'max:20', Rule::unique('taxes', 'tax_code')->where('company_id', $companyId)->ignore($ignoreId)],

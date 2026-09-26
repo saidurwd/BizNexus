@@ -41,6 +41,7 @@ use Modules\Finance\Controllers\Web\SupplierInvoiceController;
 use Modules\Finance\Controllers\Web\SupplierInvoiceLineController;
 use Modules\Finance\Controllers\Web\SupplierStatementController;
 use Modules\Finance\Controllers\Web\TaxController;
+use Modules\Finance\Controllers\Web\TaxRuleController;
 use Modules\Finance\Controllers\Web\YearEndCloseController;
 use Modules\Workflow\Controllers\Web\WorkflowController;
 
@@ -316,6 +317,12 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::get('/taxes/{id}/edit', [TaxController::class, 'edit'])->middleware('permission:finance.taxes.update')->name('taxes.edit');
         Route::put('/taxes/{id}', [TaxController::class, 'update'])->middleware('permission:finance.taxes.update')->name('taxes.update');
         Route::delete('/taxes/{id}', [TaxController::class, 'destroy'])->middleware('permission:finance.taxes.delete')->name('taxes.destroy');
+        Route::post('/taxes/{id}/rates', [TaxController::class, 'storeRate'])->whereNumber('id')->middleware('permission:finance.taxes.update')->name('taxes.rates.store');
+        Route::post('/taxes/{id}/components', [TaxController::class, 'storeComponent'])->whereNumber('id')->middleware('permission:finance.taxes.update')->name('taxes.components.store');
+        Route::delete('/taxes/{id}/components/{componentId}', [TaxController::class, 'destroyComponent'])->whereNumber(['id', 'componentId'])->middleware('permission:finance.taxes.update')->name('taxes.components.destroy');
+        Route::get('/tax-rules', [TaxRuleController::class, 'index'])->middleware('permission:finance.taxes.view')->name('tax-rules.index');
+        Route::post('/tax-rules', [TaxRuleController::class, 'store'])->middleware('permission:finance.taxes.update')->name('tax-rules.store');
+        Route::delete('/tax-rules/{id}', [TaxRuleController::class, 'destroy'])->whereNumber('id')->middleware('permission:finance.taxes.update')->name('tax-rules.destroy');
 
         // Cash Accounts
         Route::get('/cash-accounts', [CashAccountController::class, 'index'])->middleware('permission:finance.cash-accounts.view')->name('cash-accounts.index');

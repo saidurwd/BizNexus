@@ -12,61 +12,7 @@
             <form action="{{ route('finance.taxes.store') }}" method="POST">
                 @csrf
 
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="tax_code">Tax Code</label>
-                            <input type="text" class="form-control" name="tax_code" value="{{ old('tax_code') }}" required>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="tax_name">Tax Name</label>
-                            <input type="text" class="form-control" name="tax_name" value="{{ old('tax_name') }}" required>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="rate">Tax Rate (%)</label>
-                            <input type="number" class="form-control" name="rate" step="0.01" min="0" max="100" value="{{ old('rate') }}" required>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="tax_type">Tax Type</label>
-                            <select class="form-control" name="tax_type" required>
-                                <option value="VAT">VAT</option>
-                                <option value="WITHHOLDING_TAX">Withholding Tax</option>
-                                <option value="INCOME_TAX">Income Tax</option>
-                                <option value="OTHER">Other</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="is_inclusive">Tax Inclusive</label>
-                            <select name="is_inclusive" class="form-control">
-                                <option value="0" @selected(old('is_inclusive') == '0')>No (Exclusive)</option>
-                                <option value="1" @selected(old('is_inclusive') == '1')>Yes (Inclusive)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="status">Status</label>
-                            <select name="status" class="form-control">
-                                <option value="active" @selected(old('status', 'active') == 'active')>Active</option>
-                                <option value="inactive" @selected(old('status') == 'inactive')>Inactive</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+                @include('finance.taxes._form')
 
                 <div class="form-group">
                     <button type="submit" class="btn btn-primary">Save Tax Code</button>
