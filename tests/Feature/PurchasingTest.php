@@ -3,9 +3,11 @@
 use Carbon\Carbon;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
 use Modules\Core\Models\Company;
+use Modules\Core\Models\CompanyUserRole;
 use Modules\Core\Models\Currency;
 use Modules\Core\Models\FiscalPeriod;
 use Modules\Core\Models\FiscalYear;
+use Modules\Core\Models\Role;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Finance\Enums\AccountPurpose;
 use Modules\Finance\Enums\ExchangeRateType;
@@ -27,6 +29,7 @@ use Modules\Inventory\Services\GoodsReceiptService;
 use Modules\Inventory\Services\PurchaseInvoiceMatcher;
 use Modules\Inventory\Services\ReorderService;
 use Modules\Inventory\Services\SupplierReturnService;
+use Modules\Inventory\Support\PurchasingManagerRole;
 
 beforeEach(function () {
     $this->company = Company::factory()->create();
@@ -318,4 +321,27 @@ test('returning goods not yet invoiced just lowers what the invoice may bill', f
 
     postMatchedInvoice($order, [[6, 50]]);
     expect(purchasingLedger($this->accounts['grni']))->toBe('0.0000');
+});
+
+test('purchasing managers run orders end to end and approve each other\'s orders, but not post invoices', function () {
+    $role = Role::where('slug', PurchasingManagerRole::SLUG)->sole();
+    [$raiser, $approver] = [companyUser([], $this->company), companyUser([], $this->company)];
+    foreach ([$raiser, $approver] as $user) {
+        CompanyUserRole::create(['user_id' => $user->id, 'company_id' => $this->company->id, 'role_id' => $role->id, 'status' => 'active']);
+    }
+
+    expect($role->permissions()->pluck('slug')->all())->toContain('inventory.purchase-orders.approve', 'finance.supplier-invoices.submit')
+        ->not->toContain('finance.supplier-invoices.approve', 'finance.supplier-invoices.post', 'finance.payments.approve');
+
+    actingInCompany($raiser, $this->company)->post(route('inventory.purchase-orders.store'), [
+        'supplier_id' => $this->supplier->id, 'order_date' => now()->toDateString(), 'warehouse_id' => $this->warehouse->id,
+        'lines' => [['product_id' => $this->chair->id, 'quantity' => 2, 'unit_price' => 50]],
+    ])->assertSessionHasNoErrors();
+    $order = PurchaseOrder::sole();
+
+    actingInCompany($raiser, $this->company)->post(route('inventory.purchase-orders.submit', $order->id))->assertSessionHas('success');
+    actingInCompany($raiser, $this->company)->post(route('inventory.purchase-orders.approve', $order->id))->assertSessionHas('error');
+    actingInCompany($approver, $this->company)->post(route('inventory.purchase-orders.approve', $order->id))->assertSessionHas('success');
+    actingInCompany($approver, $this->company)->get(route('inventory.goods-receipts.create', $order->id))->assertOk();
+    actingInCompany($approver, $this->company)->get(route('finance.supplier-invoices.index'))->assertOk();
 });

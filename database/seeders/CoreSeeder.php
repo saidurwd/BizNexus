@@ -12,6 +12,7 @@ use Modules\Core\Models\Role;
 use Modules\Core\Models\UserBranch;
 use Modules\Core\Models\UserCompany;
 use Modules\Core\Support\PermissionCatalog;
+use Modules\Inventory\Support\PurchasingManagerRole;
 
 class CoreSeeder extends Seeder
 {
@@ -21,6 +22,7 @@ class CoreSeeder extends Seeder
         $this->seedRoles();
         $this->assignPermissionsToRoles();
         PermissionCatalog::install();
+        PurchasingManagerRole::install();
         $this->assignTestUserToCompanies();
     }
 
