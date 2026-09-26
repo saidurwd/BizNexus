@@ -12,6 +12,8 @@
 @endsection
 
 @section('content')
+    <x-report-letterhead title="Consolidated Trial Balance" />
+
     @php $currency = $report['currency']; @endphp
 
     <div class="card">

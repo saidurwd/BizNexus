@@ -9,7 +9,7 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            <form action="{{ route('core.companies.update', $company->id) }}" method="POST">
+            <form action="{{ route('core.companies.update', $company->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 <div class="row">
@@ -56,6 +56,9 @@
                         </div>
                     </div>
                 </div>
+
+
+                @include('core.companies._letterhead-fields', ['company' => $company])
 
                 <div class="row">
                     <div class="col-md-6">

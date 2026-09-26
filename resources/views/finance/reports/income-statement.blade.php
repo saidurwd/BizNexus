@@ -10,6 +10,8 @@
 @endsection
 
 @section('content')
+    <x-report-letterhead title="Income Statement" />
+
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Income Statement for period {{ $startDate }} to {{ $endDate }}</h3>

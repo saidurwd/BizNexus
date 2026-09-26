@@ -7,6 +7,8 @@
 @endsection
 
 @section('content')
+    <x-report-letterhead :title="$title" />
+
     <form method="GET" action="{{ route($routeName) }}" class="card mb-3">
         <div class="card-body row g-2 align-items-end">
             <div class="col-sm-4 col-md-3">

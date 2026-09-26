@@ -7,6 +7,8 @@
 @endsection
 
 @section('content')
+    <x-report-letterhead title="General Ledger" />
+
     <div class="card">
         <div class="card-body">
             <form method="GET" action="{{ route('finance.reports.general-ledger') }}" class="row g-3 mb-3">

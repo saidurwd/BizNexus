@@ -17,6 +17,8 @@
 @endsection
 
 @section('content')
+    <x-report-letterhead title="Payment Register" />
+
     <div class="card">
         <div class="card-body table-responsive">
             <table class="table table-bordered table-striped">

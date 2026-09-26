@@ -125,8 +125,12 @@
         @if($activeCompany)
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('profile.edit') }}#switch-company" title="{{ __('Active company and branch') }}">
-                    <span class="badge text-bg-primary">
-                        <i class="bi bi-building" aria-hidden="true"></i>
+                    <span class="badge text-bg-primary d-inline-flex align-items-center gap-1">
+                        @if($activeCompany->logoUrl())
+                            <img src="{{ $activeCompany->logoUrl() }}" alt="" style="height: 14px; max-width: 48px; background: #fff; border-radius: 2px;">
+                        @else
+                            <i class="bi bi-building" aria-hidden="true"></i>
+                        @endif
                         {{ $activeCompany->code }}<span class="d-none d-md-inline"> · {{ $activeCompany->name }}</span>
                         @if($activeBranch)
                             <span class="d-none d-lg-inline"> · {{ $activeBranch->code }}</span>
@@ -142,6 +146,14 @@
     @stack('css')
     @yield('css')
     <style>
+        @media print {
+            .app-header, .app-sidebar, .app-footer, .app-content-header, .skip-links, .alert,
+            form, .btn, .card-footer .pagination, .d-print-none { display: none !important; }
+            .app-main, .app-content, .container-fluid { margin: 0 !important; padding: 0 !important; }
+            .card { border: 0 !important; box-shadow: none !important; }
+            .report-letterhead { border-bottom: 2px solid #333 !important; border-radius: 0 !important; }
+            a { color: inherit !important; text-decoration: none !important; }
+        }
         .sidebar .sidebar-wrapper {
             display: flex;
             flex-direction: column;

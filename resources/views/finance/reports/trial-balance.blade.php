@@ -10,6 +10,8 @@
 @endsection
 
 @section('content')
+    <x-report-letterhead title="Trial Balance" />
+
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Trial Balance as of {{ $asOfDate }}</h3>

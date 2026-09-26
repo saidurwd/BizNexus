@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Modules\Core\Models\Company;
 use Modules\Core\Services\PermissionService;
@@ -46,6 +47,10 @@ class CompanyController extends Controller
             'address' => 'nullable|string',
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
+            'website' => ['nullable', 'url:http,https', 'max:255'],
+            'mobile' => 'nullable|string|max:50',
+            'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048', 'dimensions:max_width=4000,max_height=4000'],
+            'remove_logo' => 'sometimes|boolean',
             'tax_number' => 'nullable|string|max:100',
             'country_code' => ['nullable', Rule::in(Countries::codes())],
             'registration_number' => 'nullable|string|max:100',
@@ -57,7 +62,8 @@ class CompanyController extends Controller
             'require_mfa' => 'sometimes|boolean',
         ]);
 
-        Company::create($validated);
+        $company = Company::create(collect($validated)->except(['logo', 'remove_logo'])->all());
+        $this->saveLogo($company, $request);
 
         return redirect()->route('core.companies.index')
             ->with('success', 'Company created successfully.');
@@ -81,6 +87,10 @@ class CompanyController extends Controller
             'address' => 'nullable|string',
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
+            'website' => ['nullable', 'url:http,https', 'max:255'],
+            'mobile' => 'nullable|string|max:50',
+            'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048', 'dimensions:max_width=4000,max_height=4000'],
+            'remove_logo' => 'sometimes|boolean',
             'tax_number' => 'nullable|string|max:100',
             'country_code' => ['nullable', Rule::in(Countries::codes())],
             'registration_number' => 'nullable|string|max:100',
@@ -92,7 +102,8 @@ class CompanyController extends Controller
             'require_mfa' => 'sometimes|boolean',
         ]);
 
-        $company->update($validated);
+        $company->update(collect($validated)->except(['logo', 'remove_logo'])->all());
+        $this->saveLogo($company, $request);
 
         return redirect()->route('core.companies.index')
             ->with('success', 'Company updated successfully.');
@@ -114,5 +125,23 @@ class CompanyController extends Controller
 
         return redirect()->route('core.companies.index')
             ->with('success', 'Company deleted successfully.');
+    }
+
+    /**
+     * Store an uploaded logo (replacing the previous file) or remove it when asked.
+     */
+    protected function saveLogo(Company $company, Request $request): void
+    {
+        $previous = $company->logo_path;
+
+        if ($request->hasFile('logo')) {
+            $company->update(['logo_path' => $request->file('logo')->store("company-logos/{$company->id}", 'public')]);
+        } elseif ($request->boolean('remove_logo')) {
+            $company->update(['logo_path' => null]);
+        }
+
+        if ($previous && $previous !== $company->logo_path) {
+            Storage::disk('public')->delete($previous);
+        }
     }
 }

@@ -7,6 +7,8 @@
 @endsection
 
 @section('content')
+    <x-report-letterhead :title="__('Statement of Cash Flows')" />
+
     <form method="GET" action="{{ route('finance.reports.cash-flow') }}" class="card mb-3">
         <div class="card-body row g-2 align-items-end">
             <div class="col-sm-4 col-md-3">

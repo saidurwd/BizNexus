@@ -15,6 +15,8 @@
 @endsection
 
 @section('content')
+    <x-report-letterhead :title="'Supplier Statement - ' . $supplier->name" />
+
     <div class="card">
         <div class="card-body">
             <form method="GET" action="{{ route('finance.supplier-statements.show', $supplier->id) }}" class="row g-3 mb-3">

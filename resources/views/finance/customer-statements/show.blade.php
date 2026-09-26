@@ -15,6 +15,8 @@
 @endsection
 
 @section('content')
+    <x-report-letterhead :title="'Customer Statement - ' . $customer->name" />
+
     <div class="card">
         <div class="card-body">
             <form method="GET" action="{{ route('finance.customer-statements.show', $customer->id) }}" class="row g-3 mb-3">

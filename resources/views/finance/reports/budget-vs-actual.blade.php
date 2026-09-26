@@ -7,6 +7,8 @@
 @endsection
 
 @section('content')
+    <x-report-letterhead title="Budget vs Actual" />
+
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Budget vs Actual Report</h3>

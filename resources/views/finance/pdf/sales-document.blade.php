@@ -8,11 +8,11 @@
     <meta charset="utf-8">
     <title>{{ $title }} {{ $number }}</title>
     <style>
-        @page { margin: 28mm 16mm 22mm 16mm; }
+        @page { margin: 40mm 16mm 22mm 16mm; }
         body { font-family: "DejaVu Sans", sans-serif; font-size: 9.5pt; color: #222; }
         h1 { font-size: 18pt; margin: 0 0 2mm 0; letter-spacing: 1px; }
         .muted { color: #666; }
-        .header { position: fixed; top: -20mm; left: 0; right: 0; }
+        .header { position: fixed; top: -32mm; left: 0; right: 0; }
         .footer { position: fixed; bottom: -14mm; left: 0; right: 0; font-size: 8pt; color: #777; text-align: center; }
         table { width: 100%; border-collapse: collapse; }
         .parties td { vertical-align: top; width: 50%; padding: 0; }
@@ -38,21 +38,26 @@
     <div class="header">
         <table>
             <tr>
-                <td>
-                    <strong style="font-size: 12pt;">{{ $company->legal_name ?: $company->name }}</strong><br>
+                <td style="vertical-align: top;">
+                    @if ($logo = $company->logoDataUri())
+                        <img src="{{ $logo }}" alt="" style="max-height: 16mm; max-width: 55mm; margin-bottom: 1mm;"><br>
+                    @endif
+                    <strong style="font-size: 12pt;">{{ $company->displayName() }}</strong><br>
                     <span class="muted">{!! nl2br(e($company->address)) !!}</span>
                 </td>
-                <td class="num muted">
+                <td class="num muted" style="vertical-align: top;">
                     @if ($company->tax_number){{ __('Tax number') }}: {{ $company->tax_number }}<br>@endif
                     @if ($company->registration_number){{ __('Registration') }}: {{ $company->registration_number }}<br>@endif
-                    {{ $company->email }} {{ $company->phone }}
+                    @if ($company->phone){{ __('Tel') }} {{ $company->phone }}<br>@endif
+                    @if ($company->mobile){{ __('Mobile') }} {{ $company->mobile }}<br>@endif
+                    {{ $company->email }}@if ($company->email && $company->website)<br>@endif{{ $company->website }}
                 </td>
             </tr>
         </table>
     </div>
 
     <div class="footer">
-        {{ $company->legal_name ?: $company->name }} · {{ $title }} {{ $number }}
+        {{ $company->displayName() }} · {{ $title }} {{ $number }}
     </div>
 
     <table class="parties">

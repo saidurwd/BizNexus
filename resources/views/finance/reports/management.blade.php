@@ -7,6 +7,8 @@
 @endsection
 
 @section('content')
+    <x-report-letterhead title="Management Reports" />
+
     <div class="row">
         <div class="col-md-3">
             <div class="card">

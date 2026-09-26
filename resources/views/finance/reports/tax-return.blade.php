@@ -15,6 +15,8 @@
 @endsection
 
 @section('content')
+    <x-report-letterhead title="Tax Return" />
+
     @php
         $sections = [
             'output' => 'Output tax on sales',

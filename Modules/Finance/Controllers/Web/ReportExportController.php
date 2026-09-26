@@ -45,7 +45,14 @@ class ReportExportController extends Controller
 
         return SpreadsheetExport::download(
             $report.'-'.now()->format('Ymd'),
-            [$title, $company?->legal_name ?: $company?->name, __('Currency: :code', ['code' => $company?->baseCurrency?->code])],
+            array_values(array_filter([
+                $company?->displayName(),
+                $company?->address ? str_replace(["\r\n", "\n"], ', ', $company->address) : null,
+                implode(' · ', array_filter([$company?->phone, $company?->mobile, $company?->email, $company?->website])) ?: null,
+                implode(' · ', array_filter([$company?->tax_number ? __('Tax number').' '.$company->tax_number : null, $company?->registration_number ? __('Registration').' '.$company->registration_number : null])) ?: null,
+                $title,
+                __('Currency: :code', ['code' => $company?->baseCurrency?->code]).' · '.__('Generated :time', ['time' => now()->format('Y-m-d H:i')]),
+            ])),
             $headings,
             $rows,
         );
