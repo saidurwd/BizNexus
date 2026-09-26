@@ -56,6 +56,7 @@ class Company extends Model
         'registration_number',
         'base_currency_id',
         'timezone',
+        'locale',
         'fiscal_year_start',
         'status',
         'require_mfa',

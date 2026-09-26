@@ -3,10 +3,12 @@
 namespace Modules\Finance\Controllers\Web;
 
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
 use Modules\Finance\Controllers\Controller;
 use Modules\Finance\Models\SupplierPayment;
+use Modules\Finance\Models\Tax;
 use Modules\Finance\Services\PaymentService;
 
 class PaymentController extends Controller
@@ -31,8 +33,9 @@ class PaymentController extends Controller
 
     public function create()
     {
-
-        return view('finance.payments.create');
+        return view('finance.payments.create', [
+            'withholdingTaxes' => Tax::where('tax_type', Tax::TYPE_WITHHOLDING_TAX)->where('status', 'active')->orderBy('tax_code')->get(),
+        ]);
     }
 
     public function store(Request $request)
@@ -44,6 +47,7 @@ class PaymentController extends Controller
             'supplier_id' => 'required|exists:suppliers,id',
             'bank_account_id' => 'nullable|exists:bank_accounts,id',
             'amount' => 'required|numeric|min:0.01',
+            'withholding_tax_id' => ['nullable', Rule::exists('taxes', 'id')->where('company_id', $this->getActiveCompanyId())->where('tax_type', Tax::TYPE_WITHHOLDING_TAX)],
             'reference' => 'nullable|string|max:100',
             'description' => 'nullable|string',        ]);
 

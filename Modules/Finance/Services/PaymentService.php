@@ -2,17 +2,23 @@
 
 namespace Modules\Finance\Services;
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
+use Modules\Core\Models\Company;
+use Modules\Core\Models\Currency;
 use Modules\Core\Services\AuditService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
+use Modules\Core\Support\Money;
 use Modules\Finance\Events\PaymentApproved;
 use Modules\Finance\Models\PaymentAllocation;
 use Modules\Finance\Models\SupplierInvoice;
 use Modules\Finance\Models\SupplierPayment;
+use Modules\Finance\Models\Tax;
+use Modules\Finance\Models\TaxTransaction;
 use Modules\Finance\Services\Concerns\EnforcesSegregationOfDuties;
 use Modules\Workflow\Services\WorkflowService;
 
@@ -38,6 +44,7 @@ class PaymentService
                 'currency_id' => $data['currency_id'] ?? null,
                 'exchange_rate' => $data['exchange_rate'] ?? app(ExchangeRateService::class)->rateForDocument(app(CompanyContextService::class)->getActiveCompanyId(), $data['currency_id'] ?? null, $data['payment_date']),
                 'amount' => $data['amount'],
+                ...$this->withholding($data),
                 'payment_method' => $data['payment_method'] ?? 'BANK_TRANSFER',
                 'bank_account_id' => $data['bank_account_id'] ?? null,
                 'reference' => $data['reference'] ?? null,
@@ -114,20 +121,33 @@ class PaymentService
                 'credit' => 0,
             ];
 
+            $currency = $payment->currency?->code ?? $company->baseCurrency?->code ?? 'XXX';
+            $withheld = Money::of($payment->withholding_amount ?? 0, $currency);
+            $netPaid = Money::of($payment->amount, $currency)->minus($withheld)->amount;
+
             if ($payment->bank_account_id) {
                 $bankAccount = $payment->bankAccount;
                 $journalLines[] = [
                     'account_id' => $bankAccount->gl_account_id,
                     'description' => "Bank Payment #{$payment->payment_number}",
                     'debit' => 0,
-                    'credit' => $payment->amount,
+                    'credit' => $netPaid,
                 ];
             } else {
                 $journalLines[] = [
                     'account_id' => $this->defaultAccounts->getCashAccount($company->id),
                     'description' => "Cash Payment #{$payment->payment_number}",
                     'debit' => 0,
-                    'credit' => $payment->amount,
+                    'credit' => $netPaid,
+                ];
+            }
+
+            if ($withheld->isPositive()) {
+                $journalLines[] = [
+                    'account_id' => app(DocumentTaxService::class)->requireAccount($payment->withholdingTax->output_account_id, $payment->withholdingTax->tax_code, 'output'),
+                    'description' => "Withholding {$payment->withholdingTax->tax_code} on payment #{$payment->payment_number}",
+                    'debit' => 0,
+                    'credit' => $withheld->amount,
                 ];
             }
 
@@ -151,15 +171,30 @@ class PaymentService
                 'lines' => $journalLines,
             ]);
 
-            foreach ($payment->allocations as $allocation) {
-                $allocation->invoice->calculateOutstanding();
-                $allocation->invoice->save();
+            if ($withheld->isPositive()) {
+                TaxTransaction::create([
+                    'company_id' => $payment->company_id,
+                    'tax_id' => $payment->withholding_tax_id,
+                    'transaction_type' => 'WITHHOLDING',
+                    'payment_id' => $payment->id,
+                    'taxable_amount' => $payment->amount,
+                    'tax_amount' => $withheld->amount,
+                    'exchange_rate' => $payment->exchange_rate ?? 1,
+                    'currency_code' => $currency,
+                    'tax_date' => $payment->payment_date,
+                    'reference_number' => $payment->payment_number,
+                ]);
             }
 
             $payment->update([
                 'status' => SupplierPayment::STATUS_POSTED,
                 'journal_id' => $journal->id,
             ]);
+
+            foreach ($payment->allocations as $allocation) {
+                $allocation->invoice->calculateOutstanding();
+                $allocation->invoice->save();
+            }
 
             $this->audit->logCustom('Finance', 'SupplierPayment', $payment->id, 'POST', [
                 'journal_id' => $journal->id,
@@ -429,5 +464,33 @@ class PaymentService
         }
 
         return $payment->fresh();
+    }
+
+    /**
+     * Tax withheld at source from a supplier payment: the gross amount settles the invoices, the supplier
+     * receives the net, and the withheld part is owed to the tax authority.
+     *
+     * @return array{withholding_tax_id: ?int, withholding_amount: string}
+     */
+    protected function withholding(array $data): array
+    {
+        if (empty($data['withholding_tax_id'])) {
+            return ['withholding_tax_id' => null, 'withholding_amount' => '0'];
+        }
+
+        $tax = Tax::findOrFail($data['withholding_tax_id']);
+
+        if ($tax->tax_type !== Tax::TYPE_WITHHOLDING_TAX) {
+            throw new InvalidAccountingTransactionException("{$tax->tax_code} is not a withholding tax.");
+        }
+
+        $currency = Currency::find($data['currency_id'] ?? null)?->code
+            ?? Company::find($data['company_id'])?->baseCurrency?->code
+            ?? 'XXX';
+
+        $withheld = Money::of($data['amount'], $currency)
+            ->multipliedBy(bcdiv($tax->rateOn(Carbon::parse($data['payment_date'])), '100', 12));
+
+        return ['withholding_tax_id' => $tax->id, 'withholding_amount' => $withheld->amount];
     }
 }

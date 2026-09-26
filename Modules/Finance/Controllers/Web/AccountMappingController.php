@@ -33,7 +33,7 @@ class AccountMappingController extends Controller
             'mappings' => 'array',
             'mappings.*' => [
                 'nullable', 'integer',
-                Rule::exists('accounts', 'id')->where('company_id', $companyId)->where('is_postable', true)->whereNull('deleted_at'),
+                Rule::exists('accounts', 'id')->where('company_id', $companyId)->where('is_postable', 1)->whereNull('deleted_at'),
             ],
         ]);
 

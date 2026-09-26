@@ -14,6 +14,7 @@ use Modules\Core\Http\Middleware\EnsureCompanyAndBranchSelected;
 use Modules\Core\Http\Middleware\EnsureTwoFactorEnrolment;
 use Modules\Core\Http\Middleware\Permission;
 use Modules\Core\Http\Middleware\SetCompanyContext;
+use Modules\Core\Http\Middleware\SetLocale;
 use Modules\Core\Http\Middleware\SetTokenCompanyContext;
 use Modules\Core\Http\Middleware\ShareAdminLte;
 use Modules\Finance\FinanceServiceProvider;
@@ -38,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web([
             SetCompanyContext::class,
             EnsureTwoFactorEnrolment::class,
+            SetLocale::class,
             ShareAdminLte::class,
         ]);
 

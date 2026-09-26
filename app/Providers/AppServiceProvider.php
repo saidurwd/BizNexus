@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\View\Composers\BreadcrumbComposer;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -26,6 +27,8 @@ class AppServiceProvider extends ServiceProvider
     {
         // Register breadcrumb composer for all views
         View::composer('*', BreadcrumbComposer::class);
+
+        Blade::directive('money', fn (string $expression) => "<?php echo e(\\Modules\\Core\\Support\\Formatter::money({$expression})); ?>");
 
         Password::defaults(fn () => Password::min(12)
             ->letters()

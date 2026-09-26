@@ -926,6 +926,16 @@ return [
                     'icon' => 'bi bi-diagram-3',
                 ],
                 [
+                    'text' => 'Intercompany',
+                    'url' => 'finance/intercompany', 'can' => 'finance.intercompany.view',
+                    'icon' => 'bi bi-arrow-left-right',
+                ],
+                [
+                    'text' => 'Consolidation',
+                    'url' => 'finance/consolidation', 'can' => 'finance.consolidation.view',
+                    'icon' => 'bi bi-diagram-2',
+                ],
+                [
                     'text' => 'FX Revaluation',
                     'url' => 'finance/fx-revaluations', 'can' => 'finance.fx-revaluation.view',
                     'icon' => 'bi bi-currency-exchange',
@@ -1089,8 +1099,12 @@ return [
                 // Tax
                 [
                     'text' => 'Tax',
-                    'url' => 'finance/taxes', 'can' => 'finance.taxes.view',
                     'icon' => 'bi bi-percent',
+                    'submenu' => [
+                        ['text' => 'Tax Codes', 'url' => 'finance/taxes', 'can' => 'finance.taxes.view', 'icon' => 'bi bi-list-ul'],
+                        ['text' => 'Tax Rules', 'url' => 'finance/tax-rules', 'can' => 'finance.taxes.view', 'icon' => 'bi bi-signpost'],
+                        ['text' => 'Tax Return', 'url' => 'finance/tax-return', 'can' => 'finance.reports.view', 'icon' => 'bi bi-file-earmark-text'],
+                    ],
                 ],
 
                 // Cost Centers

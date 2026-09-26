@@ -24,11 +24,14 @@ use Modules\Finance\Controllers\Web\BankReconciliationController;
 use Modules\Finance\Controllers\Web\BudgetController;
 use Modules\Finance\Controllers\Web\BudgetLineController;
 use Modules\Finance\Controllers\Web\CashAccountController;
+use Modules\Finance\Controllers\Web\ConsolidationController;
 use Modules\Finance\Controllers\Web\CostCenterController;
 use Modules\Finance\Controllers\Web\CustomerController;
 use Modules\Finance\Controllers\Web\CustomerInvoiceController;
 use Modules\Finance\Controllers\Web\CustomerStatementController;
+use Modules\Finance\Controllers\Web\EInvoiceController;
 use Modules\Finance\Controllers\Web\FxRevaluationController;
+use Modules\Finance\Controllers\Web\IntercompanyController;
 use Modules\Finance\Controllers\Web\JournalController;
 use Modules\Finance\Controllers\Web\PaymentController;
 use Modules\Finance\Controllers\Web\ReceiptController;
@@ -41,6 +44,8 @@ use Modules\Finance\Controllers\Web\SupplierInvoiceController;
 use Modules\Finance\Controllers\Web\SupplierInvoiceLineController;
 use Modules\Finance\Controllers\Web\SupplierStatementController;
 use Modules\Finance\Controllers\Web\TaxController;
+use Modules\Finance\Controllers\Web\TaxReturnController;
+use Modules\Finance\Controllers\Web\TaxRuleController;
 use Modules\Finance\Controllers\Web\YearEndCloseController;
 use Modules\Workflow\Controllers\Web\WorkflowController;
 
@@ -150,6 +155,15 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::get('/accounts/{id}/edit', [AccountController::class, 'edit'])->middleware('permission:finance.accounts.update')->name('accounts.edit');
         Route::put('/accounts/{id}', [AccountController::class, 'update'])->middleware('permission:finance.accounts.update')->name('accounts.update');
         Route::delete('/accounts/{id}', [AccountController::class, 'destroy'])->middleware('permission:finance.accounts.delete')->name('accounts.destroy');
+
+        // Intercompany
+        Route::get('/intercompany', [IntercompanyController::class, 'index'])->middleware('permission:finance.intercompany.view')->name('intercompany.index');
+        Route::post('/intercompany', [IntercompanyController::class, 'store'])->middleware('permission:finance.intercompany.create')->name('intercompany.store');
+
+        // Consolidation
+        Route::get('/consolidation', [ConsolidationController::class, 'index'])->middleware('permission:finance.consolidation.view')->name('consolidation.index');
+        Route::post('/consolidation', [ConsolidationController::class, 'store'])->middleware('permission:finance.consolidation.manage')->name('consolidation.store');
+        Route::get('/consolidation/{id}', [ConsolidationController::class, 'show'])->whereNumber('id')->middleware('permission:finance.consolidation.view')->name('consolidation.show');
 
         // Foreign currency revaluation
         Route::get('/fx-revaluations', [FxRevaluationController::class, 'index'])->middleware('permission:finance.fx-revaluation.view')->name('fx-revaluations.index');
@@ -303,6 +317,7 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::post('/customer-invoices/{id}/reject', [CustomerInvoiceController::class, 'reject'])->middleware('permission:finance.customer-invoices.reject')->name('customer-invoices.reject');
         Route::post('/customer-invoices/{id}/post', [CustomerInvoiceController::class, 'post'])->middleware('permission:finance.customer-invoices.post')->name('customer-invoices.post');
         Route::post('/customer-invoices/{id}/cancel', [CustomerInvoiceController::class, 'cancel'])->middleware('permission:finance.customer-invoices.cancel')->name('customer-invoices.cancel');
+        Route::get('/customer-invoices/{id}/e-invoice', [EInvoiceController::class, 'show'])->whereNumber('id')->middleware('permission:finance.customer-invoices.view')->name('customer-invoices.e-invoice');
 
         // Customer Statements
         Route::get('/customer-statements', [CustomerStatementController::class, 'index'])->middleware('permission:finance.customers.view')->name('customer-statements.index');
@@ -316,6 +331,13 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::get('/taxes/{id}/edit', [TaxController::class, 'edit'])->middleware('permission:finance.taxes.update')->name('taxes.edit');
         Route::put('/taxes/{id}', [TaxController::class, 'update'])->middleware('permission:finance.taxes.update')->name('taxes.update');
         Route::delete('/taxes/{id}', [TaxController::class, 'destroy'])->middleware('permission:finance.taxes.delete')->name('taxes.destroy');
+        Route::post('/taxes/{id}/rates', [TaxController::class, 'storeRate'])->whereNumber('id')->middleware('permission:finance.taxes.update')->name('taxes.rates.store');
+        Route::post('/taxes/{id}/components', [TaxController::class, 'storeComponent'])->whereNumber('id')->middleware('permission:finance.taxes.update')->name('taxes.components.store');
+        Route::delete('/taxes/{id}/components/{componentId}', [TaxController::class, 'destroyComponent'])->whereNumber(['id', 'componentId'])->middleware('permission:finance.taxes.update')->name('taxes.components.destroy');
+        Route::get('/tax-return', [TaxReturnController::class, 'index'])->middleware('permission:finance.reports.view')->name('tax-return');
+        Route::get('/tax-rules', [TaxRuleController::class, 'index'])->middleware('permission:finance.taxes.view')->name('tax-rules.index');
+        Route::post('/tax-rules', [TaxRuleController::class, 'store'])->middleware('permission:finance.taxes.update')->name('tax-rules.store');
+        Route::delete('/tax-rules/{id}', [TaxRuleController::class, 'destroy'])->whereNumber('id')->middleware('permission:finance.taxes.update')->name('tax-rules.destroy');
 
         // Cash Accounts
         Route::get('/cash-accounts', [CashAccountController::class, 'index'])->middleware('permission:finance.cash-accounts.view')->name('cash-accounts.index');

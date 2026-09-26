@@ -2,6 +2,7 @@
 
 namespace Modules\Core\Services;
 
+use Carbon\CarbonImmutable;
 use Closure;
 use Modules\Core\Models\Company;
 use Modules\Core\Models\CompanyUserRole;
@@ -71,6 +72,14 @@ class CompanyContextService
         } finally {
             $this->pinnedCompanyId = $previousCompanyId;
         }
+    }
+
+    /**
+     * Today's business date in the active company's time zone (the server runs in UTC).
+     */
+    public function today(): CarbonImmutable
+    {
+        return CarbonImmutable::now($this->getActiveCompany()?->timezone ?: config('app.timezone'))->startOfDay();
     }
 
     public function getCompanyId(): ?int

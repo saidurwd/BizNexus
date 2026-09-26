@@ -130,6 +130,7 @@ class JournalService
             'project_id' => $lineData['project_id'] ?? null,
             'tax_id' => $lineData['tax_id'] ?? null,
             'reference' => $lineData['reference'] ?? null,
+            'counterparty_company_id' => $lineData['counterparty_company_id'] ?? null,
             'line_type' => $isFunctionalAdjustment ? $lineData['line_type'] : JournalLine::TYPE_STANDARD,
         ]);
 
@@ -357,7 +358,7 @@ class JournalService
                 'company_id' => $journal->company_id,
                 'branch_id' => $journal->branch_id,
                 'journal_number' => 'DRAFT-'.uniqid(),
-                'journal_date' => $reversalDate ?? now()->toDateString(),
+                'journal_date' => $reversalDate ?? $this->companyContext->today()->toDateString(),
                 'adjustment_period' => $adjustmentPeriod,
                 'reference_type' => $journal->reference_type,
                 'reference_id' => $journal->reference_id,
@@ -387,6 +388,7 @@ class JournalService
                     'project_id' => $line->project_id,
                     'tax_id' => $line->tax_id,
                     'reference' => $line->reference,
+                    'counterparty_company_id' => $line->counterparty_company_id,
                     'line_type' => $line->line_type,
                 ]);
             }

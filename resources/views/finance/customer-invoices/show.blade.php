@@ -163,6 +163,12 @@
             </form>
         @endif
 
+        @if(in_array($invoice->status, ['POSTED', 'PARTIALLY_PAID', 'PAID'], true))
+            <a href="{{ route('finance.customer-invoices.e-invoice', $invoice->id) }}" class="btn btn-outline-secondary ml-2">
+                <i class="bi bi-filetype-xml"></i> E-invoice (UBL)
+            </a>
+        @endif
+
         @if(!$invoice->isPosted() && !$invoice->isPaid())
             <form action="{{ route('finance.customer-invoices.cancel', $invoice->id) }}" method="POST" class="d-inline ml-2">
                 @csrf

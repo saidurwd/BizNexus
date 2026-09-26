@@ -151,15 +151,15 @@ class ReceiptService
                 'lines' => $journalLines,
             ]);
 
-            foreach ($receipt->allocations as $allocation) {
-                $allocation->invoice->calculateOutstanding();
-                $allocation->invoice->save();
-            }
-
             $receipt->update([
                 'status' => CustomerReceipt::STATUS_POSTED,
                 'journal_id' => $journal->id,
             ]);
+
+            foreach ($receipt->allocations as $allocation) {
+                $allocation->invoice->calculateOutstanding();
+                $allocation->invoice->save();
+            }
 
             $this->audit->logCustom('Finance', 'CustomerReceipt', $receipt->id, 'POST', [
                 'journal_id' => $journal->id,

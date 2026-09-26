@@ -59,6 +59,7 @@ class JournalLine extends Model
     protected $fillable = [
         'journal_id',
         'account_id',
+        'counterparty_company_id',
         'description',
         'debit',
         'credit',

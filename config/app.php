@@ -80,6 +80,28 @@ return [
 
     'locale' => env('APP_LOCALE', 'en'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Supported Locales
+    |--------------------------------------------------------------------------
+    |
+    | Locales users and companies may choose. A user's choice wins over the
+    | company's, which wins over APP_LOCALE. Right-to-left locales switch the
+    | layout direction automatically (config/adminlte.php "rtl").
+    |
+    */
+
+    'supported_locales' => [
+        'en' => 'English',
+        'bn' => 'বাংলা',
+        'ar' => 'العربية',
+        'fr' => 'Français',
+        'de' => 'Deutsch',
+        'es' => 'Español',
+        'hi' => 'हिन्दी',
+        'zh_CN' => '简体中文',
+    ],
+
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),

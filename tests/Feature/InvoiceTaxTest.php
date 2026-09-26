@@ -5,7 +5,9 @@ use Modules\Core\Models\Company;
 use Modules\Core\Models\FiscalPeriod;
 use Modules\Core\Models\FiscalYear;
 use Modules\Core\Services\CompanyContextService;
+use Modules\Finance\Enums\AccountPurpose;
 use Modules\Finance\Models\Account;
+use Modules\Finance\Models\AccountMapping;
 use Modules\Finance\Models\Customer;
 use Modules\Finance\Models\JournalLine;
 use Modules\Finance\Models\Supplier;
@@ -14,7 +16,9 @@ use Modules\Finance\Models\Tax;
 use Modules\Finance\Models\TaxRule;
 use Modules\Finance\Models\TaxTransaction;
 use Modules\Finance\Services\CustomerInvoiceService;
+use Modules\Finance\Services\PaymentService;
 use Modules\Finance\Services\SupplierInvoiceService;
+use Modules\Finance\Services\TaxReturnService;
 
 beforeEach(function () {
     $this->company = Company::factory()->create(['country_code' => 'NL']);
@@ -155,4 +159,115 @@ test('a supplier country is chosen from ISO 3166 codes', function () {
     actingInCompany($user, $this->company)
         ->put(route('finance.suppliers.update', $this->supplier->id), ['supplier_code' => $this->supplier->supplier_code, 'name' => $this->supplier->name, 'country_code' => 'XX', 'status' => 'active'])
         ->assertSessionHasErrors('country_code');
+});
+
+test('withholding tax is deducted from the payment and owed to the tax authority', function () {
+    $whtPayable = Account::factory()->liability()->create(['company_id' => $this->company->id]);
+    $bank = Account::factory()->asset()->create(['company_id' => $this->company->id]);
+    AccountMapping::create(['company_id' => $this->company->id, 'purpose' => AccountPurpose::Cash, 'account_id' => $bank->id]);
+    $wht = Tax::factory()->create(['company_id' => $this->company->id, 'tax_code' => 'WHT10', 'tax_type' => 'WITHHOLDING_TAX', 'rate' => 10, 'output_account_id' => $whtPayable->id]);
+    $invoice = postPurchase([['account_id' => $this->expense->id, 'description' => 'Consulting', 'quantity' => 1, 'unit_price' => 1000]]);
+    $payments = app(PaymentService::class);
+
+    $this->actingAs($this->clerk);
+    $payment = $payments->submitPayment($payments->createPayment([
+        'company_id' => $this->company->id, 'supplier_id' => $this->supplier->id, 'payment_date' => now()->toDateString(),
+        'amount' => 1000, 'payment_method' => 'CASH', 'withholding_tax_id' => $wht->id,
+        'allocations' => [['invoice_id' => $invoice->id, 'amount' => 1000]],
+    ]));
+    $this->actingAs($this->approver);
+    $payments->postPayment($payments->approvePayment($payment));
+
+    expect($payment->fresh()->withholding_amount)->toEqual('100.0000')
+        ->and(amountOn($this->payable->id))->toEqual('0.0000')
+        ->and(amountOn($bank->id))->toEqual('-900.0000')
+        ->and(amountOn($whtPayable->id))->toEqual('-100.0000')
+        ->and(TaxTransaction::where('payment_id', $payment->id)->value('transaction_type'))->toBe('WITHHOLDING')
+        ->and($invoice->fresh()->status)->toBe(SupplierInvoice::STATUS_PAID);
+});
+
+test('only withholding taxes can be withheld from payments', function () {
+    app(PaymentService::class)->createPayment([
+        'company_id' => $this->company->id, 'supplier_id' => $this->supplier->id, 'payment_date' => now()->toDateString(),
+        'amount' => 100, 'withholding_tax_id' => $this->vat->id,
+    ]);
+})->throws(InvalidAccountingTransactionException::class, 'is not a withholding tax');
+
+test('the tax return nets output and reverse-charge tax against recoverable input tax', function () {
+    $sales = app(CustomerInvoiceService::class);
+    $this->actingAs($this->clerk);
+    $sale = $sales->submitInvoice($sales->createInvoice([
+        'company_id' => $this->company->id, 'customer_id' => $this->customer->id,
+        'invoice_date' => now()->toDateString(), 'due_date' => now()->addMonth()->toDateString(),
+        'lines' => [['account_id' => $this->revenue->id, 'description' => 'Goods', 'quantity' => 1, 'unit_price' => 2000, 'tax_id' => $this->vat->id]],
+    ]));
+    $this->actingAs($this->approver);
+    $sales->postInvoice($sales->approveInvoice($sale));
+    postPurchase([['account_id' => $this->expense->id, 'description' => 'Local purchase', 'quantity' => 1, 'unit_price' => 1000, 'tax_id' => $this->vat->id]]);
+    postPurchase([['account_id' => $this->expense->id, 'description' => 'Foreign services', 'quantity' => 1, 'unit_price' => 1000, 'tax_id' => $this->vat->id, 'is_reverse_charge' => true]]);
+
+    $summary = app(TaxReturnService::class)->summarise($this->company, now()->startOfMonth(), now()->endOfMonth());
+
+    expect($summary['totals']['output']->amount)->toBe('300.00')
+        ->and($summary['totals']['reverse_charge_output']->amount)->toBe('150.00')
+        ->and($summary['totals']['input']->amount)->toBe('300.00')
+        ->and($summary['net_payable']->amount)->toBe('150.00');
+
+    $user = companyUser(['finance.reports.view'], $this->company);
+    actingInCompany($user, $this->company)
+        ->get(route('finance.tax-return', ['from' => now()->startOfMonth()->toDateString(), 'to' => now()->endOfMonth()->toDateString()]))
+        ->assertOk()->assertSee('Net payable')->assertSee('150.00');
+    actingInCompany($user, $this->company)
+        ->get(route('finance.tax-return', ['format' => 'csv', 'from' => now()->startOfMonth()->toDateString(), 'to' => now()->endOfMonth()->toDateString()]))
+        ->assertOk()->assertDownload();
+});
+
+test('a posted sales invoice is issued as a Peppol BIS 3 UBL invoice', function () {
+    $this->company->update(['tax_number' => 'NL123456789B01', 'email' => 'billing@example.com']);
+    $this->customer->update(['country_code' => 'DE', 'tax_number' => 'DE987654321']);
+    $sales = app(CustomerInvoiceService::class);
+    $this->actingAs($this->clerk);
+    $invoice = $sales->submitInvoice($sales->createInvoice([
+        'company_id' => $this->company->id, 'customer_id' => $this->customer->id,
+        'invoice_date' => now()->toDateString(), 'due_date' => now()->addMonth()->toDateString(),
+        'lines' => [
+            ['account_id' => $this->revenue->id, 'description' => 'Licence', 'quantity' => 2, 'unit_price' => 500, 'tax_id' => $this->vat->id],
+            ['account_id' => $this->revenue->id, 'description' => 'Consulting (reverse charge)', 'quantity' => 1, 'unit_price' => 300, 'tax_id' => $this->vat->id, 'is_reverse_charge' => true],
+        ],
+    ]));
+    $this->actingAs($this->approver);
+    $sales->postInvoice($sales->approveInvoice($invoice));
+
+    $response = actingInCompany(companyUser(['finance.customer-invoices.view'], $this->company), $this->company)
+        ->get(route('finance.customer-invoices.e-invoice', $invoice->id))
+        ->assertOk()
+        ->assertHeader('Content-Type', 'application/xml');
+
+    $xml = simplexml_load_string($response->getContent());
+    $xml->registerXPathNamespace('cbc', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+    $xml->registerXPathNamespace('cac', 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+    $value = fn (string $path) => (string) ($xml->xpath($path)[0] ?? '');
+
+    expect($value('/*/cbc:CustomizationID'))->toBe('urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0')
+        ->and($value('/*/cbc:ID'))->toBe($invoice->invoice_number)
+        ->and($value('//cac:AccountingSupplierParty//cac:PartyTaxScheme/cbc:CompanyID'))->toBe('NL123456789B01')
+        ->and($value('//cac:AccountingCustomerParty//cac:Country/cbc:IdentificationCode'))->toBe('DE')
+        ->and($value("//cac:TaxTotal/cac:TaxSubtotal[cac:TaxCategory/cbc:ID='S']/cbc:TaxAmount"))->toBe('150.00')
+        ->and($value("//cac:TaxTotal/cac:TaxSubtotal[cac:TaxCategory/cbc:ID='S']/cac:TaxCategory/cbc:Percent"))->toBe('15.00')
+        ->and($value("//cac:TaxTotal/cac:TaxSubtotal[cac:TaxCategory/cbc:ID='AE']/cbc:TaxableAmount"))->toBe('300.00')
+        ->and($value('//cac:LegalMonetaryTotal/cbc:PayableAmount'))->toBe('1450.00')
+        ->and(count($xml->xpath('//cac:InvoiceLine')))->toBe(2);
+});
+
+test('only posted invoices are issued electronically', function () {
+    $sales = app(CustomerInvoiceService::class);
+    $invoice = $sales->createInvoice([
+        'company_id' => $this->company->id, 'customer_id' => $this->customer->id,
+        'invoice_date' => now()->toDateString(), 'due_date' => now()->addMonth()->toDateString(),
+        'lines' => [['account_id' => $this->revenue->id, 'description' => 'Draft', 'quantity' => 1, 'unit_price' => 10]],
+    ]);
+
+    actingInCompany(companyUser(['finance.customer-invoices.view'], $this->company), $this->company)
+        ->get(route('finance.customer-invoices.e-invoice', $invoice->id))
+        ->assertStatus(422);
 });

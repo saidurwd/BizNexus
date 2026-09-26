@@ -24,6 +24,8 @@ class SupplierPayment extends Model
         'currency_id',
         'exchange_rate',
         'amount',
+        'withholding_tax_id',
+        'withholding_amount',
         'payment_method',
         'bank_account_id',
         'reference',
@@ -40,6 +42,7 @@ class SupplierPayment extends Model
     }
 
     protected $casts = [
+        'withholding_amount' => 'decimal:4',
         'payment_date' => 'date',
         'exchange_rate' => 'decimal:8',
         'amount' => 'decimal:4',
@@ -58,6 +61,11 @@ class SupplierPayment extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function withholdingTax(): BelongsTo
+    {
+        return $this->belongsTo(Tax::class, 'withholding_tax_id');
     }
 
     public function supplier(): BelongsTo
