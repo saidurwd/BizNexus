@@ -15,6 +15,7 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar />
     <x-report-letterhead title="{{ __('Tax Return') }}" />
 
     @php

@@ -1,5 +1,5 @@
 {{--
-    Printable sales document (tax invoice or credit note). Rendered by dompdf, so styles are inline CSS 2.1 and
+    Printable trading document (invoice, credit note, quotation, order). Rendered by dompdf, so styles are inline CSS 2.1 and
     the font is DejaVu Sans for wide character coverage.
 --}}
 <!DOCTYPE html>
@@ -77,7 +77,7 @@
                 </table>
             </td>
             <td>
-                <div class="muted">{{ __('Bill to') }}</div>
+                <div class="muted">{{ $partyLabel ?? __('Bill to') }}</div>
                 <strong>{{ $party->name }}</strong><br>
                 {!! nl2br(e($party->address)) !!}<br>
                 @if ($party->tax_number){{ __('Tax number') }}: {{ $party->tax_number }}@endif
@@ -132,7 +132,7 @@
     @endif
 
     @if ($notes)
-        <p style="margin-top: 8mm;"><span class="muted">{{ __('Notes') }}:</span> {{ $notes }}</p>
+        <p style="margin-top: 8mm;"><span class="muted">{{ __('Notes') }}:</span> {!! nl2br(e($notes)) !!}</p>
     @endif
 
     @if ($document->lines->contains('is_reverse_charge', true))

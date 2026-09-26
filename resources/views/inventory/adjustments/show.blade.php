@@ -12,6 +12,9 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar />
+    <x-print-document-header :title="__('Stock adjustment')" :subtitle="$adjustment->adjustment_number" />
+
     <div class="card mb-3">
         <div class="card-body">
             <dl class="row mb-0">
@@ -92,4 +95,5 @@
             @endcan
         @endif
     </div>
+    <x-print-signatures />
 @endsection

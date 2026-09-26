@@ -12,6 +12,9 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar />
+    <x-print-document-header :title="__('Supplier credit note')" :subtitle="$creditNote->credit_note_number" />
+
     @if ($creditNote->rejection_reason)
         <div class="alert alert-warning">{{ __('Rejected: :reason', ['reason' => $creditNote->rejection_reason]) }}</div>
     @endif
@@ -148,4 +151,5 @@
         @endif
     </div>
     <x-attachments :document="$creditNote" type="supplier-credit-notes" />
+    <x-print-signatures />
 @endsection

@@ -3,7 +3,7 @@
 @section('title', 'Customer Statement - ' . $customer->name)
 
 @section('content_header')
-    <h1>Customer Statement: {{ $customer->name }}</h1>
+    <h1>{{ __('Customer statement: :name', ['name' => $customer->name]) }}</h1>
     <div class="mt-2">
         <a href="{{ route('finance.customer-statements.index') }}" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> {{ __('Back') }}

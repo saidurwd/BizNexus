@@ -3,10 +3,13 @@
 @section('title', __('Customer Invoice'))
 
 @section('content_header')
-    <h1>Invoice: {{ $invoice->invoice_number }}</h1>
+    <h1>{{ __('Invoice :number', ['number' => $invoice->invoice_number]) }}</h1>
 @endsection
 
 @section('content')
+    <x-print-toolbar />
+    <x-print-document-header :title="__('Tax invoice')" :subtitle="$invoice->invoice_number" />
+
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">{{ __('Invoice Information') }}</h3>

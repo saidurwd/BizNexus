@@ -3,7 +3,7 @@
 @section('title', __('Tax Code'))
 
 @section('content_header')
-    <h1>Tax Code: {{ $tax->tax_code }} — {{ $tax->tax_name }}</h1>
+    <h1>{{ __('Tax code :code — :name', ['code' => $tax->tax_code, 'name' => $tax->tax_name]) }}</h1>
 @endsection
 
 @section('content')

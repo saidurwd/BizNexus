@@ -10,6 +10,7 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar />
     <x-report-letterhead title="{{ __('Trial Balance') }}" />
 
     <div class="card">

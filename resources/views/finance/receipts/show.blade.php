@@ -3,10 +3,13 @@
 @section('title', __('Receipt Details'))
 
 @section('content_header')
-    <h1>Receipt: {{ $receipt->receipt_number }}</h1>
+    <h1>{{ __('Receipt :number', ['number' => $receipt->receipt_number]) }}</h1>
 @endsection
 
 @section('content')
+    <x-print-toolbar />
+    <x-print-document-header :title="__('Receipt voucher')" :subtitle="$receipt->receipt_number" />
+
     <div class="card">
         <div class="card-body">
             <table class="table table-sm">
@@ -58,4 +61,5 @@
         <a href="{{ route('finance.receipts.index') }}" class="btn btn-secondary">{{ __('Back') }}</a>
     </div>
     <x-attachments :document="$receipt" type="receipts" />
+    <x-print-signatures :labels="[__('Received by'), __('Checked by'), __('Approved by')]" />
 @endsection

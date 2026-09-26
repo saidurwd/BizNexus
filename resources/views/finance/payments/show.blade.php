@@ -3,10 +3,13 @@
 @section('title', __('Payment Details'))
 
 @section('content_header')
-    <h1>Payment: {{ $payment->payment_number }}</h1>
+    <h1>{{ __('Payment :number', ['number' => $payment->payment_number]) }}</h1>
 @endsection
 
 @section('content')
+    <x-print-toolbar />
+    <x-print-document-header :title="__('Payment voucher')" :subtitle="$payment->payment_number" />
+
     <div class="card">
         <div class="card-body">
             <table class="table table-sm">
@@ -62,4 +65,5 @@
         <a href="{{ route('finance.payments.index') }}" class="btn btn-secondary">{{ __('Back') }}</a>
     </div>
     <x-attachments :document="$payment" type="payments" />
+    <x-print-signatures :labels="[__('Prepared by'), __('Approved by'), __('Received by')]" />
 @endsection

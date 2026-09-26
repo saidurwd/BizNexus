@@ -3,7 +3,7 @@
 @section('title', __('Consolidated Trial Balance'))
 
 @section('content_header')
-    <h1>Consolidated Trial Balance — {{ $group->name }}</h1>
+    <h1>{{ __('Consolidated trial balance — :group', ['group' => $group->name]) }}</h1>
     <form method="GET" class="form-inline mt-2">
         <label for="as_of" class="me-2">{{ __('As of') }}</label>
         <input type="date" id="as_of" name="as_of" class="form-control me-2" value="{{ $asOf }}">
@@ -12,6 +12,7 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar />
     <x-report-letterhead title="{{ __('Consolidated Trial Balance') }}" />
 
     @php $currency = $report['currency']; @endphp

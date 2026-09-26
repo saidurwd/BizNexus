@@ -3,7 +3,7 @@
 @section('title', __('Account Details'))
 
 @section('content_header')
-    <h1>Account: {{ $account->account_name }}</h1>
+    <h1>{{ __('Account: :name', ['name' => $account->account_name]) }}</h1>
 @endsection
 
 @section('content')

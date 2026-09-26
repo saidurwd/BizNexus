@@ -10,6 +10,7 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar />
     <x-report-letterhead title="{{ __('Income Statement') }}" />
 
     <div class="card">

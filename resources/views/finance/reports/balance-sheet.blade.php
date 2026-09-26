@@ -7,6 +7,7 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar />
     <x-report-letterhead :title="__('Statement of Financial Position')" />
 
     <form method="GET" action="{{ route('finance.reports.balance-sheet') }}" class="card mb-3">

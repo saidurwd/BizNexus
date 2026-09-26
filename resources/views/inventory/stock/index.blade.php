@@ -13,6 +13,8 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar />
+    <x-print-document-header :title="__('Stock on Hand')" />
     <form method="GET" class="card mb-3">
         <div class="card-body row g-2 align-items-end">
             <div class="col-md-4">

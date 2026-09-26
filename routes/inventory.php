@@ -8,6 +8,7 @@ use Modules\Inventory\Controllers\Web\ProductController;
 use Modules\Inventory\Controllers\Web\PurchaseCreditNoteController;
 use Modules\Inventory\Controllers\Web\PurchaseInvoiceMatchController;
 use Modules\Inventory\Controllers\Web\PurchaseOrderController;
+use Modules\Inventory\Controllers\Web\PurchaseOrderPdfController;
 use Modules\Inventory\Controllers\Web\ReorderController;
 use Modules\Inventory\Controllers\Web\StockAdjustmentController;
 use Modules\Inventory\Controllers\Web\StockController;
@@ -58,6 +59,7 @@ Route::prefix('inventory')->name('inventory.')->group(function () {
     Route::get('/purchase-orders/create', [PurchaseOrderController::class, 'create'])->middleware('permission:inventory.purchase-orders.create')->name('purchase-orders.create');
     Route::post('/purchase-orders', [PurchaseOrderController::class, 'store'])->middleware('permission:inventory.purchase-orders.create')->name('purchase-orders.store');
     Route::get('/purchase-orders/{id}', [PurchaseOrderController::class, 'show'])->whereNumber('id')->middleware('permission:inventory.purchase-orders.view')->name('purchase-orders.show');
+    Route::get('/purchase-orders/{id}/pdf', PurchaseOrderPdfController::class)->whereNumber('id')->middleware('permission:inventory.purchase-orders.view')->name('purchase-orders.pdf');
     Route::get('/purchase-orders/{id}/edit', [PurchaseOrderController::class, 'edit'])->whereNumber('id')->middleware('permission:inventory.purchase-orders.create')->name('purchase-orders.edit');
     Route::put('/purchase-orders/{id}', [PurchaseOrderController::class, 'update'])->whereNumber('id')->middleware('permission:inventory.purchase-orders.create')->name('purchase-orders.update');
     Route::delete('/purchase-orders/{id}', [PurchaseOrderController::class, 'destroy'])->whereNumber('id')->middleware('permission:inventory.purchase-orders.create')->name('purchase-orders.destroy');

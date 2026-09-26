@@ -7,6 +7,7 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar />
     <x-report-letterhead title="{{ __('Budget vs Actual') }}" />
 
     <div class="card">

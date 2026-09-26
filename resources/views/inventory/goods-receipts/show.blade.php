@@ -12,6 +12,9 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar />
+    <x-print-document-header :title="__('Goods receipt')" :subtitle="$receipt->receipt_number" />
+
     <div class="card mb-3">
         <div class="card-body">
             <dl class="row mb-0">
@@ -67,4 +70,5 @@
     </div>
 
     <a href="{{ route('inventory.goods-receipts.index') }}" class="btn btn-secondary">{{ __('Back') }}</a>
+    <x-print-signatures :labels="[__('Received by'), __('Checked by'), __('Approved by')]" />
 @endsection

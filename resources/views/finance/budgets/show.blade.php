@@ -3,10 +3,13 @@
 @section('title', __('Budget Details'))
 
 @section('content_header')
-    <h1>Budget: {{ $budget->name }}</h1>
+    <h1>{{ __('Budget: :name', ['name' => $budget->name]) }}</h1>
 @endsection
 
 @section('content')
+    <x-print-toolbar />
+    <x-print-document-header :title="__('Budget')" :subtitle="$budget->name" />
+
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">{{ __('Budget Information') }}</h3>
@@ -267,6 +270,7 @@
             </div>
         </div>
     @endif
+    <x-print-signatures :labels="[__('Prepared by'), __('Approved by')]" />
 @endsection
 
     @section('scripts')

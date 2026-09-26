@@ -7,6 +7,7 @@
 @endsection
 
 @section('content')
+    <x-print-toolbar />
     <x-report-letterhead title="{{ __('General Ledger') }}" />
 
     <div class="card">

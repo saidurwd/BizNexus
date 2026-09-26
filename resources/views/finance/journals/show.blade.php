@@ -3,10 +3,13 @@
 @section('title', __('Journal Entry Details'))
 
 @section('content_header')
-    <h1>Journal Entry: {{ $journal->journal_number }}</h1>
+    <h1>{{ __('Journal :number', ['number' => $journal->journal_number]) }}</h1>
 @endsection
 
 @section('content')
+    <x-print-toolbar />
+    <x-print-document-header :title="__('Journal voucher')" :subtitle="$journal->journal_number" />
+
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">{{ __('Journal Information') }}</h3>
@@ -174,4 +177,5 @@
         </div>
     @endif
     <x-attachments :document="$journal" type="journals" />
+    <x-print-signatures />
 @endsection
