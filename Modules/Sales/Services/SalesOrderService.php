@@ -10,6 +10,9 @@ use Modules\Core\Services\DocumentNumberService;
 use Modules\Core\Support\Formatter;
 use Modules\Finance\Services\ExchangeRateService;
 use Modules\Finance\Services\ReceiptService;
+use Modules\Inventory\Contracts\StockReservations;
+use Modules\Inventory\Models\Product;
+use Modules\Inventory\Models\StockBalance;
 use Modules\Sales\Models\SalesOrder;
 use Modules\Sales\Services\Concerns\PricesSalesLines;
 
@@ -77,6 +80,7 @@ class SalesOrderService
         }
 
         $this->ensureWithinCreditLimit($order);
+        $this->ensureStockAvailable($order);
 
         $order->forceFill(['confirmed_by' => Auth::id(), 'confirmed_at' => now()]);
 
@@ -119,6 +123,59 @@ class SalesOrderService
         $this->requireStatus($order, [SalesOrder::STATUS_DRAFT]);
         $this->audit->logDelete('Sales', 'SalesOrder', $order->id, $order->toArray());
         $order->delete();
+    }
+
+    /**
+     * Compare what the order needs with what is available in its warehouse: on hand less what other
+     * confirmed orders have reserved. Shortfalls become backorders ("warn") or refuse the order ("block").
+     */
+    protected function ensureStockAvailable(SalesOrder $order): void
+    {
+        $mode = config('inventory.reservation_check', 'warn');
+
+        if ($mode === 'off') {
+            return;
+        }
+
+        $needed = $order->lines()->with('product')->get()
+            ->filter(fn ($line) => $line->product?->isStocked())
+            ->groupBy('product_id')
+            ->map(fn ($lines) => $lines->reduce(fn (string $sum, $line) => bcadd($sum, (string) $line->quantity, 4), '0'));
+
+        if ($needed->isEmpty()) {
+            return;
+        }
+
+        $onHand = StockBalance::where('warehouse_id', $order->warehouse_id)->whereIn('product_id', $needed->keys())->pluck('quantity', 'product_id');
+        $reserved = app(StockReservations::class)->reserved($needed->keys()->all(), $order->warehouse_id, $order->id);
+        $shortages = [];
+
+        foreach ($needed as $productId => $quantity) {
+            $available = bcsub((string) ($onHand[$productId] ?? '0'), $reserved[$productId] ?? '0', 4);
+
+            if (bccomp($quantity, $available, 4) > 0) {
+                $shortages[] = __(':product: :available available, :needed ordered', [
+                    'product' => Product::find($productId)?->sku,
+                    'available' => $this->plain(bccomp($available, '0', 4) > 0 ? $available : '0'),
+                    'needed' => $this->plain($quantity),
+                ]);
+            }
+        }
+
+        if ($shortages === []) {
+            return;
+        }
+
+        $message = __('Not enough stock is free in :warehouse, so part of the order will be on backorder (:shortages).', [
+            'warehouse' => $order->warehouse?->code,
+            'shortages' => implode('; ', $shortages),
+        ]);
+
+        if ($mode === 'block') {
+            throw new InvalidAccountingTransactionException($message);
+        }
+
+        session()->flash('warning', $message);
     }
 
     protected function ensureWithinCreditLimit(SalesOrder $order): void
@@ -191,5 +248,10 @@ class SalesOrderService
         $this->audit->logCustom('Sales', 'SalesOrder', $order->id, $action, ['previous_status' => $previous, ...$context]);
 
         return $order->fresh();
+    }
+
+    protected function plain(string $number): string
+    {
+        return str_contains($number, '.') ? (rtrim(rtrim($number, '0'), '.') ?: '0') : $number;
     }
 }

@@ -10,6 +10,7 @@ use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\PermissionService;
 use Modules\Finance\Controllers\Concerns\FiltersDocumentLists;
 use Modules\Finance\Controllers\Controller;
+use Modules\Inventory\Contracts\StockReservations;
 use Modules\Inventory\Models\StockBalance;
 use Modules\Sales\Controllers\Concerns\HandlesSalesLines;
 use Modules\Sales\Models\SalesOrder;
@@ -53,7 +54,10 @@ class SalesOrderController extends Controller
     public function show(int $id): View
     {
         $order = SalesOrder::with(['customer', 'currency', 'warehouse', 'quotation', 'lines.product.unit', 'lines.tax', 'deliveries', 'invoices', 'createdBy', 'confirmedBy'])->findOrFail($id);
-        $available = StockBalance::where('warehouse_id', $order->warehouse_id)->whereIn('product_id', $order->lines->pluck('product_id'))->pluck('quantity', 'product_id');
+        $productIds = $order->lines->pluck('product_id')->unique()->values()->all();
+        $onHand = StockBalance::where('warehouse_id', $order->warehouse_id)->whereIn('product_id', $productIds)->pluck('quantity', 'product_id');
+        $reserved = app(StockReservations::class)->reserved($productIds, $order->warehouse_id, $order->id);
+        $available = collect($productIds)->mapWithKeys(fn (int $productId) => [$productId => bcsub((string) ($onHand[$productId] ?? '0'), $reserved[$productId] ?? '0', 4)]);
 
         return view('sales.orders.show', compact('order', 'available'));
     }

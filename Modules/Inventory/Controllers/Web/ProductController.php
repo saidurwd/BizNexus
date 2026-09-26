@@ -13,6 +13,7 @@ use Modules\Finance\Controllers\Controller;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\Supplier;
 use Modules\Finance\Models\Tax;
+use Modules\Inventory\Contracts\StockReservations;
 use Modules\Inventory\Models\Product;
 use Modules\Inventory\Models\ProductCategory;
 use Modules\Inventory\Models\Unit;
@@ -73,6 +74,7 @@ class ProductController extends Controller
         return view('inventory.products.show', [
             'product' => $product,
             'balances' => $product->stockBalances()->with('warehouse')->where('quantity', '!=', 0)->get(),
+            'reserved' => app(StockReservations::class)->reserved([$product->id])[$product->id] ?? '0',
             'moves' => $product->stockMoves()->with('warehouse')->latest('move_date')->latest('id')->limit(10)->get(),
         ]);
     }

@@ -8,6 +8,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Finance\Controllers\Controller;
+use Modules\Inventory\Contracts\StockReservations;
 use Modules\Inventory\Models\Product;
 use Modules\Inventory\Models\ProductCategory;
 use Modules\Inventory\Models\StockBalance;
@@ -45,6 +46,7 @@ class StockController extends Controller
 
         return view('inventory.stock.index', [
             'products' => $products,
+            'reserved' => app(StockReservations::class)->reserved($products->pluck('id')->all(), $filters['warehouse'] ?? null),
             'balances' => $balances,
             'warehouses' => $warehouses,
             'categories' => ProductCategory::orderBy('name')->get(['id', 'name']),
