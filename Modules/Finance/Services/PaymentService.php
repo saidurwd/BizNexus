@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
 use Modules\Core\Models\Company;
 use Modules\Core\Models\Currency;
+use Modules\Core\Services\ApprovalNotifier;
 use Modules\Core\Services\AuditService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DefaultAccountService;
@@ -240,6 +241,8 @@ class PaymentService
         } catch (\Throwable $e) {
             // Workflow definitions may not be seeded yet
         }
+
+        app(ApprovalNotifier::class)->documentSubmitted($payment->company_id, 'finance.payments.approve', __('Payment'), $payment->payment_number, route('finance.payments.show', $payment->id), (string) $payment->amount, $payment->currency?->code);
 
         return $payment->fresh();
     }

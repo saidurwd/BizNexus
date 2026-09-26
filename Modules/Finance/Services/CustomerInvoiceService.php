@@ -5,6 +5,7 @@ namespace Modules\Finance\Services;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
+use Modules\Core\Services\ApprovalNotifier;
 use Modules\Core\Services\AuditService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DefaultAccountService;
@@ -161,6 +162,8 @@ class CustomerInvoiceService
         } catch (\Throwable $e) {
             // Workflow definitions may not be seeded yet
         }
+
+        app(ApprovalNotifier::class)->documentSubmitted($invoice->company_id, 'finance.customer-invoices.approve', __('Customer invoice'), $invoice->invoice_number, route('finance.customer-invoices.show', $invoice->id), (string) $invoice->total_amount, $invoice->currency?->code);
 
         return $invoice->fresh();
     }

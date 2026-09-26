@@ -38,16 +38,7 @@
                                 <option value="">All Types</option>
                                 @foreach($types as $type)
                                     <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>
-                                        @php
-                                            $labels = [
-                                                'budget_exceeded' => 'Budget Exceeded',
-                                                'invoice_approval' => 'Invoice Approval',
-                                                'journal_approval' => 'Journal Approval',
-                                                'payment_approved' => 'Payment Approved',
-                                                'period_closing' => 'Period Closing',
-                                            ];
-                                            echo $labels[$type] ?? ucfirst(str_replace('_', ' ', $type));
-                                        @endphp
+                                        {{ \Illuminate\Support\Str::headline(class_basename($type)) }}
                                     </option>
                                 @endforeach
                             </select>
@@ -103,11 +94,7 @@
                             $icon = 'bi bi-bell';
                             $label = ucfirst(str_replace('_', ' ', $type));
                             
-                            if ($type === 'budget_exceeded') { $badgeClass = 'danger'; $icon = 'bi bi-calculator'; $label = 'Budget Exceeded'; }
-                            elseif ($type === 'invoice_approval') { $badgeClass = 'warning'; $icon = 'bi bi-file-earmark-text'; $label = 'Invoice Approval'; }
-                            elseif ($type === 'journal_approval') { $badgeClass = 'info'; $icon = 'bi bi-journal-text'; $label = 'Journal Approval'; }
-                            elseif ($type === 'payment_approved') { $badgeClass = 'success'; $icon = 'bi bi-check-circle'; $label = 'Payment Approved'; }
-                            elseif ($type === 'period_closing') { $badgeClass = 'primary'; $icon = 'bi bi-calendar-range'; $label = 'Period Closing'; }
+                            if ($type === 'approval_requested') { $badgeClass = 'warning'; $icon = 'bi bi-inbox'; $label = __('Approval requested'); }
                             
                             $message = $data['message'] ?? 'Notification';
                             $rowClass = $isUnread ? 'table-active' : '';
@@ -128,9 +115,13 @@
                                         </div>
                                     </div>
                                     <div>
-                                        <strong>{{ $message }}</strong>
+                                        @if(! empty($data['url']))
+                                            <a href="{{ $data['url'] }}"><strong>{{ $message }}</strong></a>
+                                        @else
+                                            <strong>{{ $message }}</strong>
+                                        @endif
                                         @if(isset($data['amount']))
-                                            <br><small class="text-muted">Amount: {{ Formatter::amount($data['amount']) }}</small>
+                                            <br><small class="text-muted">{{ __('Amount') }}: {{ Formatter::amount($data['amount'], $data['currency'] ?? null) }} {{ $data['currency'] ?? '' }}@if(! empty($data['submitted_by'])) · {{ __('submitted by :name', ['name' => $data['submitted_by']]) }}@endif</small>
                                         @endif
                                     </div>
                                 </div>

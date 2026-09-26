@@ -111,6 +111,16 @@
             $activeBranch = $branchContext->getActiveBranch();
         @endphp
 
+        @php $unreadNotifications = auth()->user()->unreadNotifications()->count(); @endphp
+        <li class="nav-item">
+            <a class="nav-link position-relative" href="{{ route('core.notifications.index') }}" title="{{ __('Notifications') }}">
+                <i class="bi bi-bell" aria-hidden="true"></i>
+                @if($unreadNotifications > 0)
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-danger">{{ $unreadNotifications > 99 ? '99+' : $unreadNotifications }}</span>
+                @endif
+                <span class="visually-hidden">{{ trans_choice(':count unread notification|:count unread notifications', $unreadNotifications) }}</span>
+            </a>
+        </li>
         @if($activeCompany)
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('profile.edit') }}#switch-company" title="{{ __('Active company and branch') }}">

@@ -5,6 +5,7 @@ namespace Modules\Finance\Services;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
+use Modules\Core\Services\ApprovalNotifier;
 use Modules\Core\Services\AuditService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DefaultAccountService;
@@ -79,7 +80,10 @@ class CustomerCreditNoteService
             throw new InvalidAccountingTransactionException('A credit note needs at least one line and a positive total.');
         }
 
-        return $this->transition($creditNote, CustomerCreditNote::STATUS_SUBMITTED, 'SUBMIT');
+        $submitted = $this->transition($creditNote, CustomerCreditNote::STATUS_SUBMITTED, 'SUBMIT');
+        app(ApprovalNotifier::class)->documentSubmitted($submitted->company_id, 'finance.customer-credit-notes.approve', __('Customer credit note'), $submitted->note_number, route('finance.customer-credit-notes.show', $submitted->id), (string) $submitted->total_amount, $submitted->currency?->code);
+
+        return $submitted;
     }
 
     public function approve(CustomerCreditNote $creditNote): CustomerCreditNote

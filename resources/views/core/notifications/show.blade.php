@@ -28,11 +28,7 @@
                                     $badgeClass = 'secondary';
                                     $icon = 'bi bi-bell';
                                     
-                                    if ($type === 'budget_exceeded') { $badgeClass = 'danger'; $icon = 'bi bi-calculator'; }
-                                    elseif ($type === 'invoice_approval') { $badgeClass = 'warning'; $icon = 'bi bi-file-earmark-text'; }
-                                    elseif ($type === 'journal_approval') { $badgeClass = 'info'; $icon = 'bi bi-journal-text'; }
-                                    elseif ($type === 'payment_approved') { $badgeClass = 'success'; $icon = 'bi bi-check-circle'; }
-                                    elseif ($type === 'period_closing') { $badgeClass = 'primary'; $icon = 'bi bi-calendar-range'; }
+                                    if ($type === 'approval_requested') { $badgeClass = 'warning'; $icon = 'bi bi-inbox'; }
                                 @endphp
                                 <span class="badge bg-{{ $badgeClass }}">
                                     <i class="{{ $icon }}"></i> {{ ucfirst(str_replace('_', ' ', $type)) }}
@@ -54,6 +50,12 @@
                             <th>Created At</th>
                             <td>{{ $notification->created_at->format('Y-m-d H:i:s') }}</td>
                         </tr>
+                        @if(! empty($notification->data['url']))
+                            <tr>
+                                <th>{{ __('Document') }}</th>
+                                <td><a href="{{ $notification->data['url'] }}" class="btn btn-sm btn-primary"><i class="bi bi-box-arrow-up-right"></i> {{ __('Open :document :number', ['document' => $notification->data['document'] ?? '', 'number' => $notification->data['number'] ?? '']) }}</a></td>
+                            </tr>
+                        @endif
                     </table>
                 </div>
             </div>

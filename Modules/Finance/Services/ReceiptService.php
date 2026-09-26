@@ -6,6 +6,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
+use Modules\Core\Services\ApprovalNotifier;
 use Modules\Core\Services\AuditService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DefaultAccountService;
@@ -205,6 +206,8 @@ class ReceiptService
         } catch (\Throwable $e) {
             // Workflow definitions may not be seeded yet
         }
+
+        app(ApprovalNotifier::class)->documentSubmitted($receipt->company_id, 'finance.receipts.approve', __('Receipt'), $receipt->receipt_number, route('finance.receipts.show', $receipt->id), (string) $receipt->amount, $receipt->currency?->code);
 
         return $receipt->fresh();
     }

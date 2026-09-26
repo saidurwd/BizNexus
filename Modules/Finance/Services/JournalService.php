@@ -16,6 +16,7 @@ use Modules\Core\Models\Company;
 use Modules\Core\Models\Currency;
 use Modules\Core\Scopes\CompanyScope;
 use Modules\Core\Services\AccountingPeriodService;
+use Modules\Core\Services\ApprovalNotifier;
 use Modules\Core\Services\AuditService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DefaultAccountService;
@@ -225,6 +226,8 @@ class JournalService
         ]);
 
         $this->audit->logCustom('Finance', 'Journal', $journal->id, 'SUBMIT', $journal->toArray());
+
+        app(ApprovalNotifier::class)->documentSubmitted($journal->company_id, 'finance.journals.approve', __('Journal'), $journal->journal_number, route('finance.journals.show', $journal->id), (string) $journal->total_debit);
 
         return $journal->fresh();
     }
