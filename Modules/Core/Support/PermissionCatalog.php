@@ -14,6 +14,10 @@ class PermissionCatalog
      * @var array<string, array{name: string, group: string}>
      */
     public const GRANULAR_PERMISSIONS = [
+        'finance.intercompany.view' => ['name' => 'View Intercompany Transactions', 'group' => 'Finance'],
+        'finance.intercompany.create' => ['name' => 'Create Intercompany Transactions', 'group' => 'Finance'],
+        'finance.consolidation.view' => ['name' => 'View Consolidated Reports', 'group' => 'Finance'],
+        'finance.consolidation.manage' => ['name' => 'Manage Consolidation Groups', 'group' => 'Finance'],
         'core.fiscal-years.close' => ['name' => 'Close Fiscal Years', 'group' => 'Administration'],
         'core.fiscal-years.reopen' => ['name' => 'Reopen Fiscal Years', 'group' => 'Administration'],
         'finance.fx-revaluation.view' => ['name' => 'View FX Revaluations', 'group' => 'Finance'],
@@ -158,6 +162,8 @@ class PermissionCatalog
         'finance.fx-revaluation.run' => ['finance.journals.post'],
         'core.fiscal-years.close' => ['core.periods.close'],
         'core.fiscal-years.reopen' => ['core.periods.reopen'],
+        'finance.intercompany.view' => ['finance.journals.view'],
+        'finance.intercompany.create' => ['finance.journals.post'],
     ];
 
     /**

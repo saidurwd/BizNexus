@@ -130,6 +130,7 @@ class JournalService
             'project_id' => $lineData['project_id'] ?? null,
             'tax_id' => $lineData['tax_id'] ?? null,
             'reference' => $lineData['reference'] ?? null,
+            'counterparty_company_id' => $lineData['counterparty_company_id'] ?? null,
             'line_type' => $isFunctionalAdjustment ? $lineData['line_type'] : JournalLine::TYPE_STANDARD,
         ]);
 
@@ -387,6 +388,7 @@ class JournalService
                     'project_id' => $line->project_id,
                     'tax_id' => $line->tax_id,
                     'reference' => $line->reference,
+                    'counterparty_company_id' => $line->counterparty_company_id,
                     'line_type' => $line->line_type,
                 ]);
             }

@@ -926,6 +926,11 @@ return [
                     'icon' => 'bi bi-diagram-3',
                 ],
                 [
+                    'text' => 'Intercompany',
+                    'url' => 'finance/intercompany', 'can' => 'finance.intercompany.view',
+                    'icon' => 'bi bi-arrow-left-right',
+                ],
+                [
                     'text' => 'FX Revaluation',
                     'url' => 'finance/fx-revaluations', 'can' => 'finance.fx-revaluation.view',
                     'icon' => 'bi bi-currency-exchange',
