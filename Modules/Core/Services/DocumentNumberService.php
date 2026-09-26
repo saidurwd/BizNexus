@@ -36,6 +36,7 @@ class DocumentNumberService
         'SO' => ['label' => 'Sales orders', 'prefix' => 'SO'],
         'DN' => ['label' => 'Delivery notes', 'prefix' => 'DN'],
         'RTN' => ['label' => 'Supplier returns', 'prefix' => 'RTN'],
+        'FA' => ['label' => 'Fixed assets', 'prefix' => 'FA'],
     ];
 
     /**
