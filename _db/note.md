@@ -1,0 +1,1 @@
+* * * * * cd /Users/saidur.rahman/Code/BizNexus && php artisan schedule:run >> /dev/null 2>&1
