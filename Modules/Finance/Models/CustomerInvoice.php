@@ -33,6 +33,7 @@ class CustomerInvoice extends Model
         'outstanding_amount',
         'status',
         'journal_id',
+        'cost_journal_id',
         'description',
         'created_by',
         'updated_by',
@@ -91,6 +92,11 @@ class CustomerInvoice extends Model
     public function tax(): BelongsTo
     {
         return $this->belongsTo(Tax::class);
+    }
+
+    public function costJournal(): BelongsTo
+    {
+        return $this->belongsTo(Journal::class, 'cost_journal_id');
     }
 
     public function lines(): HasMany

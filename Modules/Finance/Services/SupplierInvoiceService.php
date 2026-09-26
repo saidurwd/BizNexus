@@ -11,6 +11,7 @@ use Modules\Core\Services\AuditService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
+use Modules\Finance\Contracts\PurchaseMatching;
 use Modules\Finance\Events\SupplierInvoiceApproved;
 use Modules\Finance\Models\Supplier;
 use Modules\Finance\Models\SupplierInvoice;
@@ -34,6 +35,7 @@ class SupplierInvoiceService
             $invoice = SupplierInvoice::create([
                 'company_id' => $data['company_id'],
                 'supplier_id' => $data['supplier_id'],
+                'purchase_order_id' => $data['purchase_order_id'] ?? null,
                 'invoice_number' => $data['invoice_number'] ?? $this->documentNumber->generateNumber($data['company_id'], 'SI'),
                 'invoice_date' => $data['invoice_date'],
                 'due_date' => $data['due_date'] ?? Supplier::findOrFail($data['supplier_id'])->dueDateFor(Carbon::parse($data['invoice_date']))->toDateString(),
@@ -51,14 +53,14 @@ class SupplierInvoiceService
 
             foreach ($data['lines'] ?? [] as $lineData) {
                 $invoice->lines()->create([
+                    'purchase_order_line_id' => $lineData['purchase_order_line_id'] ?? null,
+                    'product_id' => $lineData['product_id'] ?? null,
                     'account_id' => $lineData['account_id'],
                     'description' => $lineData['description'],
                     'quantity' => $lineData['quantity'] ?? 1,
                     'unit_price' => $lineData['unit_price'] ?? 0,
                     'subtotal' => 0,
                     'tax_id' => $lineData['tax_id'] ?? null,
-                    'supply_type' => $lineData['supply_type'] ?? null,
-                    'is_reverse_charge' => (bool) ($lineData['is_reverse_charge'] ?? false),
                     'supply_type' => $lineData['supply_type'] ?? null,
                     'is_reverse_charge' => (bool) ($lineData['is_reverse_charge'] ?? false),
                     'tax_amount' => 0,
@@ -102,12 +104,15 @@ class SupplierInvoiceService
 
             $supplier = $invoice->supplier;
             $company = $invoice->company;
+            $matching = app(PurchaseMatching::class);
+            $matching->check($invoice);
 
             $documentTax = app(DocumentTaxService::class);
             $journalLines = app(DocumentJournalBuilder::class)->purchase(
                 $invoice,
                 $supplier->payable_account_id ?? $this->defaultAccounts->getPayableAccount($company->id),
                 "Payable to {$supplier->name}",
+                costLines: fn ($line, $cost) => $matching->costLines($invoice, $line, $cost),
             )['lines'];
 
             $journal = $this->journalService->postFromSource([
@@ -127,6 +132,8 @@ class SupplierInvoiceService
                 'status' => SupplierInvoice::STATUS_POSTED,
                 'journal_id' => $journal->id,
             ]);
+
+            $matching->invoicePosted($invoice);
 
             $this->audit->logCustom('Finance', 'SupplierInvoice', $invoice->id, 'POST', [
                 'journal_id' => $journal->id,
@@ -151,6 +158,8 @@ class SupplierInvoiceService
         if (! $invoice->isDraft()) {
             throw new InvalidAccountingTransactionException('Only draft invoices can be submitted');
         }
+
+        app(PurchaseMatching::class)->check($invoice);
 
         $invoice->update(['status' => SupplierInvoice::STATUS_SUBMITTED]);
 
@@ -271,6 +280,8 @@ class SupplierInvoiceService
 
         foreach ($data['lines'] ?? [] as $lineData) {
             $invoice->lines()->create([
+                'purchase_order_line_id' => $lineData['purchase_order_line_id'] ?? null,
+                'product_id' => $lineData['product_id'] ?? null,
                 'account_id' => $lineData['account_id'],
                 'description' => $lineData['description'],
                 'quantity' => $lineData['quantity'] ?? 1,

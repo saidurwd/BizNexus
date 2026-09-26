@@ -4,11 +4,16 @@ namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Inventory\Models\Product;
+use Modules\Inventory\Models\Warehouse;
 
 class CustomerInvoiceLine extends Model
 {
     protected $fillable = [
         'customer_invoice_id',
+        'product_id',
+        'warehouse_id',
+        'cost_value',
         'account_id',
         'description',
         'quantity',
@@ -30,11 +35,22 @@ class CustomerInvoiceLine extends Model
         'tax_amount' => 'decimal:4',
         'discount_amount' => 'decimal:4',
         'total_amount' => 'decimal:4',
+        'cost_value' => 'decimal:4',
     ];
 
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(CustomerInvoice::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class);
     }
 
     public function account(): BelongsTo
@@ -46,5 +62,4 @@ class CustomerInvoiceLine extends Model
     {
         return $this->belongsTo(Tax::class);
     }
-
 }

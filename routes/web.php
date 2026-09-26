@@ -459,6 +459,8 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    require __DIR__.'/inventory.php';
+
     // Approval delegation (self-service; users delegate only their own approval authority)
     Route::post('/approval-delegations', [ApprovalDelegationController::class, 'store'])->name('core.approval-delegations.store');
     Route::delete('/approval-delegations/{id}', [ApprovalDelegationController::class, 'destroy'])->whereNumber('id')->name('core.approval-delegations.destroy');

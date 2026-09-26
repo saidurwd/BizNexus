@@ -47,9 +47,13 @@ class DocumentJournalBuilder
      * Purchases: cost at net plus non-recoverable tax, recoverable input tax, and self-assessed output tax on
      * reverse-charge lines, against the payable.
      *
-     * @return array{lines: list<array{account_id: int, description: string, debit: string|int, credit: string|int}>, total: Money}
+     * $costLines, when given, returns the journal lines for a line's cost (e.g. split between goods received
+     * not invoiced and price variance for lines matched to a purchase order).
+     *
+     * @param  (callable(Model, Money): list<array<string, mixed>>)|null  $costLines
+     * @return array{lines: list<array<string, mixed>>, total: Money}
      */
-    public function purchase(Model $document, int $payableAccountId, string $partyDescription, bool $isCredit = false): array
+    public function purchase(Model $document, int $payableAccountId, string $partyDescription, bool $isCredit = false, ?callable $costLines = null): array
     {
         $calculations = $this->documentTax->calculations($document);
         $payable = Money::zero($this->currencyCode($document));
@@ -57,7 +61,8 @@ class DocumentJournalBuilder
 
         foreach ($document->lines as $line) {
             $calculation = $calculations[$line->id];
-            $lines[] = $this->line($line->account_id, $line->description, debit: $calculation->net->plus($calculation->nonRecoverableTax())->amount);
+            $cost = $calculation->net->plus($calculation->nonRecoverableTax());
+            array_push($lines, ...($costLines ? $costLines($line, $cost) : [$this->line($line->account_id, $line->description, debit: $cost->amount)]));
 
             foreach ($calculation->components as $component) {
                 if ($component->isRecoverable()) {

@@ -12,9 +12,11 @@
             <h3 class="card-title">{{ __('Invoice Information') }}</h3>
             <div class="card-tools">
                 @if($invoice->isDraft())
-                    <a href="{{ route('finance.supplier-invoices.edit', $invoice->id) }}" class="btn btn-sm btn-warning">
-                        <i class="bi bi-pencil"></i> {{ __('Edit') }}
-                    </a>
+                    @unless ($invoice->purchase_order_id)
+                        <a href="{{ route('finance.supplier-invoices.edit', $invoice->id) }}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil"></i> {{ __('Edit') }}
+                        </a>
+                    @endunless
                     <form action="{{ route('finance.supplier-invoices.destroy', $invoice->id) }}" method="POST" class="d-inline" onsubmit="return confirm(@js(__('Delete this invoice?')))">
                         @csrf
                         @method('DELETE')
@@ -43,6 +45,19 @@
                     <th>{{ __('Supplier') }}</th>
                     <td>{{ $invoice->supplier?->name ?? '-' }}</td>
                 </tr>
+                @if ($invoice->purchaseOrder)
+                    <tr>
+                        <th>{{ __('Purchase order') }}</th>
+                        <td>
+                            @can('inventory.purchase-orders.view')
+                                <a href="{{ route('inventory.purchase-orders.show', $invoice->purchase_order_id) }}">{{ $invoice->purchaseOrder->order_number }}</a>
+                            @else
+                                {{ $invoice->purchaseOrder->order_number }}
+                            @endcan
+                            <span class="text-body-secondary small">· {{ __('matched to goods received') }}</span>
+                        </td>
+                    </tr>
+                @endif
                 <tr>
                     <th>{{ __('Currency') }}</th>
                     <td>{{ $invoice->currency?->code ?? __('Company currency') }}@if ($invoice->currency) · {{ __('rate :rate', ['rate' => Formatter::rate($invoice->exchange_rate)]) }}@endif</td>

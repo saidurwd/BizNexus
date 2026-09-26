@@ -3,11 +3,15 @@
     'taxes',
     'lines' => [],
     'currency' => null,
+    'products' => null,
+    'warehouses' => null,
 ])
 
 {{--
     Line entry for sales and purchase documents: account, description, quantity, unit price, line discount and
     tax code. Tax is calculated on the server when the document is saved; the running total here is before tax.
+    With $products (and $warehouses), a line can be for a product: choosing it fills the account, description,
+    price and tax code, and stock items are delivered from the chosen warehouse.
 --}}
 @php
     $lines = array_values($lines ?: [['account_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => '', 'discount_amount' => '', 'tax_id' => null]]);
@@ -23,6 +27,10 @@
         <table class="table table-sm align-middle">
             <thead class="table-light">
                 <tr>
+                    @if ($products)
+                        <th style="min-width: 200px">{{ __('Product') }}</th>
+                        <th style="min-width: 110px">{{ __('Warehouse') }}</th>
+                    @endif
                     <th style="min-width: 220px">{{ __('Account') }}</th>
                     <th style="min-width: 200px">{{ __('Description') }}</th>
                     <th style="width: 100px" class="text-end">{{ __('Qty') }}</th>
@@ -40,7 +48,7 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="6" class="text-end">
+                    <td colspan="{{ $products ? 8 : 6 }}" class="text-end">
                         <strong>{{ __('Total before tax') }}</strong>
                         @if ($currency)
                             <small class="text-body-secondary">({{ $currency }})</small>
@@ -96,6 +104,24 @@
                         button.closest('tr').remove();
                         recalculate();
                     }
+                });
+
+                body.addEventListener('change', (event) => {
+                    const select = event.target.closest('select[data-line-product]');
+                    const option = select?.selectedOptions[0];
+                    if (!option?.value) return;
+                    const row = select.closest('tr');
+                    const set = (field, value) => {
+                        const input = row.querySelector(`[data-field=${field}]`);
+                        if (!input || value === undefined || value === '') return;
+                        input.value = value;
+                        input.tomselect?.setValue(value, true);
+                    };
+                    set('account_id', option.dataset.account);
+                    set('description', option.dataset.description);
+                    set('unit_price', option.dataset.price);
+                    set('tax_id', option.dataset.tax);
+                    recalculate();
                 });
 
                 body.addEventListener('input', recalculate);

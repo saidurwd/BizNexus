@@ -28,6 +28,10 @@ class DocumentNumberService
         'SI' => ['label' => 'Supplier invoices (when the supplier gives no number)', 'prefix' => 'SI'],
         'SCN' => ['label' => 'Supplier credit notes', 'prefix' => 'SCN'],
         'PV' => ['label' => 'Supplier payments', 'prefix' => 'PV'],
+        'PO' => ['label' => 'Purchase orders', 'prefix' => 'PO'],
+        'GRN' => ['label' => 'Goods receipts', 'prefix' => 'GRN'],
+        'ADJ' => ['label' => 'Stock adjustments', 'prefix' => 'ADJ'],
+        'TRF' => ['label' => 'Stock transfers', 'prefix' => 'TRF'],
     ];
 
     /**

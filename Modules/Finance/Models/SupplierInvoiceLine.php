@@ -4,11 +4,15 @@ namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Inventory\Models\Product;
+use Modules\Inventory\Models\PurchaseOrderLine;
 
 class SupplierInvoiceLine extends Model
 {
     protected $fillable = [
         'supplier_invoice_id',
+        'purchase_order_line_id',
+        'product_id',
         'account_id',
         'description',
         'quantity',
@@ -32,6 +36,16 @@ class SupplierInvoiceLine extends Model
         'total_amount' => 'decimal:4',
     ];
 
+    public function purchaseOrderLine(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseOrderLine::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
+
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(SupplierInvoice::class);
@@ -46,5 +60,4 @@ class SupplierInvoiceLine extends Model
     {
         return $this->belongsTo(Tax::class);
     }
-
 }

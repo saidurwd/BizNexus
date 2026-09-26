@@ -17,6 +17,7 @@ use Modules\Finance\Services\Import\Importer;
 use Modules\Finance\Services\Import\OpeningBalanceImporter;
 use Modules\Finance\Services\Import\SpreadsheetReader;
 use Modules\Finance\Services\Import\SupplierImporter;
+use Modules\Inventory\Services\Import\ProductImporter;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -33,6 +34,7 @@ class DataImportController extends Controller
         'customers' => ['importer' => CustomerImporter::class, 'permission' => 'finance.customers.create', 'after' => 'finance.customers.index'],
         'suppliers' => ['importer' => SupplierImporter::class, 'permission' => 'finance.suppliers.create', 'after' => 'finance.suppliers.index'],
         'opening-balances' => ['importer' => OpeningBalanceImporter::class, 'permission' => 'finance.journals.create', 'after' => 'finance.journals.index'],
+        'products' => ['importer' => ProductImporter::class, 'permission' => 'inventory.products.manage', 'after' => 'inventory.products.index'],
     ];
 
     public function index(): View

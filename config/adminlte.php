@@ -818,6 +818,28 @@ return [
         ['text' => 'Approvals', 'url' => 'workflows', 'icon' => 'bi bi-inbox', 'can' => 'core.workflow.view'],
         ['text' => 'Notifications', 'url' => 'notifications', 'icon' => 'bi bi-bell', 'can' => 'core.notifications.view'],
 
+        ['header' => 'SUPPLY CHAIN'],
+        [
+            'text' => 'Purchasing',
+            'icon' => 'bi bi-cart3',
+            'submenu' => [
+                ['text' => 'Purchase Orders', 'url' => 'inventory/purchase-orders', 'icon' => 'bi bi-file-earmark-text', 'can' => 'inventory.purchase-orders.view'],
+                ['text' => 'Goods Receipts', 'url' => 'inventory/goods-receipts', 'icon' => 'bi bi-box-arrow-in-down', 'can' => 'inventory.goods-receipts.view'],
+            ],
+        ],
+        [
+            'text' => 'Inventory',
+            'icon' => 'bi bi-box-seam',
+            'submenu' => [
+                ['text' => 'Products', 'url' => 'inventory/products', 'icon' => 'bi bi-box', 'can' => 'inventory.products.view'],
+                ['text' => 'Stock on Hand', 'url' => 'inventory/stock', 'icon' => 'bi bi-boxes', 'can' => 'inventory.stock.view'],
+                ['text' => 'Stock Movements', 'url' => 'inventory/stock/movements', 'icon' => 'bi bi-arrow-left-right', 'can' => 'inventory.stock.view'],
+                ['text' => 'Adjustments & Counts', 'url' => 'inventory/adjustments', 'icon' => 'bi bi-clipboard-check', 'can' => 'inventory.stock.view'],
+                ['text' => 'Transfers', 'url' => 'inventory/transfers', 'icon' => 'bi bi-truck', 'can' => 'inventory.stock.view'],
+                ['text' => 'Inventory Valuation', 'url' => 'inventory/stock/valuation', 'icon' => 'bi bi-cash-stack', 'can' => 'inventory.stock.view'],
+            ],
+        ],
+
         ['header' => 'FINANCE'],
         [
             'text' => 'Sales & Receivables',
@@ -931,6 +953,15 @@ return [
             ],
         ],
         [
+            'text' => 'Inventory Setup',
+            'icon' => 'bi bi-boxes',
+            'submenu' => [
+                ['text' => 'Warehouses', 'url' => 'inventory/warehouses', 'icon' => 'bi bi-house-door', 'can' => 'inventory.setup.view'],
+                ['text' => 'Product Categories', 'url' => 'inventory/categories', 'icon' => 'bi bi-folder', 'can' => 'inventory.setup.view'],
+                ['text' => 'Units of Measure', 'url' => 'inventory/units', 'icon' => 'bi bi-rulers', 'can' => 'inventory.setup.view'],
+            ],
+        ],
+        [
             'text' => 'Users & Access',
             'icon' => 'bi bi-people',
             'submenu' => [
@@ -977,29 +1008,6 @@ return [
         //         ['text' => 'Payroll Run', 'url' => 'hr/payroll', 'icon' => 'bi bi-cash-stack'],
         //         ['text' => 'Pay Slips', 'url' => 'hr/payslips', 'icon' => 'bi bi-file-earmark-text'],
         //         ['text' => 'Tax Reports', 'url' => 'hr/tax-reports', 'icon' => 'bi bi-file-earmark-bar-graph'],
-        //     ],
-        // ],
-        // [
-        //     'text' => 'Inventory',
-        //     'icon' => 'bi bi-box-seam',
-        //     'submenu' => [
-        //         ['header' => 'Items'],
-        //         ['text' => 'Products', 'url' => 'inventory/products', 'icon' => 'bi bi-box'],
-        //         ['text' => 'Categories', 'url' => 'inventory/categories', 'icon' => 'bi bi-folder'],
-        //         ['header' => 'Stock'],
-        //         ['text' => 'Stock In', 'url' => 'inventory/stock-in', 'icon' => 'bi bi-arrow-down-circle'],
-        //         ['text' => 'Stock Out', 'url' => 'inventory/stock-out', 'icon' => 'bi bi-arrow-up-circle'],
-        //         ['text' => 'Stock Count', 'url' => 'inventory/stock-count', 'icon' => 'bi bi-clipboard-check'],
-        //     ],
-        // ],
-        // [
-        //     'text' => 'Procurement',
-        //     'icon' => 'bi bi-cart-plus-fill',
-        //     'submenu' => [
-        //         ['header' => 'Purchasing'],
-        //         ['text' => 'Purchase Orders', 'url' => 'procurement/orders', 'icon' => 'bi bi-file-text'],
-        //         ['text' => 'Goods Receipt', 'url' => 'procurement/receipts', 'icon' => 'bi bi-truck'],
-        //         ['text' => 'Supplier Returns', 'url' => 'procurement/returns', 'icon' => 'bi bi-arrow-return-left'],
         //     ],
         // ],
         // [
