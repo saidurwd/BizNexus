@@ -37,6 +37,14 @@ test('the dashboard shows ledger balances and profit for the fiscal year to date
         ->assertDontSee('Conversion Rate');
 });
 
+test('every page shows the active company in the navigation bar', function () {
+    actingInCompany(companyUser([], $this->company), $this->company)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee(route('profile.edit').'#switch-company', false)
+        ->assertSee($this->company->code);
+});
+
 test('users without the finance dashboard permission only see the work they can act on', function () {
     Journal::factory()->create(['company_id' => $this->company->id, 'status' => Journal::STATUS_SUBMITTED]);
 

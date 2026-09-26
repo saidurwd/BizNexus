@@ -37,7 +37,7 @@
             @endphp
 
             @if($companies->count() > 1)
-                <div class="card mt-3">
+                <div class="card mt-3" id="switch-company">
                     <div class="card-header">
                         <h3 class="card-title">Change Company & Branch</h3>
                     </div>
