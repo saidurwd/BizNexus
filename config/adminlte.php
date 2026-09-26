@@ -1093,6 +1093,7 @@ return [
                     'submenu' => [
                         ['text' => 'Tax Codes', 'url' => 'finance/taxes', 'can' => 'finance.taxes.view', 'icon' => 'bi bi-list-ul'],
                         ['text' => 'Tax Rules', 'url' => 'finance/tax-rules', 'can' => 'finance.taxes.view', 'icon' => 'bi bi-signpost'],
+                        ['text' => 'Tax Return', 'url' => 'finance/tax-return', 'can' => 'finance.reports.view', 'icon' => 'bi bi-file-earmark-text'],
                     ],
                 ],
 

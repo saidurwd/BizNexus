@@ -18,6 +18,7 @@ use Modules\Finance\Models\TaxTransaction;
 use Modules\Finance\Services\CustomerInvoiceService;
 use Modules\Finance\Services\PaymentService;
 use Modules\Finance\Services\SupplierInvoiceService;
+use Modules\Finance\Services\TaxReturnService;
 
 beforeEach(function () {
     $this->company = Company::factory()->create(['country_code' => 'NL']);
@@ -191,3 +192,32 @@ test('only withholding taxes can be withheld from payments', function () {
         'amount' => 100, 'withholding_tax_id' => $this->vat->id,
     ]);
 })->throws(InvalidAccountingTransactionException::class, 'is not a withholding tax');
+
+test('the tax return nets output and reverse-charge tax against recoverable input tax', function () {
+    $sales = app(CustomerInvoiceService::class);
+    $this->actingAs($this->clerk);
+    $sale = $sales->submitInvoice($sales->createInvoice([
+        'company_id' => $this->company->id, 'customer_id' => $this->customer->id,
+        'invoice_date' => now()->toDateString(), 'due_date' => now()->addMonth()->toDateString(),
+        'lines' => [['account_id' => $this->revenue->id, 'description' => 'Goods', 'quantity' => 1, 'unit_price' => 2000, 'tax_id' => $this->vat->id]],
+    ]));
+    $this->actingAs($this->approver);
+    $sales->postInvoice($sales->approveInvoice($sale));
+    postPurchase([['account_id' => $this->expense->id, 'description' => 'Local purchase', 'quantity' => 1, 'unit_price' => 1000, 'tax_id' => $this->vat->id]]);
+    postPurchase([['account_id' => $this->expense->id, 'description' => 'Foreign services', 'quantity' => 1, 'unit_price' => 1000, 'tax_id' => $this->vat->id, 'is_reverse_charge' => true]]);
+
+    $summary = app(TaxReturnService::class)->summarise($this->company, now()->startOfMonth(), now()->endOfMonth());
+
+    expect($summary['totals']['output']->amount)->toBe('300.00')
+        ->and($summary['totals']['reverse_charge_output']->amount)->toBe('150.00')
+        ->and($summary['totals']['input']->amount)->toBe('300.00')
+        ->and($summary['net_payable']->amount)->toBe('150.00');
+
+    $user = companyUser(['finance.reports.view'], $this->company);
+    actingInCompany($user, $this->company)
+        ->get(route('finance.tax-return', ['from' => now()->startOfMonth()->toDateString(), 'to' => now()->endOfMonth()->toDateString()]))
+        ->assertOk()->assertSee('Net payable')->assertSee('150.00');
+    actingInCompany($user, $this->company)
+        ->get(route('finance.tax-return', ['format' => 'csv', 'from' => now()->startOfMonth()->toDateString(), 'to' => now()->endOfMonth()->toDateString()]))
+        ->assertOk()->assertDownload();
+});
