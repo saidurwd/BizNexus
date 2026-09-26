@@ -9,12 +9,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Role extends Model
 {
+    /**
+     * The role with full system access. It holds every permission by design, so segregation of duties
+     * (which governs operational roles) does not apply to it.
+     */
+    public const SUPER_ADMIN = 'super-admin';
+
     protected $fillable = [
         'name',
         'slug',
         'description',
         'status',
     ];
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->slug === self::SUPER_ADMIN;
+    }
 
     public function permissions(): BelongsToMany
     {

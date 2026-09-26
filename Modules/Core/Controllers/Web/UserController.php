@@ -266,15 +266,22 @@ class UserController extends Controller
      */
     protected function syncAccess(User $user, array $validated, Collection $companyIds): void
     {
+        $defaultCompanyIds = UserCompany::where('user_id', $user->id)->where('is_default', true)->pluck('company_id')->map(fn ($id) => (int) $id)->all();
+        $hasDefaultElsewhere = UserCompany::where('user_id', $user->id)->where('is_default', true)->whereNotIn('company_id', $companyIds)->exists();
+
         foreach ([UserCompany::class, CompanyUserRole::class, UserBranch::class, UserDepartment::class] as $accessModel) {
             $accessModel::where('user_id', $user->id)->whereIn('company_id', $companyIds)->delete();
         }
+
+        // Keep the user's default company; a new user's first company becomes their default.
+        $firstCompanyId = (int) $validated['companies'][0];
+        $keepsDefault = $hasDefaultElsewhere || array_intersect($defaultCompanyIds, array_map('intval', $validated['companies'])) !== [];
 
         foreach ($validated['companies'] as $companyId) {
             UserCompany::create([
                 'user_id' => $user->id,
                 'company_id' => $companyId,
-                'is_default' => false,
+                'is_default' => in_array((int) $companyId, $defaultCompanyIds, true) || (! $keepsDefault && (int) $companyId === $firstCompanyId),
                 'all_branches' => in_array((int) $companyId, array_map('intval', $validated['all_branches'] ?? []), true),
                 'status' => 'active',
             ]);

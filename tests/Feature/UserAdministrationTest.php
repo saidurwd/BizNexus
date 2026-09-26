@@ -120,3 +120,49 @@ test('an administrator cannot delete a user who also belongs to another company'
 
     expect(User::find($user->id))->not->toBeNull();
 });
+
+test('the super admin role can be granted and kept although it holds conflicting permissions', function () {
+    $conflicting = ['finance.suppliers.create', 'finance.payments.approve'];
+    $superAdmin = Role::firstOrCreate(['slug' => Role::SUPER_ADMIN], ['name' => 'Super Admin', 'status' => 'active']);
+    $superAdmin->permissions()->sync(collect([...USER_ADMIN_PERMISSIONS, ...$conflicting])->map(fn (string $slug) => Permission::firstOrCreate(['slug' => $slug], ['name' => $slug])->id));
+    $admin = companyUser([...USER_ADMIN_PERMISSIONS, ...$conflicting], $this->company);
+
+    actingInCompany($admin, $this->company)
+        ->post(route('core.users.store'), newUserPayload(['companies' => [$this->company->id], 'roles' => [$superAdmin->id]]))
+        ->assertRedirect(route('core.users.index'))
+        ->assertSessionHasNoErrors();
+    $user = User::where('email', 'accountant@example.com')->firstOrFail();
+
+    actingInCompany($admin, $this->company)
+        ->put(route('core.users.update', $user->id), ['name' => 'Renamed Admin', 'email' => $user->email, 'companies' => [$this->company->id], 'roles' => [$superAdmin->id]])
+        ->assertRedirect(route('core.users.index'))
+        ->assertSessionHasNoErrors();
+
+    expect($user->fresh()->name)->toBe('Renamed Admin');
+});
+
+test('a refused user form says why', function () {
+    $role = roleWithPermissions(['finance.journals.view']);
+
+    actingInCompany($this->admin, $this->company)
+        ->from(route('core.users.create'))
+        ->followingRedirects()
+        ->post(route('core.users.store'), newUserPayload(['password' => 'short', 'password_confirmation' => 'short', 'companies' => [$this->company->id], 'roles' => [$role->id]]))
+        ->assertOk()
+        ->assertSee('Please correct the following and try again:')
+        ->assertSee('The password field must be at least 12 characters.');
+});
+
+test('editing a user keeps their default company, and a new user gets one', function () {
+    $role = roleWithPermissions(['finance.journals.view']);
+    actingInCompany($this->admin, $this->company)->post(route('core.users.store'), newUserPayload(['companies' => [$this->company->id], 'roles' => [$role->id]]));
+    $user = User::where('email', 'accountant@example.com')->firstOrFail();
+
+    expect(UserCompany::where('user_id', $user->id)->where('is_default', true)->pluck('company_id')->all())->toBe([$this->company->id]);
+
+    actingInCompany($this->admin, $this->company)
+        ->put(route('core.users.update', $user->id), ['name' => 'Still Default', 'email' => $user->email, 'companies' => [$this->company->id], 'roles' => [$role->id]])
+        ->assertSessionHasNoErrors();
+
+    expect(UserCompany::where('user_id', $user->id)->where('is_default', true)->pluck('company_id')->all())->toBe([$this->company->id]);
+});

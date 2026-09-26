@@ -24,16 +24,21 @@ class SegregationOfDutiesService
     }
 
     /**
-     * Conflicts produced by holding all the given roles at once.
+     * Conflicts produced by holding all the given roles at once. The super admin role is exempt: it has
+     * full access by design and is granted deliberately.
      *
      * @param  iterable<int, int>  $roleIds
      * @return Collection<int, array{0: string, 1: string}>
      */
     public function conflictsForRoles(iterable $roleIds): Collection
     {
-        return $this->conflictsIn(
-            Role::whereIn('id', collect($roleIds))->with('permissions')->get()->flatMap->permissions->pluck('slug')
-        );
+        $roles = Role::whereIn('id', collect($roleIds))->with('permissions')->get();
+
+        if ($roles->contains(fn (Role $role) => $role->isSuperAdmin())) {
+            return collect();
+        }
+
+        return $this->conflictsIn($roles->flatMap->permissions->pluck('slug'));
     }
 
     /**

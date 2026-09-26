@@ -39,6 +39,10 @@ class RoleController extends Controller
      */
     protected function ensureNoConflictingPermissions(array $permissionIds, ?Role $role = null): void
     {
+        if ($role?->isSuperAdmin()) {
+            return;
+        }
+
         $sod = app(SegregationOfDutiesService::class);
         $slugs = Permission::whereIn('id', $permissionIds)->pluck('slug');
 
@@ -56,6 +60,10 @@ class RoleController extends Controller
                 ->where('company_id', $assignment->company_id)
                 ->where('role_id', '!=', $role->id)
                 ->pluck('role_id');
+
+            if (Role::whereIn('id', $otherRoleIds)->where('slug', Role::SUPER_ADMIN)->exists()) {
+                continue;
+            }
 
             $combined = $slugs->merge(Role::whereIn('id', $otherRoleIds)->with('permissions')->get()->flatMap->permissions->pluck('slug'));
 

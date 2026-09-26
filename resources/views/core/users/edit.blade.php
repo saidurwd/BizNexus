@@ -19,13 +19,15 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="name">{{ __('Full Name') }} <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="name" value="{{ old('name', $user->name) }}" placeholder="{{ __('Enter full name') }}" required>
+                            <input type="text" class="form-control @error('name') is-invalid @enderror" name="name" id="name" value="{{ old('name', $user->name) }}" placeholder="{{ __('Enter full name') }}" required>
+                            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="email">{{ __('Email Address') }} <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" name="email" value="{{ old('email', $user->email) }}" placeholder="{{ __('Enter email address') }}" required>
+                            <input type="email" class="form-control @error('email') is-invalid @enderror" name="email" id="email" value="{{ old('email', $user->email) }}" placeholder="{{ __('Enter email address') }}" required>
+                            @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
                 </div>
@@ -34,7 +36,7 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="status">{{ __('Status') }}</label>
-                            <select class="form-control" name="status" id="status">
+                            <select class="form-select" name="status" id="status">
                                 <option value="active" @selected(old('status', $user->status) === 'active')>{{ __('Active') }}</option>
                                 <option value="inactive" @selected(old('status', $user->status) === 'inactive')>{{ __('Inactive (cannot sign in)') }}</option>
                             </select>
@@ -46,13 +48,15 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="password">{{ __('Password') }}</label>
-                            <input type="password" class="form-control" name="password" placeholder="{{ __('Leave blank to keep current') }}">
+                            <input type="password" class="form-control @error('password') is-invalid @enderror" name="password" id="password" placeholder="{{ __('Leave blank to keep current') }}">
+                            @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <div class="form-text">{{ __('At least 12 characters, with upper and lower case letters, a number and a symbol.') }}</div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="password_confirmation">{{ __('Confirm Password') }}</label>
-                            <input type="password" class="form-control" name="password_confirmation" placeholder="{{ __('Confirm new password') }}">
+                            <input type="password" class="form-control" name="password_confirmation" id="password_confirmation" placeholder="{{ __('Confirm new password') }}">
                         </div>
                     </div>
                 </div>
@@ -74,6 +78,7 @@
 
                 <div class="mb-3">
                     <label class="fw-bold">{{ __('Companies') }}</label>
+                    @error('companies')<div class="text-danger small mb-1">{{ $message }}</div>@enderror
                     <div class="row">
                         @foreach($companies as $company)
                             <div class="col-md-4">
@@ -99,7 +104,7 @@
                         <div class="card card-outline card-secondary mb-2">
                             <div class="card-body py-2">
                                 <h6 class="card-title mb-2 text-muted">
-                                    <i class="fas fa-building me-1"></i>
+                                    <i class="bi bi-building me-1"></i>
                                     {{ $company->code }} — {{ $company->name }}
                                 </h6>
                                 <div class="row">
@@ -121,6 +126,7 @@
 
                 <div class="mb-3">
                     <label class="fw-bold">{{ __('Roles') }}</label>
+                    @error('roles')<div class="text-danger small mb-1">{{ $message }}</div>@enderror
                     <div class="row">
                         @foreach($roles as $role)
                             <div class="col-md-4">
@@ -137,10 +143,10 @@
 
                 <div class="mb-3 mt-4">
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-1"></i> {{ __('Update User') }}
+                        <i class="bi bi-save me-1"></i> {{ __('Update User') }}
                     </button>
                     <a href="{{ route('core.users.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-times me-1"></i> {{ __('Cancel') }}
+                        <i class="bi bi-x-lg me-1"></i> {{ __('Cancel') }}
                     </a>
                 </div>
             </form>
