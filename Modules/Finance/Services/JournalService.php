@@ -358,7 +358,7 @@ class JournalService
                 'company_id' => $journal->company_id,
                 'branch_id' => $journal->branch_id,
                 'journal_number' => 'DRAFT-'.uniqid(),
-                'journal_date' => $reversalDate ?? now()->toDateString(),
+                'journal_date' => $reversalDate ?? $this->companyContext->today()->toDateString(),
                 'adjustment_period' => $adjustmentPeriod,
                 'reference_type' => $journal->reference_type,
                 'reference_id' => $journal->reference_id,

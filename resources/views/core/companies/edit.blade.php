@@ -77,7 +77,20 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="timezone">Timezone</label>
-                            <input type="text" class="form-control" name="timezone" value="{{ old('timezone', $company->timezone) }}">
+                            <select class="form-control" id="timezone" name="timezone">
+                                @foreach (timezone_identifiers_list() as $zone)
+                                    <option value="{{ $zone }}" @selected(old('timezone', $company->timezone) === $zone)>{{ $zone }}</option>
+                                @endforeach
+                            </select>
+                            @error('timezone')<div class="text-danger mt-1">{{ $message }}</div>
+                        <div class="form-group">
+                            <label for="locale">Default language</label>
+                            <select class="form-control" id="locale" name="locale">
+                                @foreach (config('app.supported_locales') as $code => $language)
+                                    <option value="{{ $code }}" @selected(old('locale', $company->locale) === $code)>{{ $language }}</option>
+                                @endforeach
+                            </select>
+                        </div>@enderror
                         </div>
                     </div>
                     <div class="col-md-6">

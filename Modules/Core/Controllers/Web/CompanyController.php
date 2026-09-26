@@ -2,7 +2,6 @@
 
 namespace Modules\Core\Controllers\Web;
 
-use Modules\Core\Support\Countries;
 use App\Http\Controllers\Controller;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
@@ -10,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Modules\Core\Models\Company;
 use Modules\Core\Services\PermissionService;
+use Modules\Core\Support\Countries;
 
 /**
  * Existing companies can only be viewed, changed or deleted where the user holds the matching permission in that company.
@@ -50,7 +50,8 @@ class CompanyController extends Controller
             'country_code' => ['nullable', Rule::in(Countries::codes())],
             'registration_number' => 'nullable|string|max:100',
             'base_currency_id' => 'nullable|exists:currencies,id',
-            'timezone' => 'nullable|string|max:100',
+            'timezone' => 'nullable|timezone:all',
+            'locale' => ['nullable', Rule::in(array_keys(config('app.supported_locales', [])))],
             'fiscal_year_start' => 'nullable|date',
             'status' => 'required|in:active,inactive',
             'require_mfa' => 'sometimes|boolean',
@@ -84,7 +85,8 @@ class CompanyController extends Controller
             'country_code' => ['nullable', Rule::in(Countries::codes())],
             'registration_number' => 'nullable|string|max:100',
             'base_currency_id' => 'nullable|exists:currencies,id',
-            'timezone' => 'nullable|string|max:100',
+            'timezone' => 'nullable|timezone:all',
+            'locale' => ['nullable', Rule::in(array_keys(config('app.supported_locales', [])))],
             'fiscal_year_start' => 'nullable|date',
             'status' => 'required|in:active,inactive',
             'require_mfa' => 'sometimes|boolean',

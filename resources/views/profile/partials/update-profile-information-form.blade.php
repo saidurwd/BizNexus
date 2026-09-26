@@ -47,7 +47,19 @@
                     </p>
                 @endif
             </div>
+
         @endif
+    </div>
+
+    <div class="mb-3">
+        <label for="locale" class="form-label">Language</label>
+        <select id="locale" name="locale" class="form-control">
+            <option value="">Company default</option>
+            @foreach (config('app.supported_locales') as $code => $language)
+                <option value="{{ $code }}" @selected(old('locale', $user->locale) === $code)>{{ $language }}</option>
+            @endforeach
+        </select>
+        @error('locale')<div class="text-danger mt-1">{{ $message }}</div>@enderror
     </div>
 
     <div class="d-flex align-items-center gap-2">

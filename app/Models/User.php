@@ -16,7 +16,7 @@ use Modules\Core\Models\CompanyUserRole;
 use Modules\Core\Models\Tenant;
 use Modules\Core\Models\UserCompany;
 
-#[Fillable(['tenant_id', 'name', 'email', 'password', 'profile_picture', 'status'])]
+#[Fillable(['tenant_id', 'name', 'email', 'locale', 'password', 'profile_picture', 'status'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable
 {
