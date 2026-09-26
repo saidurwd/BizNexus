@@ -12,9 +12,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('number_sequences', function (Blueprint $table) {
-            $table->dropUnique(['company_id', 'document_type']);
-        });
+        // Some databases already lost this index (an older copy of the migration dropped it).
+        if (Schema::hasIndex('number_sequences', ['company_id', 'document_type'], 'unique')) {
+            Schema::table('number_sequences', function (Blueprint $table) {
+                $table->dropUnique(['company_id', 'document_type']);
+            });
+        }
     }
 
     public function down(): void
