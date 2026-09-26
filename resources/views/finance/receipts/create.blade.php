@@ -1,9 +1,9 @@
 @extends('layouts.erp')
 
-@section('title', 'Create Receipt')
+@section('title', __('Create Receipt'))
 
 @section('content_header')
-    <h1>Create Receipt</h1>
+    <h1>{{ __('Create Receipt') }}</h1>
 @endsection
 
 @section('content')
@@ -15,17 +15,17 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="receipt_date">Receipt Date</label>
+                            <label for="receipt_date">{{ __('Receipt Date') }}</label>
                             <input type="date" class="form-control" name="receipt_date" value="{{ old('receipt_date', now()->format('Y-m-d')) }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="receipt_type">Receipt Type</label>
+                            <label for="receipt_type">{{ __('Receipt Type') }}</label>
                             <select class="form-control" name="receipt_type" required>
-                                <option value="CASH">Cash</option>
-                                <option value="BANK_TRANSFER">Bank Transfer</option>
-                                <option value="CHECK">Check</option>
+                                <option value="CASH">{{ __('Cash') }}</option>
+                                <option value="BANK_TRANSFER">{{ __('Bank Transfer') }}</option>
+                                <option value="CHECK">{{ __('Check') }}</option>
                             </select>
                         </div>
                     </div>
@@ -34,15 +34,15 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="receipt_account_id">Receipt Account</label>
+                            <label for="receipt_account_id">{{ __('Receipt Account') }}</label>
                             <select class="form-control" name="receipt_account_id" required>
-                                <option value="">Select Account</option>
+                                <option value="">{{ __('Select Account') }}</option>
                             </select>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="amount">Amount</label>
+                            <label for="amount">{{ __('Amount') }}</label>
                             <input type="number" class="form-control" name="amount" step="0.01" min="0" value="{{ old('amount') }}" required>
                         </div>
                     </div>
@@ -51,42 +51,42 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="payer_type">Payer Type</label>
+                            <label for="payer_type">{{ __('Payer Type') }}</label>
                             <select class="form-control" name="payer_type" required>
-                                <option value="CUSTOMER">Customer</option>
-                                <option value="SUPPLIER">Supplier</option>
-                                <option value="OTHER">Other</option>
+                                <option value="CUSTOMER">{{ __('Customer') }}</option>
+                                <option value="SUPPLIER">{{ __('Supplier') }}</option>
+                                <option value="OTHER">{{ __('Other') }}</option>
                             </select>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="payer_id">Payer</label>
+                            <label for="payer_id">{{ __('Payer') }}</label>
                             <select class="form-control" name="payer_id">
-                                <option value="">Select Payer</option>
+                                <option value="">{{ __('Select Payer') }}</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label for="payer_name">Payer Name</label>
+                    <label for="payer_name">{{ __('Payer Name') }}</label>
                     <input type="text" class="form-control" name="payer_name" value="{{ old('payer_name') }}" required>
                 </div>
 
                 <div class="mb-3">
-                    <label for="reference">Reference</label>
+                    <label for="reference">{{ __('Reference') }}</label>
                     <input type="text" class="form-control" name="reference" value="{{ old('reference') }}">
                 </div>
 
                 <div class="mb-3">
-                    <label for="description">Description</label>
+                    <label for="description">{{ __('Description') }}</label>
                     <textarea class="form-control" name="description" rows="3">{{ old('description') }}</textarea>
                 </div>
 
                 <div class="mb-3">
-                    <button type="submit" class="btn btn-primary">Create Receipt</button>
-                    <a href="{{ route('finance.receipts.index') }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">{{ __('Create Receipt') }}</button>
+                    <a href="{{ route('finance.receipts.index') }}" class="btn btn-secondary">{{ __('Cancel') }}</a>
                 </div>
             </form>
         </div>

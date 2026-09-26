@@ -84,7 +84,7 @@
                              Copyright &copy; {{ now()->format('Y') }}
                             <a href="{{ config('app.url') }}" target="_blank" rel="noopener noreferrer" style="color: #6c757d; text-decoration: none;">
                                 {{ config('app.name', 'BizNexus') }}.
-                            </a>All rights reserved.
+                            </a>{{ __('All rights reserved.') }}
                         </strong>
                     </div>
                     <div class="col-sm-6 text-sm-end">

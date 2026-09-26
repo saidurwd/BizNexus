@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Payments')
+@section('title', __('Payments'))
 
 @section('content_header')
-    <h1>Payments</h1>
+    <h1>{{ __('Payments') }}</h1>
     <div class="mt-2">
         <a href="{{ route('finance.payments.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> New Payment
+            <i class="bi bi-plus-circle"></i> {{ __('New Payment') }}
         </a>
     </div>
 @endsection
@@ -15,19 +15,19 @@
     <x-finance.list-filters :filters="$filters" :statuses="['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'POSTED', 'CANCELLED']" :search-label="__('Payment number, reference or supplier')" />
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Payment Register</h3>
+            <h3 class="card-title">{{ __('Payment Register') }}</h3>
         </div>
         <div class="card-body table-responsive">
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
                         <th>Payment #</th>
-                        <th>Date</th>
-                        <th>Payee</th>
-                        <th>Payment Account</th>
-                        <th class="text-end">Amount</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('Date') }}</th>
+                        <th>{{ __('Payee') }}</th>
+                        <th>{{ __('Payment Account') }}</th>
+                        <th class="text-end">{{ __('Amount') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -51,7 +51,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">No payments found</td>
+                            <td colspan="7" class="text-center">{{ __('No payments found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

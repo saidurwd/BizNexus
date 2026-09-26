@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Roles')
+@section('title', __('Roles'))
 
 @section('content_header')
-    <h1>Roles</h1>
+    <h1>{{ __('Roles') }}</h1>
     <div class="mt-2">
         <a href="{{ route('core.roles.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Add Role
+            <i class="bi bi-plus-circle"></i> {{ __('Add Role') }}
         </a>
     </div>
 @endsection
@@ -17,11 +17,11 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Slug</th>
-                        <th>Description</th>
-                        <th>Permissions</th>
-                        <th>Actions</th>
+                        <th>{{ __('Name') }}</th>
+                        <th>{{ __('Slug') }}</th>
+                        <th>{{ __('Description') }}</th>
+                        <th>{{ __('Permissions') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -50,7 +50,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center">No roles found</td>
+                            <td colspan="5" class="text-center">{{ __('No roles found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Branches')
+@section('title', __('Branches'))
 
 @section('content_header')
-    <h1>Branches</h1>
+    <h1>{{ __('Branches') }}</h1>
     <div class="mt-2">
         <a href="{{ route('core.branches.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Add Branch
+            <i class="bi bi-plus-circle"></i> {{ __('Add Branch') }}
         </a>
     </div>
 @endsection
@@ -17,13 +17,13 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Company</th>
-                        <th>Phone</th>
-                        <th>Email</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('Code') }}</th>
+                        <th>{{ __('Name') }}</th>
+                        <th>{{ __('Company') }}</th>
+                        <th>{{ __('Phone') }}</th>
+                        <th>{{ __('Email') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -54,7 +54,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">No branches found</td>
+                            <td colspan="7" class="text-center">{{ __('No branches found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

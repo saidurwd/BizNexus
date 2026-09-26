@@ -1,9 +1,9 @@
 @extends('layouts.erp')
 
-@section('title', 'Customer Statements')
+@section('title', __('Customer Statements'))
 
 @section('content_header')
-    <h1>Customer Statements</h1>
+    <h1>{{ __('Customer Statements') }}</h1>
 @endsection
 
 @section('content')
@@ -12,11 +12,11 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Actions</th>
+                        <th>{{ __('Code') }}</th>
+                        <th>{{ __('Name') }}</th>
+                        <th>{{ __('Email') }}</th>
+                        <th>{{ __('Phone') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -28,13 +28,13 @@
                             <td>{{ $customer->phone ?? '-' }}</td>
                             <td>
                                 <a href="{{ route('finance.customer-statements.show', $customer->id) }}" class="btn btn-sm btn-info">
-                                    <i class="bi bi-file-text"></i> View Statement
+                                    <i class="bi bi-file-text"></i> {{ __('View Statement') }}
                                 </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center">No customers found</td>
+                            <td colspan="5" class="text-center">{{ __('No customers found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

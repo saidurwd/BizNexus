@@ -1,6 +1,6 @@
 @extends('layouts.erp')
 
-@section('title', 'Account Details')
+@section('title', __('Account Details'))
 
 @section('content_header')
     <h1>Account: {{ $account->account_name }}</h1>
@@ -9,37 +9,37 @@
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Account Information</h3>
+            <h3 class="card-title">{{ __('Account Information') }}</h3>
             <div class="card-tools">
                 <a href="{{ route('finance.accounts.edit', $account->id) }}" class="btn btn-sm btn-warning">
-                    <i class="bi bi-pencil"></i> Edit
+                    <i class="bi bi-pencil"></i> {{ __('Edit') }}
                 </a>
             </div>
         </div>
         <div class="card-body">
             <table class="table table-sm">
                 <tr>
-                    <th width="200">Account Code</th>
+                    <th width="200">{{ __('Account Code') }}</th>
                     <td>{{ $account->account_code }}</td>
                 </tr>
                 <tr>
-                    <th>Account Name</th>
+                    <th>{{ __('Account Name') }}</th>
                     <td>{{ $account->account_name }}</td>
                 </tr>
                 <tr>
-                    <th>Account Type</th>
+                    <th>{{ __('Account Type') }}</th>
                     <td>{{ $account->account_type }}</td>
                 </tr>
                 <tr>
-                    <th>Account Category</th>
+                    <th>{{ __('Account Category') }}</th>
                     <td>{{ $account->category?->name ?? '-' }}</td>
                 </tr>
                 <tr>
-                    <th>Normal Balance</th>
+                    <th>{{ __('Normal Balance') }}</th>
                     <td>{{ $account->normal_balance }}</td>
                 </tr>
                 <tr>
-                    <th>Status</th>
+                    <th>{{ __('Status') }}</th>
                     <td>
                         <span class="badge bg-{{ $account->status === 'active' ? 'success' : 'secondary' }}">
                             {{ $account->status }}
@@ -47,15 +47,15 @@
                     </td>
                 </tr>
                 <tr>
-                    <th>Is Group</th>
+                    <th>{{ __('Is Group') }}</th>
                     <td>{{ $account->is_group ? 'Yes' : 'No' }}</td>
                 </tr>
                 <tr>
-                    <th>Is Postable</th>
+                    <th>{{ __('Is Postable') }}</th>
                     <td>{{ $account->is_postable ? 'Yes' : 'No' }}</td>
                 </tr>
                 <tr>
-                    <th>Current Balance</th>
+                    <th>{{ __('Current Balance') }}</th>
                     <td><strong>{{ Formatter::amount($account->balance) }}</strong></td>
                 </tr>
             </table>
@@ -64,17 +64,17 @@
 
     <div class="card mt-4">
         <div class="card-header">
-            <h3 class="card-title">Recent Journal Lines</h3>
+            <h3 class="card-title">{{ __('Recent Journal Lines') }}</h3>
         </div>
         <div class="card-body table-responsive">
             <table class="table table-sm table-striped">
                 <thead>
                     <tr>
-                        <th>Date</th>
+                        <th>{{ __('Date') }}</th>
                         <th>Journal #</th>
-                        <th>Description</th>
-                        <th class="text-end">Debit</th>
-                        <th class="text-end">Credit</th>
+                        <th>{{ __('Description') }}</th>
+                        <th class="text-end">{{ __('Debit') }}</th>
+                        <th class="text-end">{{ __('Credit') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -88,7 +88,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center">No journal lines found</td>
+                            <td colspan="5" class="text-center">{{ __('No journal lines found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

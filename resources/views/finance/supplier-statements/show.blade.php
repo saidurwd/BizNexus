@@ -6,10 +6,10 @@
     <h1>Supplier Statement: {{ $supplier->name }}</h1>
     <div class="mt-2">
         <a href="{{ route('finance.supplier-statements.index') }}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back
+            <i class="bi bi-arrow-left"></i> {{ __('Back') }}
         </a>
         <button class="btn btn-primary" onclick="window.print()">
-            <i class="bi bi-printer"></i> Print
+            <i class="bi bi-printer"></i> {{ __('Print') }}
         </button>
     </div>
 @endsection
@@ -21,29 +21,29 @@
         <div class="card-body">
             <form method="GET" action="{{ route('finance.supplier-statements.show', $supplier->id) }}" class="row g-3 mb-3">
                 <div class="col-md-3">
-                    <input type="date" name="start_date" class="form-control" value="{{ $startDate }}" placeholder="Start Date">
+                    <input type="date" name="start_date" class="form-control" value="{{ $startDate }}" placeholder="{{ __('Start Date') }}">
                 </div>
                 <div class="col-md-3">
-                    <input type="date" name="end_date" class="form-control" value="{{ $endDate }}" placeholder="End Date">
+                    <input type="date" name="end_date" class="form-control" value="{{ $endDate }}" placeholder="{{ __('End Date') }}">
                 </div>
                 <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary">Filter</button>
+                    <button type="submit" class="btn btn-primary">{{ __('Filter') }}</button>
                 </div>
             </form>
 
             <div class="row mb-3">
                 <div class="col-md-3">
-                    <strong>Supplier:</strong> {{ $supplier->name }}
+                    <strong>{{ __('Supplier:') }}</strong> {{ $supplier->name }}
                 </div>
                 <div class="col-md-3">
-                    <strong>Code:</strong> {{ $supplier->supplier_code }}
+                    <strong>{{ __('Code:') }}</strong> {{ $supplier->supplier_code }}
                 </div>
                 <div class="col-md-3">
-                    <strong>Period:</strong> {{ $startDate ?? 'Beginning' }} to {{ $endDate ?? 'Current' }}
+                    <strong>{{ __('Period:') }}</strong> {{ $startDate ?? 'Beginning' }} to {{ $endDate ?? 'Current' }}
                     <div class="small text-body-secondary">{{ __('Posted documents only, in the functional currency.') }}</div>
                 </div>
                 <div class="col-md-3 text-end">
-                    <strong>Closing Balance:</strong> {{ Formatter::amount($statement['closing_balance']) }}
+                    <strong>{{ __('Closing Balance:') }}</strong> {{ Formatter::amount($statement['closing_balance']) }}
                 </div>
             </div>
 
@@ -51,18 +51,18 @@
                 <table class="table table-bordered table-striped">
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Type</th>
-                            <th>Number</th>
-                            <th>Description</th>
-                            <th class="text-end">Debit</th>
-                            <th class="text-end">Credit</th>
-                            <th class="text-end">Balance</th>
+                            <th>{{ __('Date') }}</th>
+                            <th>{{ __('Type') }}</th>
+                            <th>{{ __('Number') }}</th>
+                            <th>{{ __('Description') }}</th>
+                            <th class="text-end">{{ __('Debit') }}</th>
+                            <th class="text-end">{{ __('Credit') }}</th>
+                            <th class="text-end">{{ __('Balance') }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr class="table-active">
-                            <td colspan="4"><strong>Opening Balance</strong></td>
+                            <td colspan="4"><strong>{{ __('Opening Balance') }}</strong></td>
                             <td class="text-end"><strong>{{ Formatter::amount($statement['opening_balance']) }}</strong></td>
                             <td class="text-end">-</td>
                             <td class="text-end"><strong>{{ Formatter::amount($statement['opening_balance']) }}</strong></td>
@@ -83,7 +83,7 @@
                             </tr>
                         @endforeach
                         <tr class="table-active">
-                            <td colspan="4"><strong>Closing Balance</strong></td>
+                            <td colspan="4"><strong>{{ __('Closing Balance') }}</strong></td>
                             <td class="text-end"><strong>{{ Formatter::amount($statement['total_invoices']) }}</strong></td>
                             <td class="text-end"><strong>{{ Formatter::amount(bcadd($statement['total_payments'], $statement['total_credits'], 4)) }}</strong></td>
                             <td class="text-end"><strong>{{ Formatter::amount($statement['closing_balance']) }}</strong></td>

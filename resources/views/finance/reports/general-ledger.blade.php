@@ -1,30 +1,30 @@
 @extends('layouts.erp')
 
-@section('title', 'General Ledger')
+@section('title', __('General Ledger'))
 
 @section('content_header')
-    <h1>General Ledger</h1>
+    <h1>{{ __('General Ledger') }}</h1>
 @endsection
 
 @section('content')
-    <x-report-letterhead title="General Ledger" />
+    <x-report-letterhead title="{{ __('General Ledger') }}" />
 
     <div class="card">
         <div class="card-body">
             <form method="GET" action="{{ route('finance.reports.general-ledger') }}" class="row g-3 mb-3">
                 <div class="col-md-3">
-                    <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}" placeholder="Start Date">
+                    <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}" placeholder="{{ __('Start Date') }}">
                 </div>
                 <div class="col-md-3">
-                    <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}" placeholder="End Date">
+                    <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}" placeholder="{{ __('End Date') }}">
                 </div>
                 <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary">Filter</button>
+                    <button type="submit" class="btn btn-primary">{{ __('Filter') }}</button>
                 </div>
             </form>
 
             @if(empty($ledger['accounts']))
-                <p class="text-muted">No ledger entries found.</p>
+                <p class="text-muted">{{ __('No ledger entries found.') }}</p>
             @else
                 @foreach($ledger['accounts'] as $account)
                     <div class="card mb-3">
@@ -35,12 +35,12 @@
                             <table class="table table-bordered table-striped mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Date</th>
+                                        <th>{{ __('Date') }}</th>
                                         <th>Journal #</th>
-                                        <th>Description</th>
-                                        <th>Cost Center</th>
-                                        <th class="text-end">Debit</th>
-                                        <th class="text-end">Credit</th>
+                                        <th>{{ __('Description') }}</th>
+                                        <th>{{ __('Cost Center') }}</th>
+                                        <th class="text-end">{{ __('Debit') }}</th>
+                                        <th class="text-end">{{ __('Credit') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -55,7 +55,7 @@
                                         </tr>
                                     @endforeach
                                     <tr class="table-active">
-                                        <td colspan="4" class="text-end"><strong>Total</strong></td>
+                                        <td colspan="4" class="text-end"><strong>{{ __('Total') }}</strong></td>
                                         <td class="text-end"><strong>{{ Formatter::amount($account['total_debit']) }}</strong></td>
                                         <td class="text-end"><strong>{{ Formatter::amount($account['total_credit']) }}</strong></td>
                                     </tr>

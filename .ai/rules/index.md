@@ -11,3 +11,4 @@ Before planning or editing, find the row whose globs match the file's path and r
 | routes/** | .ai/rules/routes.md |
 | database/seeders/** | .ai/rules/seeders.md |
 | Modules/Finance/Services/** | .ai/rules/services.md |
+| resources/views/** | .ai/rules/views.md |

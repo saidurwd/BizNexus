@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Cash Accounts - BizNexus')
+@section('title', __('Cash Accounts - BizNexus'))
 
 @section('content_header')
-    <h1>Cash Accounts</h1>
+    <h1>{{ __('Cash Accounts') }}</h1>
     <div class="mt-2">
         <a href="{{ route('finance.cash-accounts.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Add Cash Account
+            <i class="bi bi-plus-circle"></i> {{ __('Add Cash Account') }}
         </a>
     </div>
 @endsection
@@ -17,15 +17,15 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>GL Account</th>
-                        <th>Currency</th>
-                        <th>Opening Balance</th>
-                        <th>Current Balance</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('Code') }}</th>
+                        <th>{{ __('Name') }}</th>
+                        <th>{{ __('Type') }}</th>
+                        <th>{{ __('GL Account') }}</th>
+                        <th>{{ __('Currency') }}</th>
+                        <th>{{ __('Opening Balance') }}</th>
+                        <th>{{ __('Current Balance') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -58,7 +58,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center">No cash accounts found</td>
+                            <td colspan="9" class="text-center">{{ __('No cash accounts found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

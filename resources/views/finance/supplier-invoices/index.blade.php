@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Supplier Invoices')
+@section('title', __('Supplier Invoices'))
 
 @section('content_header')
-    <h1>Supplier Invoices</h1>
+    <h1>{{ __('Supplier Invoices') }}</h1>
     <div class="mt-2">
         <a href="{{ route('finance.supplier-invoices.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> New Invoice
+            <i class="bi bi-plus-circle"></i> {{ __('New Invoice') }}
         </a>
     </div>
 @endsection
@@ -19,13 +19,13 @@
                 <thead>
                     <tr>
                         <th>Invoice #</th>
-                        <th>Date</th>
-                        <th>Supplier</th>
-                        <th class="text-end">Amount</th>
-                        <th class="text-end">Tax</th>
-                        <th class="text-end">Total</th>
-                        <th>Status</th>
-                        <th class="text-center">Actions</th>
+                        <th>{{ __('Date') }}</th>
+                        <th>{{ __('Supplier') }}</th>
+                        <th class="text-end">{{ __('Amount') }}</th>
+                        <th class="text-end">{{ __('Tax') }}</th>
+                        <th class="text-end">{{ __('Total') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th class="text-center">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -50,55 +50,55 @@
                                 <span class="badge bg-{{ $badgeClass }}">{{ $invoice->status }}</span>
                             </td>
                             <td class="text-center">
-                                <a href="{{ route('finance.supplier-invoices.show', $invoice->id) }}" class="btn btn-sm btn-info" title="View">
+                                <a href="{{ route('finance.supplier-invoices.show', $invoice->id) }}" class="btn btn-sm btn-info" title="{{ __('View') }}">
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 @if($invoice->isDraft())
-                                    <a href="{{ route('finance.supplier-invoices.edit', $invoice->id) }}" class="btn btn-sm btn-warning" title="Edit">
+                                    <a href="{{ route('finance.supplier-invoices.edit', $invoice->id) }}" class="btn btn-sm btn-warning" title="{{ __('Edit') }}">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <form action="{{ route('finance.supplier-invoices.destroy', $invoice->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this invoice?')">
+                                    <form action="{{ route('finance.supplier-invoices.destroy', $invoice->id) }}" method="POST" class="d-inline" onsubmit="return confirm(@js(__('Delete this invoice?')))">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Delete">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="{{ __('Delete') }}">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
                                 @endif
                                 @if($invoice->isDraft())
-                                    <form action="{{ route('finance.supplier-invoices.submit', $invoice->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Submit this invoice?')">
+                                    <form action="{{ route('finance.supplier-invoices.submit', $invoice->id) }}" method="POST" class="d-inline" onsubmit="return confirm(@js(__('Submit this invoice?')))">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-success" title="Submit">
+                                        <button type="submit" class="btn btn-sm btn-success" title="{{ __('Submit') }}">
                                             <i class="bi bi-send"></i>
                                         </button>
                                     </form>
                                 @endif
                                 @if($invoice->isSubmitted())
-                                    <form action="{{ route('finance.supplier-invoices.approve', $invoice->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Approve this invoice?')">
+                                    <form action="{{ route('finance.supplier-invoices.approve', $invoice->id) }}" method="POST" class="d-inline" onsubmit="return confirm(@js(__('Approve this invoice?')))">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-success" title="Approve">
+                                        <button type="submit" class="btn btn-sm btn-success" title="{{ __('Approve') }}">
                                             <i class="bi bi-check-circle"></i>
                                         </button>
                                     </form>
-                                    <form action="{{ route('finance.supplier-invoices.reject', $invoice->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Reject this invoice?')">
+                                    <form action="{{ route('finance.supplier-invoices.reject', $invoice->id) }}" method="POST" class="d-inline" onsubmit="return confirm(@js(__('Reject this invoice?')))">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Reject">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="{{ __('Reject') }}">
                                             <i class="bi bi-x-circle"></i>
                                         </button>
                                     </form>
                                 @endif
                                 @if($invoice->isApproved() || $invoice->isSubmitted())
-                                    <form action="{{ route('finance.supplier-invoices.post', $invoice->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Post this invoice?')">
+                                    <form action="{{ route('finance.supplier-invoices.post', $invoice->id) }}" method="POST" class="d-inline" onsubmit="return confirm(@js(__('Post this invoice?')))">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-primary" title="Post">
+                                        <button type="submit" class="btn btn-sm btn-primary" title="{{ __('Post') }}">
                                             <i class="bi bi-journal-check"></i>
                                         </button>
                                     </form>
                                 @endif
                                 @if(!$invoice->isPosted() && !$invoice->isPaid())
-                                    <form action="{{ route('finance.supplier-invoices.cancel', $invoice->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Cancel this invoice?')">
+                                    <form action="{{ route('finance.supplier-invoices.cancel', $invoice->id) }}" method="POST" class="d-inline" onsubmit="return confirm(@js(__('Cancel this invoice?')))">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-dark" title="Cancel">
+                                        <button type="submit" class="btn btn-sm btn-dark" title="{{ __('Cancel') }}">
                                             <i class="bi bi-x-octagon"></i>
                                         </button>
                                     </form>
@@ -107,7 +107,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center">No invoices found</td>
+                            <td colspan="8" class="text-center">{{ __('No invoices found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

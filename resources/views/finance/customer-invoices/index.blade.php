@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Customer Invoices')
+@section('title', __('Customer Invoices'))
 
 @section('content_header')
-    <h1>Customer Invoices</h1>
+    <h1>{{ __('Customer Invoices') }}</h1>
     <div class="mt-2">
         <a href="{{ route('finance.customer-invoices.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> New Invoice
+            <i class="bi bi-plus-circle"></i> {{ __('New Invoice') }}
         </a>
     </div>
 @endsection
@@ -19,13 +19,13 @@
                 <thead>
                     <tr>
                         <th>Invoice #</th>
-                        <th>Date</th>
-                        <th>Customer</th>
-                        <th class="text-end">Amount</th>
-                        <th class="text-end">Tax</th>
-                        <th class="text-end">Total</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('Date') }}</th>
+                        <th>{{ __('Customer') }}</th>
+                        <th class="text-end">{{ __('Amount') }}</th>
+                        <th class="text-end">{{ __('Tax') }}</th>
+                        <th class="text-end">{{ __('Total') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -50,7 +50,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center">No invoices found</td>
+                            <td colspan="8" class="text-center">{{ __('No invoices found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

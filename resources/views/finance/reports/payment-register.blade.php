@@ -1,36 +1,36 @@
 @extends('layouts.erp')
 
-@section('title', 'Payment Register')
+@section('title', __('Payment Register'))
 
 @section('content_header')
-    <h1>Payment Register</h1>
+    <h1>{{ __('Payment Register') }}</h1>
     <div class="mt-2">
         <form method="GET" class="d-inline">
             <input type="date" name="start_date" class="form-control d-inline-block" style="width:auto;" value="{{ $startDate }}">
             <input type="date" name="end_date" class="form-control d-inline-block" style="width:auto;" value="{{ $endDate }}">
-            <button type="submit" class="btn btn-primary">Filter</button>
+            <button type="submit" class="btn btn-primary">{{ __('Filter') }}</button>
         </form>
         <button class="btn btn-secondary" onclick="window.print()">
-            <i class="bi bi-printer"></i> Print
+            <i class="bi bi-printer"></i> {{ __('Print') }}
         </button>
     </div>
 @endsection
 
 @section('content')
-    <x-report-letterhead title="Payment Register" />
+    <x-report-letterhead title="{{ __('Payment Register') }}" />
 
     <div class="card">
         <div class="card-body table-responsive">
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Date</th>
+                        <th>{{ __('Date') }}</th>
                         <th>Payment #</th>
-                        <th>Supplier</th>
-                        <th>Method</th>
-                        <th>Reference</th>
-                        <th class="text-end">Amount</th>
-                        <th>Status</th>
+                        <th>{{ __('Supplier') }}</th>
+                        <th>{{ __('Method') }}</th>
+                        <th>{{ __('Reference') }}</th>
+                        <th class="text-end">{{ __('Amount') }}</th>
+                        <th>{{ __('Status') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -50,7 +50,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">No payments found</td>
+                            <td colspan="7" class="text-center">{{ __('No payments found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

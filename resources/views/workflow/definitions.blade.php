@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Workflow Definitions')
+@section('title', __('Workflow Definitions'))
 
 @section('content_header')
-    <h1>Workflow Definitions</h1>
+    <h1>{{ __('Workflow Definitions') }}</h1>
     <div class="mt-2">
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createDefinitionModal">
-            <i class="bi bi-plus-circle"></i> Create Definition
+            <i class="bi bi-plus-circle"></i> {{ __('Create Definition') }}
         </button>
     </div>
 @endsection
@@ -17,11 +17,11 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Entity Type</th>
-                        <th>States</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('Name') }}</th>
+                        <th>{{ __('Entity Type') }}</th>
+                        <th>{{ __('States') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -36,9 +36,9 @@
                             </td>
                             <td>
                                 @if($definition->is_active)
-                                    <span class="badge bg-success">Active</span>
+                                    <span class="badge bg-success">{{ __('Active') }}</span>
                                 @else
-                                    <span class="badge bg-secondary">Inactive</span>
+                                    <span class="badge bg-secondary">{{ __('Inactive') }}</span>
                                 @endif
                             </td>
                             <td>
@@ -49,7 +49,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center">No workflow definitions found</td>
+                            <td colspan="5" class="text-center">{{ __('No workflow definitions found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -62,34 +62,34 @@
             <form action="{{ route('workflow.definitions.store') }}" method="POST" class="modal-content">
                 @csrf
                 <div class="modal-header">
-                    <h5 class="modal-title">Create Workflow Definition</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title">{{ __('Create Workflow Definition') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label>Name</label>
+                        <label>{{ __('Name') }}</label>
                         <input type="text" class="form-control" name="name" required>
                     </div>
                     <div class="mb-3">
-                        <label>Entity Type</label>
+                        <label>{{ __('Entity Type') }}</label>
                         <input type="text" class="form-control" name="entity_type" placeholder="e.g., journal, supplier_invoice" required>
                     </div>
                     <div class="mb-3">
-                        <label>States (JSON)</label>
+                        <label>{{ __('States (JSON)') }}</label>
                         <textarea class="form-control" name="states" rows="5" required placeholder='{"draft": ["submitted"], "submitted": ["approved", "rejected"]}'></textarea>
                     </div>
                     <div class="mb-3">
-                        <label>Transitions (JSON)</label>
+                        <label>{{ __('Transitions (JSON)') }}</label>
                         <textarea class="form-control" name="transitions" rows="5" required placeholder='{"draft": ["submitted"], "submitted": ["approved", "rejected"]}'></textarea>
                     </div>
                     <div class="mb-3">
-                        <label>Approval Roles (JSON, optional)</label>
+                        <label>{{ __('Approval Roles (JSON, optional)') }}</label>
                         <textarea class="form-control" name="approval_roles" rows="3" placeholder='["MANAGER", "CFO"]'></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Create</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ __('Create') }}</button>
                 </div>
             </form>
         </div>
@@ -102,38 +102,38 @@
                     @csrf
                     @method('PUT')
                     <div class="modal-header">
-                        <h5 class="modal-title">Edit Workflow Definition</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <h5 class="modal-title">{{ __('Edit Workflow Definition') }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label>Name</label>
+                            <label>{{ __('Name') }}</label>
                             <input type="text" class="form-control" name="name" value="{{ $definition->name }}" required>
                         </div>
                         <div class="mb-3">
-                            <label>Entity Type</label>
+                            <label>{{ __('Entity Type') }}</label>
                             <input type="text" class="form-control" name="entity_type" value="{{ $definition->entity_type }}" required>
                         </div>
                         <div class="mb-3">
-                            <label>States (JSON)</label>
+                            <label>{{ __('States (JSON)') }}</label>
                             <textarea class="form-control" name="states" rows="5" required>{{ json_encode($definition->states, JSON_PRETTY_PRINT) }}</textarea>
                         </div>
                         <div class="mb-3">
-                            <label>Transitions (JSON)</label>
+                            <label>{{ __('Transitions (JSON)') }}</label>
                             <textarea class="form-control" name="transitions" rows="5" required>{{ json_encode($definition->transitions, JSON_PRETTY_PRINT) }}</textarea>
                         </div>
                         <div class="mb-3">
-                            <label>Approval Roles (JSON, optional)</label>
+                            <label>{{ __('Approval Roles (JSON, optional)') }}</label>
                             <textarea class="form-control" name="approval_roles" rows="3">{{ json_encode($definition->approval_roles, JSON_PRETTY_PRINT) }}</textarea>
                         </div>
                         <div class="form-check">
                             <input type="checkbox" class="form-check-input" name="is_active" value="1" {{ $definition->is_active ? 'checked' : '' }}>
-                            <label class="form-check-label">Active</label>
+                            <label class="form-check-label">{{ __('Active') }}</label>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Update</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('Update') }}</button>
                     </div>
                 </form>
             </div>

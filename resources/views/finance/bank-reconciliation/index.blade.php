@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Bank Reconciliation - BizNexus')
+@section('title', __('Bank Reconciliation - BizNexus'))
 
 @section('content_header')
-    <h1>Bank Reconciliation</h1>
+    <h1>{{ __('Bank Reconciliation') }}</h1>
     <div class="mt-2">
         <a href="{{ route('finance.bank-reconciliation.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> New Reconciliation
+            <i class="bi bi-plus-circle"></i> {{ __('New Reconciliation') }}
         </a>
     </div>
 @endsection
@@ -17,13 +17,13 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Bank Account</th>
-                        <th>Statement Date</th>
-                        <th class="text-end">Statement Balance</th>
-                        <th class="text-end">Book Balance</th>
-                        <th class="text-end">Difference</th>
-                        <th>Status</th>
-                        <th>Reconciled By</th>
+                        <th>{{ __('Bank Account') }}</th>
+                        <th>{{ __('Statement Date') }}</th>
+                        <th class="text-end">{{ __('Statement Balance') }}</th>
+                        <th class="text-end">{{ __('Book Balance') }}</th>
+                        <th class="text-end">{{ __('Difference') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Reconciled By') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -43,7 +43,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">No reconciliations found</td>
+                            <td colspan="7" class="text-center">{{ __('No reconciliations found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

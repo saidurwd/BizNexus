@@ -8,10 +8,10 @@
         <form method="GET" class="d-inline">
             <input type="date" name="start_date" class="form-control d-inline-block" style="width:auto;" value="{{ $startDate }}">
             <input type="date" name="end_date" class="form-control d-inline-block" style="width:auto;" value="{{ $endDate }}">
-            <button type="submit" class="btn btn-primary">Filter</button>
+            <button type="submit" class="btn btn-primary">{{ __('Filter') }}</button>
         </form>
         <button class="btn btn-secondary" onclick="window.print()">
-            <i class="bi bi-printer"></i> Print
+            <i class="bi bi-printer"></i> {{ __('Print') }}
         </button>
     </div>
 @endsection
@@ -24,13 +24,13 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Date</th>
+                        <th>{{ __('Date') }}</th>
                         <th>Journal #</th>
-                        <th>Account</th>
-                        <th>Description</th>
-                        <th class="text-end">Receipt</th>
-                        <th class="text-end">Payment</th>
-                        <th class="text-end">Balance</th>
+                        <th>{{ __('Account') }}</th>
+                        <th>{{ __('Description') }}</th>
+                        <th class="text-end">{{ __('Receipt') }}</th>
+                        <th class="text-end">{{ __('Payment') }}</th>
+                        <th class="text-end">{{ __('Balance') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -51,7 +51,7 @@
                             <td class="text-end">{{ Formatter::amount($runningBalance) }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="text-center text-muted">No transactions in this period.</td></tr>
+                        <tr><td colspan="7" class="text-center text-muted">{{ __('No transactions in this period.') }}</td></tr>
                     @endforelse
                     <tr class="table-active">
                         <td colspan="6"><strong>Closing balance {{ $endDate }}</strong></td>

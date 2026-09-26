@@ -1,23 +1,23 @@
 @extends('layouts.erp')
 
-@section('title', 'Notifications')
+@section('title', __('Notifications'))
 
 @section('content_header')
-    <h1>Notifications</h1>
+    <h1>{{ __('Notifications') }}</h1>
     <div class="mt-2">
         @if(Auth::user()->unreadNotifications->count() > 0)
             <form action="{{ route('core.notifications.mark-all-read') }}" method="POST" class="d-inline">
                 @csrf
                 <button type="submit" class="btn btn-success btn-sm">
-                    <i class="bi bi-check2-all"></i> Mark All as Read
+                    <i class="bi bi-check2-all"></i> {{ __('Mark All as Read') }}
                 </button>
             </form>
         @endif
-        <form action="{{ route('core.notifications.destroy-all') }}" method="POST" class="d-inline" onsubmit="return confirm('Delete all notifications?')">
+        <form action="{{ route('core.notifications.destroy-all') }}" method="POST" class="d-inline" onsubmit="return confirm(@js(__('Delete all notifications?')))">
             @csrf
             @method('DELETE')
             <button type="submit" class="btn btn-danger btn-sm">
-                <i class="bi bi-trash"></i> Clear All
+                <i class="bi bi-trash"></i> {{ __('Clear All') }}
             </button>
         </form>
     </div>
@@ -26,16 +26,16 @@
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Filters</h3>
+            <h3 class="card-title">{{ __('Filters') }}</h3>
         </div>
         <div class="card-body">
             <form method="GET" action="{{ route('core.notifications.index') }}" class="form-inline">
                 <div class="row">
                     <div class="col-md-3">
                         <div class="mb-3">
-                            <label>Type</label>
+                            <label>{{ __('Type') }}</label>
                             <select name="type" class="form-control">
-                                <option value="">All Types</option>
+                                <option value="">{{ __('All Types') }}</option>
                                 @foreach($types as $type)
                                     <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>
                                         {{ \Illuminate\Support\Str::headline(class_basename($type)) }}
@@ -46,11 +46,11 @@
                     </div>
                     <div class="col-md-3">
                         <div class="mb-3">
-                            <label>Status</label>
+                            <label>{{ __('Status') }}</label>
                             <select name="read" class="form-control">
-                                <option value="">All</option>
-                                <option value="unread" {{ request('read') == 'unread' ? 'selected' : '' }}>Unread</option>
-                                <option value="read" {{ request('read') == 'read' ? 'selected' : '' }}>Read</option>
+                                <option value="">{{ __('All') }}</option>
+                                <option value="unread" {{ request('read') == 'unread' ? 'selected' : '' }}>{{ __('Unread') }}</option>
+                                <option value="read" {{ request('read') == 'read' ? 'selected' : '' }}>{{ __('Read') }}</option>
                             </select>
                         </div>
                     </div>
@@ -59,10 +59,10 @@
                             <label>&nbsp;</label>
                             <div>
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-funnel"></i> Filter
+                                    <i class="bi bi-funnel"></i> {{ __('Filter') }}
                                 </button>
                                 <a href="{{ route('core.notifications.index') }}" class="btn btn-default">
-                                    <i class="bi bi-x-circle"></i> Clear
+                                    <i class="bi bi-x-circle"></i> {{ __('Clear') }}
                                 </a>
                             </div>
                         </div>
@@ -78,10 +78,10 @@
                 <thead>
                     <tr>
                         <th width="50"></th>
-                        <th>Notification</th>
-                        <th>Type</th>
-                        <th>Date & Time</th>
-                        <th class="text-center">Actions</th>
+                        <th>{{ __('Notification') }}</th>
+                        <th>{{ __('Type') }}</th>
+                        <th>{{ __('Date & Time') }}</th>
+                        <th class="text-center">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -134,7 +134,7 @@
                                 <a href="{{ route('core.notifications.show', $notification->id) }}" class="btn btn-sm btn-info">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <form action="{{ route('core.notifications.destroy', $notification->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this notification?')">
+                                <form action="{{ route('core.notifications.destroy', $notification->id) }}" method="POST" class="d-inline" onsubmit="return confirm(@js(__('Delete this notification?')))">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-danger">
@@ -145,7 +145,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center">No notifications found</td>
+                            <td colspan="5" class="text-center">{{ __('No notifications found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Exchange Rates')
+@section('title', __('Exchange Rates'))
 
 @section('content_header')
-    <h1>Exchange Rates</h1>
+    <h1>{{ __('Exchange Rates') }}</h1>
     <div class="mt-2">
         <a href="{{ route('core.exchange-rates.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Add Exchange Rate
+            <i class="bi bi-plus-circle"></i> {{ __('Add Exchange Rate') }}
         </a>
     </div>
 @endsection
@@ -17,12 +17,12 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Currency</th>
-                        <th>Rate Date</th>
-                        <th>Exchange Rate</th>
-                        <th>Source</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('Currency') }}</th>
+                        <th>{{ __('Rate Date') }}</th>
+                        <th>{{ __('Exchange Rate') }}</th>
+                        <th>{{ __('Source') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -44,7 +44,7 @@
                                 <form action="{{ route('core.exchange-rates.destroy', $rate->id) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this exchange rate?')">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm(@js(__('Delete this exchange rate?')))">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
@@ -52,7 +52,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center">No exchange rates found</td>
+                            <td colspan="6" class="text-center">{{ __('No exchange rates found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

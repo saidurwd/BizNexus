@@ -1,10 +1,10 @@
 @extends('layouts.erp')
 
-@section('title', 'Account Determination')
+@section('title', __('Account Determination'))
 
 @section('content_header')
-    <h1>Account Determination</h1>
-    <p class="text-muted mb-0">The accounts this company uses for automatic postings (currency differences, year-end close, intercompany).</p>
+    <h1>{{ __('Account Determination') }}</h1>
+    <p class="text-muted mb-0">{{ __('The accounts this company uses for automatic postings (currency differences, year-end close, intercompany).') }}</p>
 @endsection
 
 @section('content')
@@ -17,8 +17,8 @@
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th style="width: 40%">Purpose</th>
-                            <th>Account</th>
+                            <th style="width: 40%">{{ __('Purpose') }}</th>
+                            <th>{{ __('Account') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -45,7 +45,7 @@
             </div>
             @can('finance.accounts.update')
                 <div class="card-footer">
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="submit" class="btn btn-primary">{{ __('Save') }}</button>
                 </div>
             @endcan
         </div>

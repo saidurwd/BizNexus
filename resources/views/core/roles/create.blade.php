@@ -1,9 +1,9 @@
 @extends('layouts.erp')
 
-@section('title', 'Add Role')
+@section('title', __('Add Role'))
 
 @section('content_header')
-    <h1>Add Role</h1>
+    <h1>{{ __('Add Role') }}</h1>
 @endsection
 
 @section('content')
@@ -14,25 +14,25 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="name">Name</label>
+                            <label for="name">{{ __('Name') }}</label>
                             <input type="text" class="form-control" name="name" value="{{ old('name') }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="slug">Slug</label>
+                            <label for="slug">{{ __('Slug') }}</label>
                             <input type="text" class="form-control" name="slug" value="{{ old('slug') }}" required>
                         </div>
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label for="description">Description</label>
+                    <label for="description">{{ __('Description') }}</label>
                     <textarea class="form-control" name="description" rows="3">{{ old('description') }}</textarea>
                 </div>
 
                 <div class="mb-3">
-                    <label>Permissions</label>
+                    <label>{{ __('Permissions') }}</label>
                     @foreach($permissions->groupBy('group') as $group => $perms)
                         <h5>{{ $group ?? 'General' }}</h5>
                         @foreach($perms as $permission)
@@ -47,8 +47,8 @@
                 </div>
 
                 <div class="mb-3 mt-3">
-                    <button type="submit" class="btn btn-primary">Save Role</button>
-                    <a href="{{ route('core.roles.index') }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">{{ __('Save Role') }}</button>
+                    <a href="{{ route('core.roles.index') }}" class="btn btn-secondary">{{ __('Cancel') }}</a>
                 </div>
             </form>
         </div>

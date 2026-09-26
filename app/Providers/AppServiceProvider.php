@@ -32,6 +32,10 @@ class AppServiceProvider extends ServiceProvider
 
         AliasLoader::getInstance()->alias('Formatter', Formatter::class);
 
+        // The application's own strings, kept apart from the laravel-lang files so updating those never
+        // overwrites them.
+        $this->loadJsonTranslationsFrom(lang_path('erp'));
+
         Blade::directive('money', fn (string $expression) => "<?php echo e(\\Modules\\Core\\Support\\Formatter::money({$expression})); ?>");
 
         Password::defaults(fn () => Password::min(12)

@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Journal Entries')
+@section('title', __('Journal Entries'))
 
 @section('content_header')
-    <h1>Journal Entries</h1>
+    <h1>{{ __('Journal Entries') }}</h1>
     <div class="mt-2">
         <a href="{{ route('finance.journals.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> New Journal Entry
+            <i class="bi bi-plus-circle"></i> {{ __('New Journal Entry') }}
         </a>
     </div>
 @endsection
@@ -15,7 +15,7 @@
     <x-finance.list-filters :filters="$filters" :statuses="['DRAFT', 'SUBMITTED', 'APPROVED', 'POSTED', 'REVERSED', 'REJECTED', 'CANCELLED']" :search-label="__('Journal number or description')" />
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Journal Register</h3>
+            <h3 class="card-title">{{ __('Journal Register') }}</h3>
             @if($company)
                 <span class="text-muted ms-2">({{ $company->code }} — {{ $company->name }})</span>
             @endif
@@ -24,14 +24,14 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Date</th>
+                        <th>{{ __('Date') }}</th>
                         <th>Journal #</th>
-                        <th>Description</th>
-                        <th>Period</th>
-                        <th class="text-end">Total Debit</th>
-                        <th class="text-end">Total Credit</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('Description') }}</th>
+                        <th>{{ __('Period') }}</th>
+                        <th class="text-end">{{ __('Total Debit') }}</th>
+                        <th class="text-end">{{ __('Total Credit') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -59,7 +59,7 @@
                             <td colspan="8" class="text-center">
                                 No journals found for {{ $company?->name ?? 'this company' }}.
                                 @if($company && \Modules\Finance\Models\Journal::where('company_id', $company->id)->count() == 0)
-                                    <br><small class="text-muted">You can <a href="{{ route('finance.journals.create') }}">create a new journal entry</a> or switch to a different company.</small>
+                                    <br><small class="text-muted">{{ __('You can') }} <a href="{{ route('finance.journals.create') }}">{{ __('create a new journal entry') }}</a> {{ __('or switch to a different company.') }}</small>
                                 @endif
                             </td>
                         </tr>

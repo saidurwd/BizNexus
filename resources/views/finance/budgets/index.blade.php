@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Budgets')
+@section('title', __('Budgets'))
 
 @section('content_header')
-    <h1>Budgets</h1>
+    <h1>{{ __('Budgets') }}</h1>
     <div class="mt-2">
         <a href="{{ route('finance.budgets.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Create Budget
+            <i class="bi bi-plus-circle"></i> {{ __('Create Budget') }}
         </a>
     </div>
 @endsection
@@ -17,25 +17,25 @@
             <form method="GET" action="{{ route('finance.budgets.index') }}" class="form-inline mb-3">
                 <div class="mb-3 me-2">
                     <select name="status" class="form-control">
-                        <option value="">All Statuses</option>
-                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_DRAFT }}" {{ request('status') == \Modules\Finance\Models\Budget::STATUS_DRAFT ? 'selected' : '' }}>Draft</option>
-                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_SUBMITTED }}" {{ request('status') == \Modules\Finance\Models\Budget::STATUS_SUBMITTED ? 'selected' : '' }}>Submitted</option>
-                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_APPROVED }}" {{ request('status') == \Modules\Finance\Models\Budget::STATUS_APPROVED ? 'selected' : '' }}>Approved</option>
-                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_REJECTED }}" {{ request('status') == \Modules\Finance\Models\Budget::STATUS_REJECTED ? 'selected' : '' }}>Rejected</option>
+                        <option value="">{{ __('All Statuses') }}</option>
+                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_DRAFT }}" {{ request('status') == \Modules\Finance\Models\Budget::STATUS_DRAFT ? 'selected' : '' }}>{{ __('Draft') }}</option>
+                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_SUBMITTED }}" {{ request('status') == \Modules\Finance\Models\Budget::STATUS_SUBMITTED ? 'selected' : '' }}>{{ __('Submitted') }}</option>
+                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_APPROVED }}" {{ request('status') == \Modules\Finance\Models\Budget::STATUS_APPROVED ? 'selected' : '' }}>{{ __('Approved') }}</option>
+                        <option value="{{ \Modules\Finance\Models\Budget::STATUS_REJECTED }}" {{ request('status') == \Modules\Finance\Models\Budget::STATUS_REJECTED ? 'selected' : '' }}>{{ __('Rejected') }}</option>
                     </select>
                 </div>
-                <button type="submit" class="btn btn-default">Filter</button>
+                <button type="submit" class="btn btn-default">{{ __('Filter') }}</button>
             </form>
         </div>
         <div class="card-body table-responsive">
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Fiscal Year</th>
-                        <th>Status</th>
-                        <th>Created At</th>
-                        <th>Actions</th>
+                        <th>{{ __('Name') }}</th>
+                        <th>{{ __('Fiscal Year') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Created At') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -64,7 +64,7 @@
                                     <a href="{{ route('finance.budgets.edit', $budget->id) }}" class="btn btn-sm btn-warning">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <form action="{{ route('finance.budgets.destroy', $budget->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure?')">
+                                    <form action="{{ route('finance.budgets.destroy', $budget->id) }}" method="POST" class="d-inline" onsubmit="return confirm(@js(__('Are you sure?')))">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-danger">
@@ -76,7 +76,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center">No budgets found</td>
+                            <td colspan="5" class="text-center">{{ __('No budgets found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

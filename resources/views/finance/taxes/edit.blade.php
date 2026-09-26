@@ -1,9 +1,9 @@
 @extends('layouts.erp')
 
-@section('title', 'Edit Tax Code')
+@section('title', __('Edit Tax Code'))
 
 @section('content_header')
-    <h1>Edit Tax Code</h1>
+    <h1>{{ __('Edit Tax Code') }}</h1>
 @endsection
 
 @section('content')
@@ -18,8 +18,8 @@
                 <p class="text-muted">Current rate: {{ Formatter::percent($tax->rate) }}%. Record rate changes on the tax code page so earlier documents keep their rate.</p>
 
                 <div class="mb-3">
-                    <button type="submit" class="btn btn-primary">Update Tax Code</button>
-                    <a href="{{ route('finance.taxes.index') }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">{{ __('Update Tax Code') }}</button>
+                    <a href="{{ route('finance.taxes.index') }}" class="btn btn-secondary">{{ __('Cancel') }}</a>
                 </div>
             </form>
         </div>

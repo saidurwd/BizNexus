@@ -1,9 +1,9 @@
 @extends('layouts.erp')
 
-@section('title', 'Add Department')
+@section('title', __('Add Department'))
 
 @section('content_header')
-    <h1>Add Department</h1>
+    <h1>{{ __('Add Department') }}</h1>
 @endsection
 
 @section('content')
@@ -14,9 +14,9 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="company_id">Company</label>
+                            <label for="company_id">{{ __('Company') }}</label>
                             <select name="company_id" class="form-control" required>
-                                <option value="">Select Company</option>
+                                <option value="">{{ __('Select Company') }}</option>
                                 @foreach($companies as $company)
                                     <option value="{{ $company->id }}" @selected(old('company_id') == $company->id)>
                                         {{ $company->code }} — {{ $company->name }}
@@ -27,9 +27,9 @@
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="branch_id">Branch</label>
+                            <label for="branch_id">{{ __('Branch') }}</label>
                             <select name="branch_id" class="form-control">
-                                <option value="">Select Branch</option>
+                                <option value="">{{ __('Select Branch') }}</option>
                                 @foreach($branches as $branch)
                                     <option value="{{ $branch->id }}" @selected(old('branch_id') == $branch->id)>
                                         {{ $branch->code }} — {{ $branch->name }}
@@ -43,13 +43,13 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="code">Code</label>
+                            <label for="code">{{ __('Code') }}</label>
                             <input type="text" class="form-control" name="code" value="{{ old('code') }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="name">Name</label>
+                            <label for="name">{{ __('Name') }}</label>
                             <input type="text" class="form-control" name="name" value="{{ old('name') }}" required>
                         </div>
                     </div>
@@ -58,9 +58,9 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="parent_id">Parent Department</label>
+                            <label for="parent_id">{{ __('Parent Department') }}</label>
                             <select name="parent_id" class="form-control">
-                                <option value="">None (Top Level)</option>
+                                <option value="">{{ __('None (Top Level)') }}</option>
                                 @foreach($parentDepartments as $parent)
                                     <option value="{{ $parent->id }}" @selected(old('parent_id') == $parent->id)>
                                         {{ $parent->code }} — {{ $parent->name }}
@@ -71,9 +71,9 @@
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="manager_id">Manager</label>
+                            <label for="manager_id">{{ __('Manager') }}</label>
                             <select name="manager_id" class="form-control">
-                                <option value="">Select Manager</option>
+                                <option value="">{{ __('Select Manager') }}</option>
                                 @foreach($users as $user)
                                     <option value="{{ $user->id }}" @selected(old('manager_id') == $user->id)>
                                         {{ $user->name }} ({{ $user->email }})
@@ -85,16 +85,16 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="status">Status</label>
+                    <label for="status">{{ __('Status') }}</label>
                     <select name="status" class="form-control">
-                        <option value="active" @selected(old('status', 'active') == 'active')>Active</option>
-                        <option value="inactive" @selected(old('status') == 'inactive')>Inactive</option>
+                        <option value="active" @selected(old('status', 'active') == 'active')>{{ __('Active') }}</option>
+                        <option value="inactive" @selected(old('status') == 'inactive')>{{ __('Inactive') }}</option>
                     </select>
                 </div>
 
                 <div class="mb-3 mt-3">
-                    <button type="submit" class="btn btn-primary">Save Department</button>
-                    <a href="{{ route('core.departments.index') }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">{{ __('Save Department') }}</button>
+                    <a href="{{ route('core.departments.index') }}" class="btn btn-secondary">{{ __('Cancel') }}</a>
                 </div>
             </form>
         </div>

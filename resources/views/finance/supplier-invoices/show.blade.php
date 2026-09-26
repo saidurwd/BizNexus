@@ -1,6 +1,6 @@
 @extends('layouts.erp')
 
-@section('title', 'Supplier Invoice')
+@section('title', __('Supplier Invoice'))
 
 @section('content_header')
     <h1>Invoice: {{ $invoice->invoice_number }}</h1>
@@ -9,17 +9,17 @@
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Invoice Information</h3>
+            <h3 class="card-title">{{ __('Invoice Information') }}</h3>
             <div class="card-tools">
                 @if($invoice->isDraft())
                     <a href="{{ route('finance.supplier-invoices.edit', $invoice->id) }}" class="btn btn-sm btn-warning">
-                        <i class="bi bi-pencil"></i> Edit
+                        <i class="bi bi-pencil"></i> {{ __('Edit') }}
                     </a>
-                    <form action="{{ route('finance.supplier-invoices.destroy', $invoice->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this invoice?')">
+                    <form action="{{ route('finance.supplier-invoices.destroy', $invoice->id) }}" method="POST" class="d-inline" onsubmit="return confirm(@js(__('Delete this invoice?')))">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-sm btn-danger">
-                            <i class="bi bi-trash"></i> Delete
+                            <i class="bi bi-trash"></i> {{ __('Delete') }}
                         </button>
                     </form>
                 @endif
@@ -28,19 +28,19 @@
         <div class="card-body">
             <table class="table table-sm">
                 <tr>
-                    <th width="200">Invoice Number</th>
+                    <th width="200">{{ __('Invoice Number') }}</th>
                     <td>{{ $invoice->invoice_number }}</td>
                 </tr>
                 <tr>
-                    <th>Invoice Date</th>
+                    <th>{{ __('Invoice Date') }}</th>
                     <td>{{ $invoice->invoice_date->format('Y-m-d') }}</td>
                 </tr>
                 <tr>
-                    <th>Due Date</th>
+                    <th>{{ __('Due Date') }}</th>
                     <td>{{ $invoice->due_date?->format('Y-m-d') ?? '-' }}</td>
                 </tr>
                 <tr>
-                    <th>Supplier</th>
+                    <th>{{ __('Supplier') }}</th>
                     <td>{{ $invoice->supplier?->name ?? '-' }}</td>
                 </tr>
                 <tr>
@@ -48,23 +48,23 @@
                     <td>{{ $invoice->currency?->code ?? __('Company currency') }}@if ($invoice->currency) · {{ __('rate :rate', ['rate' => Formatter::rate($invoice->exchange_rate)]) }}@endif</td>
                 </tr>
                 <tr>
-                    <th>Subtotal</th>
+                    <th>{{ __('Subtotal') }}</th>
                     <td class="text-end">{{ Formatter::amount($invoice->subtotal, $invoice->currency?->code) }}</td>
                 </tr>
                 <tr>
-                    <th>Tax Amount</th>
+                    <th>{{ __('Tax Amount') }}</th>
                     <td class="text-end">{{ Formatter::amount($invoice->tax_amount, $invoice->currency?->code) }}</td>
                 </tr>
                 <tr>
-                    <th>Total Amount</th>
+                    <th>{{ __('Total Amount') }}</th>
                     <td class="text-end">{{ Formatter::amount($invoice->total_amount, $invoice->currency?->code) }}</td>
                 </tr>
                 <tr>
-                    <th>Outstanding</th>
+                    <th>{{ __('Outstanding') }}</th>
                     <td class="text-end">{{ Formatter::amount($invoice->outstanding_amount, $invoice->currency?->code) }}</td>
                 </tr>
                 <tr>
-                    <th>Status</th>
+                    <th>{{ __('Status') }}</th>
                     <td>
                         @php
                             $badgeClass = 'secondary';
@@ -79,7 +79,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <th>Description</th>
+                    <th>{{ __('Description') }}</th>
                     <td>{{ $invoice->description ?? '-' }}</td>
                 </tr>
             </table>
@@ -89,19 +89,19 @@
     @if($invoice->lines->isNotEmpty())
         <div class="card mt-4">
             <div class="card-header">
-                <h3 class="card-title">Invoice Lines</h3>
+                <h3 class="card-title">{{ __('Invoice Lines') }}</h3>
             </div>
             <div class="card-body table-responsive">
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th>Account</th>
-                            <th>Description</th>
-                            <th>Qty</th>
-                            <th>Unit Price</th>
-                            <th class="text-end">Subtotal</th>
-                            <th>Tax</th>
-                            <th class="text-end">Total</th>
+                            <th>{{ __('Account') }}</th>
+                            <th>{{ __('Description') }}</th>
+                            <th>{{ __('Qty') }}</th>
+                            <th>{{ __('Unit Price') }}</th>
+                            <th class="text-end">{{ __('Subtotal') }}</th>
+                            <th>{{ __('Tax') }}</th>
+                            <th class="text-end">{{ __('Total') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -128,13 +128,13 @@
     @endif
 
     <div class="mt-4 mb-3">
-        <a href="{{ route('finance.supplier-invoices.index') }}" class="btn btn-secondary">Back</a>
+        <a href="{{ route('finance.supplier-invoices.index') }}" class="btn btn-secondary">{{ __('Back') }}</a>
 
         @if($invoice->isDraft())
             <form action="{{ route('finance.supplier-invoices.submit', $invoice->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
-                <button type="submit" class="btn btn-success" onclick="return confirm('Submit this invoice for approval?')">
-                    <i class="bi bi-send"></i> Submit
+                <button type="submit" class="btn btn-success" onclick="return confirm(@js(__('Submit this invoice for approval?')))">
+                    <i class="bi bi-send"></i> {{ __('Submit') }}
                 </button>
             </form>
         @endif
@@ -142,14 +142,14 @@
         @if($invoice->isSubmitted())
             <form action="{{ route('finance.supplier-invoices.approve', $invoice->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
-                <button type="submit" class="btn btn-success" onclick="return confirm('Approve this invoice?')">
-                    <i class="bi bi-check-circle"></i> Approve
+                <button type="submit" class="btn btn-success" onclick="return confirm(@js(__('Approve this invoice?')))">
+                    <i class="bi bi-check-circle"></i> {{ __('Approve') }}
                 </button>
             </form>
             <form action="{{ route('finance.supplier-invoices.reject', $invoice->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
-                <button type="submit" class="btn btn-danger" onclick="return confirm('Reject this invoice?')">
-                    <i class="bi bi-x-circle"></i> Reject
+                <button type="submit" class="btn btn-danger" onclick="return confirm(@js(__('Reject this invoice?')))">
+                    <i class="bi bi-x-circle"></i> {{ __('Reject') }}
                 </button>
             </form>
         @endif
@@ -157,8 +157,8 @@
         @if($invoice->isApproved() || $invoice->isSubmitted())
             <form action="{{ route('finance.supplier-invoices.post', $invoice->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
-                <button type="submit" class="btn btn-primary" onclick="return confirm('Post this invoice?')">
-                    <i class="bi bi-journal-check"></i> Post
+                <button type="submit" class="btn btn-primary" onclick="return confirm(@js(__('Post this invoice?')))">
+                    <i class="bi bi-journal-check"></i> {{ __('Post') }}
                 </button>
             </form>
         @endif
@@ -174,8 +174,8 @@
         @if(!$invoice->isPosted() && !$invoice->isPaid())
             <form action="{{ route('finance.supplier-invoices.cancel', $invoice->id) }}" method="POST" class="d-inline ms-2">
                 @csrf
-                <button type="submit" class="btn btn-danger" onclick="return confirm('Cancel this invoice?')">
-                    <i class="bi bi-x-octagon"></i> Cancel
+                <button type="submit" class="btn btn-danger" onclick="return confirm(@js(__('Cancel this invoice?')))">
+                    <i class="bi bi-x-octagon"></i> {{ __('Cancel') }}
                 </button>
             </form>
         @endif

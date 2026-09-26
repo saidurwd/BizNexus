@@ -6,7 +6,7 @@
     <h1>{{ ($isBankReceipts ?? false) ? 'Bank Receipts' : 'Receipts' }}</h1>
     <div class="mt-2">
         <a href="{{ route('finance.receipts.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> New Receipt
+            <i class="bi bi-plus-circle"></i> {{ __('New Receipt') }}
         </a>
     </div>
 @endsection
@@ -22,12 +22,12 @@
                 <thead>
                     <tr>
                         <th>Receipt #</th>
-                        <th>Date</th>
-                        <th>Customer</th>
-                        <th>Bank Account</th>
-                        <th class="text-end">Amount</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('Date') }}</th>
+                        <th>{{ __('Customer') }}</th>
+                        <th>{{ __('Bank Account') }}</th>
+                        <th class="text-end">{{ __('Amount') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -51,7 +51,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">No receipts found</td>
+                            <td colspan="7" class="text-center">{{ __('No receipts found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

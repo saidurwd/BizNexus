@@ -1,12 +1,12 @@
 @extends('layouts.erp')
 
-@section('title', 'Bank Receipts - BizNexus')
+@section('title', __('Bank Receipts - BizNexus'))
 
 @section('content_header')
-    <h1>Bank Receipts</h1>
+    <h1>{{ __('Bank Receipts') }}</h1>
     <div class="mt-2">
         <a href="{{ route('finance.bank-receipts.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> New Bank Receipt
+            <i class="bi bi-plus-circle"></i> {{ __('New Bank Receipt') }}
         </a>
     </div>
 @endsection
@@ -18,11 +18,11 @@
                 <thead>
                     <tr>
                         <th>Transaction #</th>
-                        <th>Date</th>
-                        <th>Bank Account</th>
-                        <th class="text-end">Amount</th>
-                        <th>Reference</th>
-                        <th>Status</th>
+                        <th>{{ __('Date') }}</th>
+                        <th>{{ __('Bank Account') }}</th>
+                        <th class="text-end">{{ __('Amount') }}</th>
+                        <th>{{ __('Reference') }}</th>
+                        <th>{{ __('Status') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -41,7 +41,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center">No bank receipts found</td>
+                            <td colspan="6" class="text-center">{{ __('No bank receipts found') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
