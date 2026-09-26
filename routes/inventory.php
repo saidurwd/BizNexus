@@ -6,6 +6,7 @@ use Modules\Inventory\Controllers\Web\ProductCategoryController;
 use Modules\Inventory\Controllers\Web\ProductController;
 use Modules\Inventory\Controllers\Web\PurchaseInvoiceMatchController;
 use Modules\Inventory\Controllers\Web\PurchaseOrderController;
+use Modules\Inventory\Controllers\Web\ReorderController;
 use Modules\Inventory\Controllers\Web\StockAdjustmentController;
 use Modules\Inventory\Controllers\Web\StockController;
 use Modules\Inventory\Controllers\Web\StockTransferController;
@@ -62,6 +63,10 @@ Route::prefix('inventory')->name('inventory.')->group(function () {
     Route::post('/purchase-orders/{id}/close', [PurchaseOrderController::class, 'close'])->whereNumber('id')->middleware('permission:inventory.purchase-orders.cancel')->name('purchase-orders.close');
     Route::get('/purchase-orders/{id}/invoice', [PurchaseInvoiceMatchController::class, 'create'])->whereNumber('id')->middleware('permission:finance.supplier-invoices.create')->name('purchase-orders.invoice.create');
     Route::post('/purchase-orders/{id}/invoice', [PurchaseInvoiceMatchController::class, 'store'])->whereNumber('id')->middleware('permission:finance.supplier-invoices.create')->name('purchase-orders.invoice.store');
+
+    // Reorder suggestions
+    Route::get('/reorder', [ReorderController::class, 'index'])->middleware('permission:inventory.purchase-orders.create')->name('reorder.index');
+    Route::post('/reorder', [ReorderController::class, 'store'])->middleware('permission:inventory.purchase-orders.create')->name('reorder.store');
 
     // Goods receipts
     Route::get('/goods-receipts', [GoodsReceiptController::class, 'index'])->middleware('permission:inventory.goods-receipts.view')->name('goods-receipts.index');

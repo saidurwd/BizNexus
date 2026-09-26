@@ -834,6 +834,7 @@ return [
             'submenu' => [
                 ['text' => 'Purchase Orders', 'url' => 'inventory/purchase-orders', 'icon' => 'bi bi-file-earmark-text', 'can' => 'inventory.purchase-orders.view'],
                 ['text' => 'Goods Receipts', 'url' => 'inventory/goods-receipts', 'icon' => 'bi bi-box-arrow-in-down', 'can' => 'inventory.goods-receipts.view'],
+                ['text' => 'Reorder Suggestions', 'url' => 'inventory/reorder', 'icon' => 'bi bi-arrow-repeat', 'can' => 'inventory.purchase-orders.create'],
             ],
         ],
         [

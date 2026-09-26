@@ -14,6 +14,7 @@ return [
     'Purchasing' => 'क्रय',
     'Purchase Orders' => 'क्रय आदेश',
     'Goods Receipts' => 'माल प्राप्तियाँ',
+    'Reorder Suggestions' => 'पुनःआदेश सुझाव',
     'Inventory' => 'इन्वेंटरी',
     'Products' => 'उत्पाद',
     'Stock on Hand' => 'उपलब्ध स्टॉक',

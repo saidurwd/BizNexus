@@ -14,6 +14,7 @@ return [
     'Purchasing' => 'Compras',
     'Purchase Orders' => 'Pedidos de compra',
     'Goods Receipts' => 'Recepciones de mercancía',
+    'Reorder Suggestions' => 'Sugerencias de reposición',
     'Inventory' => 'Inventario',
     'Products' => 'Productos',
     'Stock on Hand' => 'Existencias disponibles',

@@ -14,6 +14,7 @@ return [
     'Purchasing' => '采购',
     'Purchase Orders' => '采购订单',
     'Goods Receipts' => '收货单',
+    'Reorder Suggestions' => '再订货建议',
     'Inventory' => '库存',
     'Products' => '产品',
     'Stock on Hand' => '现有库存',

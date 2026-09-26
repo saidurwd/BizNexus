@@ -23,6 +23,7 @@ use Modules\Inventory\Models\StockBalance;
 use Modules\Inventory\Models\Warehouse;
 use Modules\Inventory\Services\GoodsReceiptService;
 use Modules\Inventory\Services\PurchaseInvoiceMatcher;
+use Modules\Inventory\Services\ReorderService;
 
 beforeEach(function () {
     $this->company = Company::factory()->create();
@@ -232,4 +233,33 @@ test('the invoice form on an order records a draft supplier invoice for what was
 
     actingInCompany(companyUser(['finance.supplier-invoices.update'], $this->company), $this->company)->get(route('finance.supplier-invoices.edit', $invoice->id))->assertRedirect(route('finance.supplier-invoices.show', $invoice->id));
     actingInCompany($this->buyer, $this->company)->get(route('finance.supplier-invoices.show', $invoice->id))->assertOk()->assertSee($order->order_number);
+});
+
+test('products at or below their reorder level become draft purchase orders per supplier', function () {
+    $this->chair->update(['reorder_level' => 10, 'reorder_quantity' => 20, 'preferred_supplier_id' => $this->supplier->id]);
+    $desk = Product::factory()->create(['company_id' => $this->company->id, 'sku' => 'DESK', 'purchase_price' => 200, 'reorder_level' => 2]);
+    $lamp = Product::factory()->create(['company_id' => $this->company->id, 'sku' => 'LAMP', 'reorder_level' => 1]);
+    $lamp->forceFill(['stock_quantity' => 5, 'stock_value' => 50])->save();
+    approvedOrder([[$this->chair, 4, 50]]);
+    $otherSupplier = Supplier::factory()->create(['company_id' => $this->company->id]);
+    $planner = companyUser(['inventory.purchase-orders.create', 'inventory.purchase-orders.view'], $this->company);
+
+    $rows = app(ReorderService::class)->suggestions()->keyBy(fn ($row) => $row['product']->sku);
+    expect($rows->keys()->all())->toBe(['CHAIR', 'DESK'])
+        ->and($rows['CHAIR'])->on_order->toBe('4.0000')->projected->toBe('4.0000')->suggested->toBe('20.0000')
+        ->and($rows['DESK']['suggested'])->toBe('2.0000');
+
+    actingInCompany($planner, $this->company)->get(route('inventory.reorder.index'))->assertOk()->assertSee('CHAIR')->assertDontSee('LAMP');
+    actingInCompany($planner, $this->company)->post(route('inventory.reorder.store'), [
+        'warehouse_id' => $this->warehouse->id,
+        'lines' => [
+            $this->chair->id => ['selected' => 1, 'quantity' => 20, 'supplier_id' => $this->supplier->id],
+            $desk->id => ['selected' => 1, 'quantity' => 3, 'supplier_id' => $otherSupplier->id],
+        ],
+    ])->assertRedirect()->assertSessionHas('success');
+
+    $drafts = PurchaseOrder::with('lines')->where('status', 'DRAFT')->get()->keyBy('supplier_id');
+    expect($drafts)->toHaveCount(2)
+        ->and($drafts[$this->supplier->id]->lines->first())->product_id->toBe($this->chair->id)->quantity->toBe('20.0000')->unit_price->toBe('50.0000')
+        ->and($drafts[$otherSupplier->id]->total_amount)->toBe('600.0000');
 });
