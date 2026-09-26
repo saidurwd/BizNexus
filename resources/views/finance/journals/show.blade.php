@@ -180,4 +180,5 @@
             </a>
         </div>
     @endif
+    <x-attachments :document="$journal" type="journals" />
 @endsection

@@ -57,4 +57,5 @@
     <div class="mt-4">
         <a href="{{ route('finance.receipts.index') }}" class="btn btn-secondary">Back</a>
     </div>
+    <x-attachments :document="$receipt" type="receipts" />
 @endsection

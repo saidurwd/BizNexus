@@ -19,6 +19,7 @@ use Modules\Core\Controllers\Web\SystemController;
 use Modules\Core\Controllers\Web\UserController;
 use Modules\Finance\Controllers\Web\AccountController;
 use Modules\Finance\Controllers\Web\AccountMappingController;
+use Modules\Finance\Controllers\Web\AttachmentController;
 use Modules\Finance\Controllers\Web\BankAccountController;
 use Modules\Finance\Controllers\Web\BankPaymentController;
 use Modules\Finance\Controllers\Web\BankReceiptController;
@@ -334,6 +335,13 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::post('/customer-credit-notes/{id}/reject', [CustomerCreditNoteController::class, 'reject'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.reject')->name('customer-credit-notes.reject');
         Route::post('/customer-credit-notes/{id}/post', [CustomerCreditNoteController::class, 'post'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.post')->name('customer-credit-notes.post');
         Route::post('/customer-credit-notes/{id}/cancel', [CustomerCreditNoteController::class, 'cancel'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.cancel')->name('customer-credit-notes.cancel');
+
+        // Attachments: viewing needs the document's view permission, attaching and removing its create permission.
+        foreach (array_keys(AttachmentController::DOCUMENTS) as $documentType) {
+            Route::post("/{$documentType}/{id}/attachments", [AttachmentController::class, 'store'])->whereNumber('id')->defaults('documentType', $documentType)->middleware("permission:finance.{$documentType}.create")->name("{$documentType}.attachments.store");
+            Route::get("/{$documentType}/{id}/attachments/{attachment}", [AttachmentController::class, 'download'])->whereNumber(['id', 'attachment'])->defaults('documentType', $documentType)->middleware("permission:finance.{$documentType}.view")->name("{$documentType}.attachments.download");
+            Route::delete("/{$documentType}/{id}/attachments/{attachment}", [AttachmentController::class, 'destroy'])->whereNumber(['id', 'attachment'])->defaults('documentType', $documentType)->middleware("permission:finance.{$documentType}.create")->name("{$documentType}.attachments.destroy");
+        }
 
         // Customer Statements
         Route::get('/customer-statements', [CustomerStatementController::class, 'index'])->middleware('permission:finance.customers.view')->name('customer-statements.index');

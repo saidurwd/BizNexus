@@ -184,4 +184,5 @@
             </form>
         @endif
     </div>
+    <x-attachments :document="$invoice" type="customer-invoices" />
 @endsection

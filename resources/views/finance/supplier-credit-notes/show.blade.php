@@ -143,4 +143,5 @@
             @endcan
         @endif
     </div>
+    <x-attachments :document="$creditNote" type="supplier-credit-notes" />
 @endsection

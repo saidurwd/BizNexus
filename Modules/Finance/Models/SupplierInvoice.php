@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Core\Concerns\BelongsToCompany;
+use Modules\Core\Concerns\HasAttachments;
 use Modules\Core\Models\Company;
 use Modules\Core\Models\Currency;
 use Modules\Core\Services\CompanyContextService;
@@ -15,7 +16,7 @@ use Modules\Finance\Scopes\BranchScope;
 
 class SupplierInvoice extends Model
 {
-    use BelongsToCompany;
+    use BelongsToCompany, HasAttachments;
 
     protected $fillable = [
         'company_id',
