@@ -30,7 +30,7 @@
                         <tr>
                             <td>{{ $rate->currency->code }} - {{ $rate->currency->name }}</td>
                             <td>{{ $rate->rate_date->format('Y-m-d') }} <span class="badge badge-light">{{ $rate->rate_type->value }}</span></td>
-                            <td>{{ number_format($rate->exchange_rate, 4) }}</td>
+                            <td>{{ Formatter::rate($rate->exchange_rate) }}</td>
                             <td>{{ $rate->source ?? '-' }}</td>
                             <td>
                                 <span class="badge bg-{{ $rate->status === 'active' ? 'success' : 'secondary' }}">

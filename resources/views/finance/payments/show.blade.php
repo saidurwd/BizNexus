@@ -28,7 +28,7 @@
                 </tr>
                 <tr>
                     <th>Amount</th>
-                    <td>{{ number_format($payment->amount, 2) }}</td>
+                    <td>{{ Formatter::amount($payment->amount, $payment->currency?->code) }}</td>
                 </tr>
                 <tr>
                     <th>Payee Type</th>

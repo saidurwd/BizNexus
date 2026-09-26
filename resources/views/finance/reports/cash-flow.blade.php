@@ -19,7 +19,7 @@
                     <div class="d-flex justify-content-between">
                         <span>{{ $item['description'] }}</span>
                         <span class="{{ $item['amount'] >= 0 ? 'text-success' : 'text-danger' }}">
-                            {{ number_format($item['amount'], 2) }}
+                            {{ Formatter::amount($item['amount']) }}
                         </span>
                     </div>
                     @php $operatingTotal += $item['amount']; @endphp
@@ -29,7 +29,7 @@
             <div class="d-flex justify-content-between">
                 <strong>Net Cash from Operating</strong>
                 <strong class="{{ $operatingTotal >= 0 ? 'text-success' : 'text-danger' }}">
-                    {{ number_format($operatingTotal, 2) }}
+                    {{ Formatter::amount($operatingTotal) }}
                 </strong>
             </div>
 
@@ -40,7 +40,7 @@
                     <div class="d-flex justify-content-between">
                         <span>{{ $item['description'] }}</span>
                         <span class="{{ $item['amount'] >= 0 ? 'text-success' : 'text-danger' }}">
-                            {{ number_format($item['amount'], 2) }}
+                            {{ Formatter::amount($item['amount']) }}
                         </span>
                     </div>
                     @php $investingTotal += $item['amount']; @endphp
@@ -50,7 +50,7 @@
             <div class="d-flex justify-content-between">
                 <strong>Net Cash from Investing</strong>
                 <strong class="{{ $investingTotal >= 0 ? 'text-success' : 'text-danger' }}">
-                    {{ number_format($investingTotal, 2) }}
+                    {{ Formatter::amount($investingTotal) }}
                 </strong>
             </div>
 
@@ -61,7 +61,7 @@
                     <div class="d-flex justify-content-between">
                         <span>{{ $item['description'] }}</span>
                         <span class="{{ $item['amount'] >= 0 ? 'text-success' : 'text-danger' }}">
-                            {{ number_format($item['amount'], 2) }}
+                            {{ Formatter::amount($item['amount']) }}
                         </span>
                     </div>
                     @php $financingTotal += $item['amount']; @endphp
@@ -71,7 +71,7 @@
             <div class="d-flex justify-content-between">
                 <strong>Net Cash from Financing</strong>
                 <strong class="{{ $financingTotal >= 0 ? 'text-success' : 'text-danger' }}">
-                    {{ number_format($financingTotal, 2) }}
+                    {{ Formatter::amount($financingTotal) }}
                 </strong>
             </div>
 
@@ -80,7 +80,7 @@
             <div class="d-flex justify-content-between">
                 <h4><strong>Net Change in Cash</strong></h4>
                 <h4 class="{{ $netChange >= 0 ? 'text-success' : 'text-danger' }}">
-                    {{ number_format($netChange, 2) }}
+                    {{ Formatter::amount($netChange) }}
                 </h4>
             </div>
         </div>

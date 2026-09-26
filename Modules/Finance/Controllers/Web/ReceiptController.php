@@ -22,7 +22,7 @@ class ReceiptController extends Controller
     public function index(Request $request)
     {
 
-        $receipts = CustomerReceipt::with(['customer', 'bankAccount'])
+        $receipts = CustomerReceipt::with(['customer', 'bankAccount', 'currency'])
             ->orderBy('receipt_date', 'desc')
             ->paginate(20);
 
@@ -38,7 +38,7 @@ class ReceiptController extends Controller
     public function bankReceipts(Request $request)
     {
 
-        $receipts = CustomerReceipt::with(['customer', 'bankAccount'])
+        $receipts = CustomerReceipt::with(['customer', 'bankAccount', 'currency'])
             ->whereNotNull('bank_account_id')
             ->orderBy('receipt_date', 'desc')
             ->paginate(20);
@@ -73,7 +73,7 @@ class ReceiptController extends Controller
 
     public function show(string $id)
     {
-        $receipt = CustomerReceipt::with(['customer', 'bankAccount'])->findOrFail($id);
+        $receipt = CustomerReceipt::with(['customer', 'bankAccount', 'currency'])->findOrFail($id);
 
         return view('finance.receipts.show', compact('receipt'));
     }

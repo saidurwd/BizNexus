@@ -33,7 +33,7 @@
                             <td>{{ $note->credit_note_date->format('Y-m-d') }}</td>
                             <td>{{ $note->supplier?->name ?? '-' }}</td>
                             <td>{{ $note->invoice?->invoice_number ?? '-' }}</td>
-                            <td class="text-right">{{ number_format($note->total_amount, 2) }}</td>
+                            <td class="text-right">{{ Formatter::amount($note->total_amount) }}</td>
                             <td>
                                 @php
                                     $badgeClass = 'secondary';

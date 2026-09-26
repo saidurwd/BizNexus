@@ -35,7 +35,7 @@
                     @php $runningBalance = $openingBalance; @endphp
                     <tr class="table-active">
                         <td colspan="6"><strong>Opening balance {{ $startDate }}</strong></td>
-                        <td class="text-right"><strong>{{ number_format($openingBalance, 2) }}</strong></td>
+                        <td class="text-right"><strong>{{ Formatter::amount($openingBalance) }}</strong></td>
                     </tr>
                     @forelse ($lines as $line)
                         @php $runningBalance += (float) $line->debit - (float) $line->credit; @endphp
@@ -44,16 +44,16 @@
                             <td><a href="{{ route('finance.journals.show', $line->journal_id) }}">{{ $line->journal->journal_number }}</a></td>
                             <td>{{ $line->account->account_code }} — {{ $line->account->account_name }}</td>
                             <td>{{ $line->description ?? $line->journal->description }}</td>
-                            <td class="text-right">{{ (float) $line->debit > 0 ? number_format((float) $line->debit, 2) : '-' }}</td>
-                            <td class="text-right">{{ (float) $line->credit > 0 ? number_format((float) $line->credit, 2) : '-' }}</td>
-                            <td class="text-right">{{ number_format($runningBalance, 2) }}</td>
+                            <td class="text-right">{{ (float) $line->debit > 0 ? Formatter::amount($line->debit) : '-' }}</td>
+                            <td class="text-right">{{ (float) $line->credit > 0 ? Formatter::amount($line->credit) : '-' }}</td>
+                            <td class="text-right">{{ Formatter::amount($runningBalance) }}</td>
                         </tr>
                     @empty
                         <tr><td colspan="7" class="text-center text-muted">No transactions in this period.</td></tr>
                     @endforelse
                     <tr class="table-active">
                         <td colspan="6"><strong>Closing balance {{ $endDate }}</strong></td>
-                        <td class="text-right"><strong>{{ number_format($closingBalance, 2) }}</strong></td>
+                        <td class="text-right"><strong>{{ Formatter::amount($closingBalance) }}</strong></td>
                     </tr>
                 </tbody>
             </table>

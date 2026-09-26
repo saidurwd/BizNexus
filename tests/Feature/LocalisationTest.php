@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Carbon;
 use Modules\Core\Models\Company;
+use Modules\Core\Models\Currency;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Support\Formatter;
 use Modules\Core\Support\Money;
@@ -35,6 +36,20 @@ test('money is formatted for the locale with the currency minor units', function
     expect(Formatter::money(Money::of('1234.5', 'EUR'), locale: 'de'))->toBe("1.234,50\u{a0}€")
         ->and(Formatter::money(Money::of('1234.5', 'USD'), locale: 'en'))->toBe('$1,234.50')
         ->and(Formatter::money(Money::of('1234', 'JPY'), locale: 'en'))->toBe('¥1,234');
+});
+
+test('table amounts default to the company currency minor units and rates keep their precision', function () {
+    $dinar = Currency::factory()->create(['code' => 'KWD', 'decimal_places' => 3]);
+    $this->company->update(['base_currency_id' => $dinar->id]);
+
+    $amounts = app(CompanyContextService::class)->runAs($this->company->id, fn () => [
+        Formatter::amount('1234.5', locale: 'de'),
+        Formatter::amount('1234.5', 'JPY', 'en'),
+    ]);
+
+    expect($amounts)->toBe(['1.234,500', '1,235'])
+        ->and(Formatter::percent('7.5000', 'en'))->toBe('7.5')
+        ->and(Formatter::rate('0.00671234', 'en'))->toBe('0.00671234');
 });
 
 test('the business date follows the company time zone', function () {

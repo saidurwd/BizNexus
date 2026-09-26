@@ -90,7 +90,7 @@
                         <td>{{ $line->account?->account_code ?? '-' }} - {{ $line->account?->account_name ?? '-' }}</td>
                         <td>{{ $line->costCenter?->name ?? '-' }}</td>
                         <td>{{ $line->period }}</td>
-                        <td class="text-right">{{ number_format($line->budget_amount, 2) }}</td>
+                        <td class="text-right">{{ Formatter::amount($line->budget_amount) }}</td>
                         @if($budget->isDraft())
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm btn-warning edit-line-btn"
@@ -123,7 +123,7 @@
                 <tfoot>
                     <tr class="table-active">
                         <td colspan="3" class="text-right font-weight-bold">Total:</td>
-                        <td class="text-right font-weight-bold">{{ number_format($budget->lines->sum('budget_amount'), 2) }}</td>
+                        <td class="text-right font-weight-bold">{{ Formatter::amount($budget->lines->sum('budget_amount')) }}</td>
                         @if($budget->isDraft())
                             <td></td>
                         @endif

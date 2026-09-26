@@ -40,7 +40,7 @@
                     <strong>Period:</strong> {{ $startDate ?? 'Beginning' }} to {{ $endDate ?? 'Current' }}
                 </div>
                 <div class="col-md-3 text-end">
-                    <strong>Closing Balance:</strong> {{ number_format($statement['closing_balance'], 2) }}
+                    <strong>Closing Balance:</strong> {{ Formatter::amount($statement['closing_balance']) }}
                 </div>
             </div>
 
@@ -60,9 +60,9 @@
                     <tbody>
                         <tr class="table-active">
                             <td colspan="4"><strong>Opening Balance</strong></td>
-                            <td class="text-right"><strong>{{ number_format($statement['opening_balance'], 2) }}</strong></td>
+                            <td class="text-right"><strong>{{ Formatter::amount($statement['opening_balance']) }}</strong></td>
                             <td class="text-right">-</td>
-                            <td class="text-right"><strong>{{ number_format($statement['opening_balance'], 2) }}</strong></td>
+                            <td class="text-right"><strong>{{ Formatter::amount($statement['opening_balance']) }}</strong></td>
                         </tr>
                         @foreach($statement['entries'] as $entry)
                             <tr>
@@ -74,16 +74,16 @@
                                 </td>
                                 <td>{{ $entry['number'] }}</td>
                                 <td>{{ $entry['description'] }}</td>
-                                <td class="text-right">{{ $entry['debit'] > 0 ? number_format($entry['debit'], 2) : '-' }}</td>
-                                <td class="text-right">{{ $entry['credit'] > 0 ? number_format($entry['credit'], 2) : '-' }}</td>
-                                <td class="text-right">{{ number_format($entry['balance'], 2) }}</td>
+                                <td class="text-right">{{ $entry['debit'] > 0 ? Formatter::amount($entry['debit']) : '-' }}</td>
+                                <td class="text-right">{{ $entry['credit'] > 0 ? Formatter::amount($entry['credit']) : '-' }}</td>
+                                <td class="text-right">{{ Formatter::amount($entry['balance']) }}</td>
                             </tr>
                         @endforeach
                         <tr class="table-active">
                             <td colspan="4"><strong>Closing Balance</strong></td>
-                            <td class="text-right"><strong>{{ number_format($statement['total_invoices'], 2) }}</strong></td>
-                            <td class="text-right"><strong>{{ number_format($statement['total_receipts'], 2) }}</strong></td>
-                            <td class="text-right"><strong>{{ number_format($statement['closing_balance'], 2) }}</strong></td>
+                            <td class="text-right"><strong>{{ Formatter::amount($statement['total_invoices']) }}</strong></td>
+                            <td class="text-right"><strong>{{ Formatter::amount($statement['total_receipts']) }}</strong></td>
+                            <td class="text-right"><strong>{{ Formatter::amount($statement['closing_balance']) }}</strong></td>
                         </tr>
                     </tbody>
                 </table>

@@ -49,19 +49,19 @@
                 </tr>
                 <tr>
                     <th>Subtotal</th>
-                    <td class="text-right">{{ number_format($invoice->subtotal, 2) }}</td>
+                    <td class="text-right">{{ Formatter::amount($invoice->subtotal, $invoice->currency?->code) }}</td>
                 </tr>
                 <tr>
                     <th>Tax Amount</th>
-                    <td class="text-right">{{ number_format($invoice->tax_amount, 2) }}</td>
+                    <td class="text-right">{{ Formatter::amount($invoice->tax_amount, $invoice->currency?->code) }}</td>
                 </tr>
                 <tr>
                     <th>Total Amount</th>
-                    <td class="text-right">{{ number_format($invoice->total_amount, 2) }}</td>
+                    <td class="text-right">{{ Formatter::amount($invoice->total_amount, $invoice->currency?->code) }}</td>
                 </tr>
                 <tr>
                     <th>Outstanding</th>
-                    <td class="text-right">{{ number_format($invoice->outstanding_amount, 2) }}</td>
+                    <td class="text-right">{{ Formatter::amount($invoice->outstanding_amount, $invoice->currency?->code) }}</td>
                 </tr>
                 <tr>
                     <th>Status</th>
@@ -110,15 +110,15 @@
                                 <td>{{ $line->account?->account_code ?? '-' }} - {{ $line->account?->account_name ?? '-' }}</td>
                                 <td>{{ $line->description }}</td>
                                 <td>{{ $line->quantity }}</td>
-                                <td class="text-right">{{ number_format($line->unit_price, 2) }}</td>
-                                <td class="text-right">{{ number_format($line->subtotal, 2) }}</td>
+                                <td class="text-right">{{ Formatter::amount($line->unit_price, $invoice->currency?->code) }}</td>
+                                <td class="text-right">{{ Formatter::amount($line->subtotal, $invoice->currency?->code) }}</td>
                                 <td>
                                     {{ $line->tax?->tax_name ?? '-' }}
                                     @if($line->tax_amount > 0)
-                                        ({{ number_format($line->tax_amount, 2) }})
+                                        ({{ Formatter::amount($line->tax_amount, $invoice->currency?->code) }})
                                     @endif
                                 </td>
-                                <td class="text-right">{{ number_format($line->total_amount, 2) }}</td>
+                                <td class="text-right">{{ Formatter::amount($line->total_amount, $invoice->currency?->code) }}</td>
                             </tr>
                         @endforeach
                     </tbody>

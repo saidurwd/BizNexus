@@ -78,7 +78,7 @@
                                     <td><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}</strong></td>
                                     <td>
                                         @if($key === 'amount' && is_numeric($value))
-                                            {{ number_format((float) $value, 2) }}
+                                            {{ Formatter::amount($value) }}
                                         @elseif(is_bool($value))
                                             {{ $value ? 'Yes' : 'No' }}
                                         @else

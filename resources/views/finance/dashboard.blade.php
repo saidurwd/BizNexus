@@ -11,7 +11,7 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-success">
                 <div class="inner">
-                    <h3>{{ number_format($dashboard['total_revenue'] ?? 0, 2) }}</h3>
+                    <h3>{{ Formatter::amount($dashboard['total_revenue'] ?? 0) }}</h3>
                     <p>Total Revenue</p>
                 </div>
                 <div class="icon">
@@ -22,7 +22,7 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-danger">
                 <div class="inner">
-                    <h3>{{ number_format($dashboard['total_expenses'] ?? 0, 2) }}</h3>
+                    <h3>{{ Formatter::amount($dashboard['total_expenses'] ?? 0) }}</h3>
                     <p>Total Expenses</p>
                 </div>
                 <div class="icon">
@@ -33,7 +33,7 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-primary">
                 <div class="inner">
-                    <h3>{{ number_format($dashboard['net_profit'] ?? 0, 2) }}</h3>
+                    <h3>{{ Formatter::amount($dashboard['net_profit'] ?? 0) }}</h3>
                     <p>Net Profit</p>
                 </div>
                 <div class="icon">
@@ -44,7 +44,7 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-info">
                 <div class="inner">
-                    <h3>{{ number_format($dashboard['total_assets'] ?? 0, 2) }}</h3>
+                    <h3>{{ Formatter::amount($dashboard['total_assets'] ?? 0) }}</h3>
                     <p>Total Assets</p>
                 </div>
                 <div class="icon">
@@ -64,27 +64,27 @@
                     <table class="table table-sm">
                         <tr>
                             <td><strong>Cash Balance:</strong></td>
-                            <td class="text-right">{{ number_format($dashboard['cash_balance'] ?? 0, 2) }}</td>
+                            <td class="text-right">{{ Formatter::amount($dashboard['cash_balance'] ?? 0) }}</td>
                         </tr>
                         <tr>
                             <td><strong>Bank Balance:</strong></td>
-                            <td class="text-right">{{ number_format($dashboard['bank_balance'] ?? 0, 2) }}</td>
+                            <td class="text-right">{{ Formatter::amount($dashboard['bank_balance'] ?? 0) }}</td>
                         </tr>
                         <tr>
                             <td><strong>Accounts Receivable:</strong></td>
-                            <td class="text-right">{{ number_format($dashboard['accounts_receivable'] ?? 0, 2) }}</td>
+                            <td class="text-right">{{ Formatter::amount($dashboard['accounts_receivable'] ?? 0) }}</td>
                         </tr>
                         <tr>
                             <td><strong>Accounts Payable:</strong></td>
-                            <td class="text-right">{{ number_format($dashboard['accounts_payable'] ?? 0, 2) }}</td>
+                            <td class="text-right">{{ Formatter::amount($dashboard['accounts_payable'] ?? 0) }}</td>
                         </tr>
                         <tr>
                             <td><strong>Total Liabilities:</strong></td>
-                            <td class="text-right">{{ number_format($dashboard['total_liabilities'] ?? 0, 2) }}</td>
+                            <td class="text-right">{{ Formatter::amount($dashboard['total_liabilities'] ?? 0) }}</td>
                         </tr>
                         <tr>
                             <td><strong>Total Equity:</strong></td>
-                            <td class="text-right">{{ number_format($dashboard['total_equity'] ?? 0, 2) }}</td>
+                            <td class="text-right">{{ Formatter::amount($dashboard['total_equity'] ?? 0) }}</td>
                         </tr>
                     </table>
                 </div>

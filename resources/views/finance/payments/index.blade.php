@@ -36,7 +36,7 @@
                             <td>{{ $payment->payment_date->format('Y-m-d') }}</td>
                             <td>{{ $payment->payee_name }}</td>
                             <td>{{ $payment->bankAccount?->gl_account?->account_name ?? '-' }}</td>
-                            <td class="text-right">{{ number_format($payment->amount, 2) }}</td>
+                            <td class="text-right">{{ Formatter::amount($payment->amount, $payment->currency?->code) }}</td>
                             <td>
                                 <span class="badge bg-{{ $payment->status === 'POSTED' ? 'success' : ($payment->status === 'DRAFT' ? 'secondary' : 'warning') }}">
                                     {{ $payment->status }}

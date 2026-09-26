@@ -45,15 +45,15 @@
                 </tr>
                 <tr>
                     <th>Subtotal</th>
-                    <td class="text-right">{{ number_format($creditNote->subtotal, 2) }}</td>
+                    <td class="text-right">{{ Formatter::amount($creditNote->subtotal) }}</td>
                 </tr>
                 <tr>
                     <th>Tax Amount</th>
-                    <td class="text-right">{{ number_format($creditNote->tax_amount, 2) }}</td>
+                    <td class="text-right">{{ Formatter::amount($creditNote->tax_amount) }}</td>
                 </tr>
                 <tr>
                     <th>Total Amount</th>
-                    <td class="text-right">{{ number_format($creditNote->total_amount, 2) }}</td>
+                    <td class="text-right">{{ Formatter::amount($creditNote->total_amount) }}</td>
                 </tr>
                 <tr>
                     <th>Reason</th>

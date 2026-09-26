@@ -37,7 +37,7 @@
                     @forelse ($revaluations as $revaluation)
                         <tr>
                             <td>{{ $revaluation->revaluation_date->format('Y-m-d') }}</td>
-                            <td class="text-right">{{ number_format((float) $revaluation->net_gain_loss, 2) }}</td>
+                            <td class="text-right">{{ Formatter::amount($revaluation->net_gain_loss) }}</td>
                             <td>
                                 @if ($revaluation->journal)
                                     <a href="{{ route('finance.journals.show', $revaluation->journal_id) }}">{{ $revaluation->journal->journal_number }}</a>

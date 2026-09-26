@@ -48,14 +48,14 @@
                                             <td>{{ $entry['journal_number'] }}</td>
                                             <td>{{ $entry['description'] ?? '-' }}</td>
                                             <td>{{ $entry['cost_center'] ?? '-' }}</td>
-                                            <td class="text-right">{{ number_format($entry['debit'], 2) }}</td>
-                                            <td class="text-right">{{ number_format($entry['credit'], 2) }}</td>
+                                            <td class="text-right">{{ Formatter::amount($entry['debit']) }}</td>
+                                            <td class="text-right">{{ Formatter::amount($entry['credit']) }}</td>
                                         </tr>
                                     @endforeach
                                     <tr class="table-active">
                                         <td colspan="4" class="text-end"><strong>Total</strong></td>
-                                        <td class="text-right"><strong>{{ number_format($account['total_debit'], 2) }}</strong></td>
-                                        <td class="text-right"><strong>{{ number_format($account['total_credit'], 2) }}</strong></td>
+                                        <td class="text-right"><strong>{{ Formatter::amount($account['total_debit']) }}</strong></td>
+                                        <td class="text-right"><strong>{{ Formatter::amount($account['total_credit']) }}</strong></td>
                                     </tr>
                                 </tbody>
                             </table>

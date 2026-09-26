@@ -15,7 +15,7 @@
 
                 @include('finance.taxes._form', ['tax' => $tax])
 
-                <p class="text-muted">Current rate: {{ rtrim(rtrim(number_format((float) $tax->rate, 4), '0'), '.') }}%. Record rate changes on the tax code page so earlier documents keep their rate.</p>
+                <p class="text-muted">Current rate: {{ Formatter::percent($tax->rate) }}%. Record rate changes on the tax code page so earlier documents keep their rate.</p>
 
                 <div class="form-group">
                     <button type="submit" class="btn btn-primary">Update Tax Code</button>

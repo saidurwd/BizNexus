@@ -28,7 +28,7 @@
                 </tr>
                 <tr>
                     <th>Amount</th>
-                    <td>{{ number_format($receipt->amount, 2) }}</td>
+                    <td>{{ Formatter::amount($receipt->amount, $receipt->currency?->code) }}</td>
                 </tr>
                 <tr>
                     <th>Customer</th>

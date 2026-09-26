@@ -20,7 +20,7 @@
                         @if($account['amount'] != 0)
                             <div class="d-flex justify-content-between">
                                 <span>{{ $account['account_name'] }}</span>
-                                <span>{{ number_format($account['amount'], 2) }}</span>
+                                <span>{{ Formatter::amount($account['amount']) }}</span>
                             </div>
                             @php $totalAssets += $account['amount']; @endphp
                         @endif
@@ -28,7 +28,7 @@
                     <hr>
                     <div class="d-flex justify-content-between">
                         <strong>Total Assets</strong>
-                        <strong>{{ number_format($totalAssets, 2) }}</strong>
+                        <strong>{{ Formatter::amount($totalAssets) }}</strong>
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -38,7 +38,7 @@
                         @if($account['amount'] != 0)
                             <div class="d-flex justify-content-between">
                                 <span>{{ $account['account_name'] }}</span>
-                                <span>{{ number_format($account['amount'], 2) }}</span>
+                                <span>{{ Formatter::amount($account['amount']) }}</span>
                             </div>
                             @php $totalLiabilities += $account['amount']; @endphp
                         @endif
@@ -46,7 +46,7 @@
                     <hr>
                     <div class="d-flex justify-content-between">
                         <strong>Total Liabilities</strong>
-                        <strong>{{ number_format($totalLiabilities, 2) }}</strong>
+                        <strong>{{ Formatter::amount($totalLiabilities) }}</strong>
                     </div>
 
                     <h4 class="mt-4"><strong>Equity</strong></h4>
@@ -55,7 +55,7 @@
                         @if($account['amount'] != 0)
                             <div class="d-flex justify-content-between">
                                 <span>{{ $account['account_name'] }}</span>
-                                <span>{{ number_format($account['amount'], 2) }}</span>
+                                <span>{{ Formatter::amount($account['amount']) }}</span>
                             </div>
                             @php $totalEquity += $account['amount']; @endphp
                         @endif
@@ -63,12 +63,12 @@
                     <hr>
                     <div class="d-flex justify-content-between">
                         <strong>Total Equity</strong>
-                        <strong>{{ number_format($totalEquity, 2) }}</strong>
+                        <strong>{{ Formatter::amount($totalEquity) }}</strong>
                     </div>
                     <hr>
                     <div class="d-flex justify-content-between">
                         <strong>Total Liabilities + Equity</strong>
-                        <strong>{{ number_format($totalLiabilities + $totalEquity, 2) }}</strong>
+                        <strong>{{ Formatter::amount($totalLiabilities + $totalEquity) }}</strong>
                     </div>
                 </div>
             </div>

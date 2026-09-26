@@ -49,7 +49,7 @@
                 </tr>
                 <tr>
                     <th>Amount</th>
-                    <td class="text-right">{{ number_format($debitNote->amount, 2) }}</td>
+                    <td class="text-right">{{ Formatter::amount($debitNote->amount) }}</td>
                 </tr>
                 <tr>
                     <th>Description</th>

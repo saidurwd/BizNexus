@@ -3,11 +3,13 @@
 namespace App\Providers;
 
 use App\View\Composers\BreadcrumbComposer;
+use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Laravel\Fortify\Fortify;
+use Modules\Core\Support\Formatter;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
     {
         // Register breadcrumb composer for all views
         View::composer('*', BreadcrumbComposer::class);
+
+        AliasLoader::getInstance()->alias('Formatter', Formatter::class);
 
         Blade::directive('money', fn (string $expression) => "<?php echo e(\\Modules\\Core\\Support\\Formatter::money({$expression})); ?>");
 

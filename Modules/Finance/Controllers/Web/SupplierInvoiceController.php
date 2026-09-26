@@ -25,7 +25,7 @@ class SupplierInvoiceController extends Controller
     public function index()
     {
 
-        $invoices = SupplierInvoice::with(['supplier', 'tax'])
+        $invoices = SupplierInvoice::with(['supplier', 'tax', 'currency'])
             ->orderByDesc('invoice_date')
             ->get();
 

@@ -130,7 +130,7 @@
                                     <div>
                                         <strong>{{ $message }}</strong>
                                         @if(isset($data['amount']))
-                                            <br><small class="text-muted">Amount: {{ number_format($data['amount'], 2) }}</small>
+                                            <br><small class="text-muted">Amount: {{ Formatter::amount($data['amount']) }}</small>
                                         @endif
                                     </div>
                                 </div>

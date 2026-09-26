@@ -24,7 +24,7 @@ class PaymentController extends Controller
     public function index(Request $request)
     {
 
-        $payments = SupplierPayment::with('bankAccount')
+        $payments = SupplierPayment::with(['bankAccount', 'currency'])
             ->orderBy('payment_date', 'desc')
             ->paginate(20);
 
@@ -62,7 +62,7 @@ class PaymentController extends Controller
 
     public function show(string $id)
     {
-        $payment = SupplierPayment::with('bankAccount')->findOrFail($id);
+        $payment = SupplierPayment::with(['bankAccount', 'currency'])->findOrFail($id);
 
         return view('finance.payments.show', compact('payment'));
     }

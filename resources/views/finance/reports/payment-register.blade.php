@@ -39,7 +39,7 @@
                             <td>{{ $payment->supplier?->name ?? '-' }}</td>
                             <td>{{ $payment->payment_method }}</td>
                             <td>{{ $payment->reference ?? '-' }}</td>
-                            <td class="text-right">{{ number_format($payment->amount, 2) }}</td>
+                            <td class="text-right">{{ Formatter::amount($payment->amount) }}</td>
                             <td>
                                 <span class="badge bg-{{ $payment->status === 'POSTED' ? 'success' : ($payment->status === 'PENDING' ? 'warning' : 'secondary') }}">
                                     {{ $payment->status }}
@@ -55,7 +55,7 @@
                 <tfoot>
                     <tr class="table-active">
                         <td colspan="5" class="text-end"><strong>Total</strong></td>
-                        <td class="text-right"><strong>{{ number_format($totalAmount, 2) }}</strong></td>
+                        <td class="text-right"><strong>{{ Formatter::amount($totalAmount) }}</strong></td>
                         <td></td>
                     </tr>
                 </tfoot>

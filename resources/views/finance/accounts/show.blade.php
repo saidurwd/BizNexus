@@ -56,7 +56,7 @@
                 </tr>
                 <tr>
                     <th>Current Balance</th>
-                    <td><strong>{{ number_format($account->balance, 2) }}</strong></td>
+                    <td><strong>{{ Formatter::amount($account->balance) }}</strong></td>
                 </tr>
             </table>
         </div>
@@ -83,8 +83,8 @@
                             <td>{{ $line->journal->journal_date->format('Y-m-d') }}</td>
                             <td>{{ $line->journal->journal_number }}</td>
                             <td>{{ $line->description ?? '-' }}</td>
-                            <td class="text-right">{{ $line->debit > 0 ? number_format($line->debit, 2) : '-' }}</td>
-                            <td class="text-right">{{ $line->credit > 0 ? number_format($line->credit, 2) : '-' }}</td>
+                            <td class="text-right">{{ $line->debit > 0 ? Formatter::amount($line->debit) : '-' }}</td>
+                            <td class="text-right">{{ $line->credit > 0 ? Formatter::amount($line->credit) : '-' }}</td>
                         </tr>
                     @empty
                         <tr>

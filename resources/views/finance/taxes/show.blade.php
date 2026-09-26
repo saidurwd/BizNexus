@@ -11,7 +11,7 @@
         <div class="card-body">
             <table class="table table-sm mb-0">
                 <tr><th style="width: 220px">Type</th><td>{{ $tax->tax_type }}</td></tr>
-                <tr><th>Rate today</th><td>{{ rtrim(rtrim(number_format((float) $tax->rateOn(now()), 4), '0'), '.') }}%</td></tr>
+                <tr><th>Rate today</th><td>{{ Formatter::percent($tax->rateOn(now())) }}%</td></tr>
                 <tr><th>Jurisdiction</th><td>{{ $tax->country_code ?? '—' }}{{ $tax->region_code ? ' / '.$tax->region_code : '' }}</td></tr>
                 <tr><th>Price inclusive</th><td>{{ $tax->is_inclusive ? 'Yes' : 'No' }}</td></tr>
                 <tr><th>Recoverable</th><td>{{ $tax->is_recoverable ? 'Yes' : 'No' }}</td></tr>
@@ -33,7 +33,7 @@
                             <tr>
                                 <td>{{ $rate->effective_from->year === 1900 ? 'Always' : $rate->effective_from->format('Y-m-d') }}</td>
                                 <td>{{ $rate->effective_to?->format('Y-m-d') ?? '—' }}</td>
-                                <td class="text-right">{{ rtrim(rtrim(number_format((float) $rate->rate, 4), '0'), '.') }}</td>
+                                <td class="text-right">{{ Formatter::percent($rate->rate) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -63,7 +63,7 @@
                             <tr>
                                 <td>{{ $component->pivot->sequence }}</td>
                                 <td>{{ $component->tax_code }} — {{ $component->tax_name }}</td>
-                                <td class="text-right">{{ rtrim(rtrim(number_format((float) $component->rateOn(now()), 4), '0'), '.') }}</td>
+                                <td class="text-right">{{ Formatter::percent($component->rateOn(now())) }}</td>
                                 <td>{{ $component->pivot->is_compound ? 'Yes (on net + earlier taxes)' : 'No' }}</td>
                                 <td class="text-right">
                                     @can('finance.taxes.update')

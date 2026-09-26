@@ -49,7 +49,7 @@
                                 <option value="">None</option>
                                 @foreach($invoices as $invoice)
                                     <option value="{{ $invoice->id }}" @selected(old('supplier_invoice_id', $creditNote->supplier_invoice_id) == $invoice->id)>
-                                        {{ $invoice->invoice_number }} ({{ number_format($invoice->total_amount, 2) }})
+                                        {{ $invoice->invoice_number }} ({{ Formatter::amount($invoice->total_amount) }})
                                     </option>
                                 @endforeach
                             </select>

@@ -84,10 +84,10 @@
                             <tr>
                                 <td colspan="2" class="text-right"><strong>Totals:</strong></td>
                                 <td class="text-right">
-                                    <strong id="totalDebit">{{ number_format($journal->total_debit, 2) }}</strong>
+                                    <strong id="totalDebit">{{ Formatter::amount($journal->total_debit) }}</strong>
                                 </td>
                                 <td class="text-right">
-                                    <strong id="totalCredit">{{ number_format($journal->total_credit, 2) }}</strong>
+                                    <strong id="totalCredit">{{ Formatter::amount($journal->total_credit) }}</strong>
                                 </td>
                                 <td>
                                     <button type="button" class="btn btn-success btn-sm" id="addLine">

@@ -53,8 +53,8 @@
                             <td>{{ $journal->journal_number }}</td>
                             <td>{{ $journal->description ?: '-' }}</td>
                             <td>{{ $journal->fiscalPeriod?->period_name ?? '-' }}</td>
-                            <td class="text-right">{{ number_format($journal->total_debit, 2) }}</td>
-                            <td class="text-right">{{ number_format($journal->total_credit, 2) }}</td>
+                            <td class="text-right">{{ Formatter::amount($journal->total_debit) }}</td>
+                            <td class="text-right">{{ Formatter::amount($journal->total_credit) }}</td>
                             <td>
                                 <span class="badge bg-{{ $journal->status === 'POSTED' ? 'success' : ($journal->status === 'DRAFT' ? 'secondary' : ($journal->status === 'APPROVED' ? 'info' : ($journal->status === 'REJECTED' ? 'danger' : ($journal->status === 'CANCELLED' ? 'dark' : 'warning')))) }}">
                                     {{ $journal->status }}

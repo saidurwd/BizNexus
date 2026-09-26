@@ -18,7 +18,7 @@
                 @if($account['amount'] != 0)
                     <div class="d-flex justify-content-between">
                         <span>{{ $account['account_name'] }}</span>
-                        <span>{{ number_format($account['amount'], 2) }}</span>
+                        <span>{{ Formatter::amount($account['amount']) }}</span>
                     </div>
                     @php $totalRevenue += $account['amount']; @endphp
                 @endif
@@ -26,7 +26,7 @@
             <hr>
             <div class="d-flex justify-content-between">
                 <strong>Total Revenue</strong>
-                <strong>{{ number_format($totalRevenue, 2) }}</strong>
+                <strong>{{ Formatter::amount($totalRevenue) }}</strong>
             </div>
 
             <h4 class="mt-4"><strong>Expenses</strong></h4>
@@ -35,7 +35,7 @@
                 @if($account['amount'] != 0)
                     <div class="d-flex justify-content-between">
                         <span>{{ $account['account_name'] }}</span>
-                        <span>{{ number_format($account['amount'], 2) }}</span>
+                        <span>{{ Formatter::amount($account['amount']) }}</span>
                     </div>
                     @php $totalExpenses += $account['amount']; @endphp
                 @endif
@@ -43,13 +43,13 @@
             <hr>
             <div class="d-flex justify-content-between">
                 <strong>Total Expenses</strong>
-                <strong>{{ number_format($totalExpenses, 2) }}</strong>
+                <strong>{{ Formatter::amount($totalExpenses) }}</strong>
             </div>
 
             <hr>
             <div class="d-flex justify-content-between">
                 <h4><strong>Net Income</strong></h4>
-                <h4><strong>{{ number_format($totalRevenue - $totalExpenses, 2) }}</strong></h4>
+                <h4><strong>{{ Formatter::amount($totalRevenue - $totalExpenses) }}</strong></h4>
             </div>
         </div>
     </div>

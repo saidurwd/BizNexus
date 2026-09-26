@@ -39,12 +39,12 @@
                             <tr>
                                 <td>{{ $account['account_code'] }}</td>
                                 <td>{{ $account['account_name'] }}</td>
-                                <td class="text-right">{{ $account['opening_debit'] > 0 ? number_format($account['opening_debit'], 2) : '-' }}</td>
-                                <td class="text-right">{{ $account['opening_credit'] > 0 ? number_format($account['opening_credit'], 2) : '-' }}</td>
-                                <td class="text-right">{{ $account['period_debit'] > 0 ? number_format($account['period_debit'], 2) : '-' }}</td>
-                                <td class="text-right">{{ $account['period_credit'] > 0 ? number_format($account['period_credit'], 2) : '-' }}</td>
-                                <td class="text-right">{{ $account['closing_debit'] > 0 ? number_format($account['closing_debit'], 2) : '-' }}</td>
-                                <td class="text-right">{{ $account['closing_credit'] > 0 ? number_format($account['closing_credit'], 2) : '-' }}</td>
+                                <td class="text-right">{{ $account['opening_debit'] > 0 ? Formatter::amount($account['opening_debit']) : '-' }}</td>
+                                <td class="text-right">{{ $account['opening_credit'] > 0 ? Formatter::amount($account['opening_credit']) : '-' }}</td>
+                                <td class="text-right">{{ $account['period_debit'] > 0 ? Formatter::amount($account['period_debit']) : '-' }}</td>
+                                <td class="text-right">{{ $account['period_credit'] > 0 ? Formatter::amount($account['period_credit']) : '-' }}</td>
+                                <td class="text-right">{{ $account['closing_debit'] > 0 ? Formatter::amount($account['closing_debit']) : '-' }}</td>
+                                <td class="text-right">{{ $account['closing_credit'] > 0 ? Formatter::amount($account['closing_credit']) : '-' }}</td>
                             </tr>
                             @php 
                                 $totalOpeningDebit += $account['opening_debit'];
@@ -60,12 +60,12 @@
                 <tfoot>
                     <tr class="bg-secondary">
                         <td colspan="2" class="text-right"><strong>TOTALS</strong></td>
-                        <td class="text-right"><strong>{{ number_format($totalOpeningDebit, 2) }}</strong></td>
-                        <td class="text-right"><strong>{{ number_format($totalOpeningCredit, 2) }}</strong></td>
-                        <td class="text-right"><strong>{{ number_format($totalPeriodDebit, 2) }}</strong></td>
-                        <td class="text-right"><strong>{{ number_format($totalPeriodCredit, 2) }}</strong></td>
-                        <td class="text-right"><strong>{{ number_format($totalClosingDebit, 2) }}</strong></td>
-                        <td class="text-right"><strong>{{ number_format($totalClosingCredit, 2) }}</strong></td>
+                        <td class="text-right"><strong>{{ Formatter::amount($totalOpeningDebit) }}</strong></td>
+                        <td class="text-right"><strong>{{ Formatter::amount($totalOpeningCredit) }}</strong></td>
+                        <td class="text-right"><strong>{{ Formatter::amount($totalPeriodDebit) }}</strong></td>
+                        <td class="text-right"><strong>{{ Formatter::amount($totalPeriodCredit) }}</strong></td>
+                        <td class="text-right"><strong>{{ Formatter::amount($totalClosingDebit) }}</strong></td>
+                        <td class="text-right"><strong>{{ Formatter::amount($totalClosingCredit) }}</strong></td>
                     </tr>
                 </tfoot>
             </table>

@@ -30,12 +30,12 @@
                             <td>{{ $entry['date']->format('Y-m-d') }}</td>
                             <td>{{ $entry['journal_number'] }}</td>
                             <td>{{ $entry['description'] }}</td>
-                            <td class="text-right">{{ $entry['debit'] > 0 ? number_format($entry['debit'], 2) : '-' }}</td>
-                            <td class="text-right">{{ $entry['credit'] > 0 ? number_format($entry['credit'], 2) : '-' }}</td>
+                            <td class="text-right">{{ $entry['debit'] > 0 ? Formatter::amount($entry['debit']) : '-' }}</td>
+                            <td class="text-right">{{ $entry['credit'] > 0 ? Formatter::amount($entry['credit']) : '-' }}</td>
                             <td class="text-right">
                                 @php 
                                     $balance += $entry['debit'] - $entry['credit'];
-                                    echo number_format($balance, 2);
+                                    echo Formatter::amount($balance);
                                 @endphp
                             </td>
                         </tr>

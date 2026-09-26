@@ -96,16 +96,16 @@
                             <td>{{ $line->account->account_code }}</td>
                             <td>{{ $line->account->account_name }}</td>
                             <td>{{ $line->description ?? '-' }}</td>
-                            <td class="text-right">{{ $line->debit > 0 ? number_format($line->debit, 2) : '-' }}</td>
-                            <td class="text-right">{{ $line->credit > 0 ? number_format($line->credit, 2) : '-' }}</td>
+                            <td class="text-right">{{ $line->debit > 0 ? Formatter::amount($line->debit) : '-' }}</td>
+                            <td class="text-right">{{ $line->credit > 0 ? Formatter::amount($line->credit) : '-' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
                 <tfoot>
                     <tr>
                         <td colspan="3" class="text-right"><strong>TOTALS</strong></td>
-                        <td class="text-right"><strong>{{ number_format($journal->total_debit, 2) }}</strong></td>
-                        <td class="text-right"><strong>{{ number_format($journal->total_credit, 2) }}</strong></td>
+                        <td class="text-right"><strong>{{ Formatter::amount($journal->total_debit) }}</strong></td>
+                        <td class="text-right"><strong>{{ Formatter::amount($journal->total_credit) }}</strong></td>
                     </tr>
                 </tfoot>
             </table>

@@ -30,7 +30,7 @@
                         <tr>
                             <td>{{ $tax->tax_code }}</td>
                             <td>{{ $tax->tax_name }}</td>
-                            <td class="text-right">{{ number_format($tax->tax_rate, 2) }}%</td>
+                            <td class="text-right">{{ Formatter::percent($tax->tax_rate) }}%</td>
                             <td>{{ $tax->tax_type }}</td>
                             <td>
                                 <span class="badge bg-{{ $tax->status === 'active' ? 'success' : 'secondary' }}">

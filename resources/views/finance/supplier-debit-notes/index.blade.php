@@ -31,7 +31,7 @@
                             <td>{{ $note->note_number }}</td>
                             <td>{{ $note->note_date->format('Y-m-d') }}</td>
                             <td>{{ $note->supplier?->name ?? '-' }}</td>
-                            <td class="text-right">{{ number_format($note->amount, 2) }}</td>
+                            <td class="text-right">{{ Formatter::amount($note->amount) }}</td>
                             <td>
                                 @php
                                     $badgeClass = 'secondary';

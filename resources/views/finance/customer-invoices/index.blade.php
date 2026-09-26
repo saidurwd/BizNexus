@@ -33,9 +33,9 @@
                             <td>{{ $invoice->invoice_number }}</td>
                             <td>{{ $invoice->invoice_date->format('Y-m-d') }}</td>
                             <td>{{ $invoice->customer?->name ?? '-' }}</td>
-                            <td class="text-right">{{ number_format($invoice->subtotal, 2) }}</td>
-                            <td class="text-right">{{ number_format($invoice->tax_amount, 2) }}</td>
-                            <td class="text-right">{{ number_format($invoice->total_amount, 2) }}</td>
+                            <td class="text-right">{{ Formatter::amount($invoice->subtotal, $invoice->currency?->code) }}</td>
+                            <td class="text-right">{{ Formatter::amount($invoice->tax_amount, $invoice->currency?->code) }}</td>
+                            <td class="text-right">{{ Formatter::amount($invoice->total_amount, $invoice->currency?->code) }}</td>
                             <td>
                                 <span class="badge bg-{{ $invoice->status === 'PAID' ? 'success' : ($invoice->status === 'APPROVED' ? 'info' : ($invoice->status === 'DRAFT' ? 'secondary' : 'warning')) }}">
                                     {{ $invoice->status }}

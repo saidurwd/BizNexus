@@ -25,7 +25,7 @@ class CustomerInvoiceController extends Controller
     public function index(Request $request)
     {
 
-        $invoices = CustomerInvoice::with('customer')
+        $invoices = CustomerInvoice::with(['customer', 'currency'])
             ->orderBy('invoice_date', 'desc')
             ->paginate(20);
 
@@ -67,7 +67,7 @@ class CustomerInvoiceController extends Controller
     public function show(string $id)
     {
 
-        $invoice = CustomerInvoice::with('customer')->findOrFail($id);
+        $invoice = CustomerInvoice::with(['customer', 'currency'])->findOrFail($id);
 
         return view('finance.customer-invoices.show', compact('invoice'));
     }

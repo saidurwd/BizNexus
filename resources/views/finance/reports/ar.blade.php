@@ -29,12 +29,12 @@
                     @forelse($arAging as $item)
                         <tr>
                             <td>{{ $item['customer_name'] }}</td>
-                            <td class="text-right">{{ number_format($item['current'], 2) }}</td>
-                            <td class="text-right">{{ number_format($item['days_1_30'], 2) }}</td>
-                            <td class="text-right">{{ number_format($item['days_31_60'], 2) }}</td>
-                            <td class="text-right">{{ number_format($item['days_61_90'], 2) }}</td>
-                            <td class="text-right">{{ number_format($item['over_90_days'], 2) }}</td>
-                            <td class="text-right">{{ number_format($item['total'], 2) }}</td>
+                            <td class="text-right">{{ Formatter::amount($item['current']) }}</td>
+                            <td class="text-right">{{ Formatter::amount($item['days_1_30']) }}</td>
+                            <td class="text-right">{{ Formatter::amount($item['days_31_60']) }}</td>
+                            <td class="text-right">{{ Formatter::amount($item['days_61_90']) }}</td>
+                            <td class="text-right">{{ Formatter::amount($item['over_90_days']) }}</td>
+                            <td class="text-right">{{ Formatter::amount($item['total']) }}</td>
                         </tr>
                         @php
                             $totalCurrent += $item['current'];
@@ -52,12 +52,12 @@
                 <tfoot>
                     <tr class="bg-secondary">
                         <td><strong>TOTAL</strong></td>
-                        <td class="text-right"><strong>{{ number_format($totalCurrent, 2) }}</strong></td>
-                        <td class="text-right"><strong>{{ number_format($total130, 2) }}</strong></td>
-                        <td class="text-right"><strong>{{ number_format($total3160, 2) }}</strong></td>
-                        <td class="text-right"><strong>{{ number_format($total6190, 2) }}</strong></td>
-                        <td class="text-right"><strong>{{ number_format($totalOver90, 2) }}</strong></td>
-                        <td class="text-right"><strong>{{ number_format($totalCurrent + $total130 + $total3160 + $total6190 + $totalOver90, 2) }}</strong></td>
+                        <td class="text-right"><strong>{{ Formatter::amount($totalCurrent) }}</strong></td>
+                        <td class="text-right"><strong>{{ Formatter::amount($total130) }}</strong></td>
+                        <td class="text-right"><strong>{{ Formatter::amount($total3160) }}</strong></td>
+                        <td class="text-right"><strong>{{ Formatter::amount($total6190) }}</strong></td>
+                        <td class="text-right"><strong>{{ Formatter::amount($totalOver90) }}</strong></td>
+                        <td class="text-right"><strong>{{ Formatter::amount($totalCurrent + $total130 + $total3160 + $total6190 + $totalOver90) }}</strong></td>
                     </tr>
                 </tfoot>
             </table>
