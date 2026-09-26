@@ -38,6 +38,7 @@
                 </div>
                 <div class="col-md-3">
                     <strong>Period:</strong> {{ $startDate ?? 'Beginning' }} to {{ $endDate ?? 'Current' }}
+                    <div class="small text-body-secondary">{{ __('Posted documents only, in the functional currency.') }}</div>
                 </div>
                 <div class="col-md-3 text-end">
                     <strong>Closing Balance:</strong> {{ Formatter::amount($statement['closing_balance']) }}
@@ -66,10 +67,10 @@
                         </tr>
                         @foreach($statement['entries'] as $entry)
                             <tr>
-                                <td>{{ $entry['date'] }}</td>
+                                <td>{{ Formatter::date($entry['date']) }}</td>
                                 <td>
-                                    <span class="badge bg-{{ $entry['type'] === 'invoice' ? 'primary' : 'success' }}">
-                                        {{ ucfirst($entry['type']) }}
+                                    <span class="badge text-bg-{{ $entry['type'] === 'invoice' ? 'primary' : (str_ends_with($entry['type'], 'note') ? 'info' : 'success') }}">
+                                        {{ __(ucfirst(str_replace('_', ' ', $entry['type']))) }}
                                     </span>
                                 </td>
                                 <td>{{ $entry['number'] }}</td>
@@ -82,7 +83,7 @@
                         <tr class="table-active">
                             <td colspan="4"><strong>Closing Balance</strong></td>
                             <td class="text-end"><strong>{{ Formatter::amount($statement['total_invoices']) }}</strong></td>
-                            <td class="text-end"><strong>{{ Formatter::amount($statement['total_payments']) }}</strong></td>
+                            <td class="text-end"><strong>{{ Formatter::amount(bcadd($statement['total_payments'], $statement['total_credits'], 4)) }}</strong></td>
                             <td class="text-end"><strong>{{ Formatter::amount($statement['closing_balance']) }}</strong></td>
                         </tr>
                     </tbody>

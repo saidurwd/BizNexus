@@ -207,6 +207,25 @@ return [
         'dynamic' => true,
     ],
 
+    // Customer Credit Notes
+    'finance.customer-credit-notes' => [
+        'label' => 'Customer Credit Notes',
+        'parent' => null,
+    ],
+    'finance.customer-credit-notes.index' => [
+        'label' => 'Credit Note List',
+        'parent' => 'finance.customer-credit-notes',
+    ],
+    'finance.customer-credit-notes.create' => [
+        'label' => 'New Credit Note',
+        'parent' => 'finance.customer-credit-notes',
+    ],
+    'finance.customer-credit-notes.show' => [
+        'label' => 'Credit Note Details',
+        'parent' => 'finance.customer-credit-notes',
+        'dynamic' => true,
+    ],
+
     // Taxes
     'finance.taxes' => [
         'label' => 'Tax',

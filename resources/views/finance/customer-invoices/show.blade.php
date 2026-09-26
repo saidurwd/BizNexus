@@ -164,6 +164,11 @@
         @endif
 
         @if(in_array($invoice->status, ['POSTED', 'PARTIALLY_PAID', 'PAID'], true))
+            @can('finance.customer-credit-notes.create')
+                <a href="{{ route('finance.customer-credit-notes.create', ['invoice' => $invoice->id]) }}" class="btn btn-outline-primary ms-2">
+                    <i class="bi bi-arrow-counterclockwise"></i> {{ __('Issue credit note') }}
+                </a>
+            @endcan
             <a href="{{ route('finance.customer-invoices.e-invoice', $invoice->id) }}" class="btn btn-outline-secondary ms-2">
                 <i class="bi bi-filetype-xml"></i> E-invoice (UBL)
             </a>

@@ -77,6 +77,15 @@ class PermissionCatalog
         'finance.supplier-invoices.submit' => ['name' => 'Submit Supplier Invoices', 'group' => 'Finance'],
         'finance.supplier-invoices.update' => ['name' => 'Edit Supplier Invoices', 'group' => 'Finance'],
         'finance.supplier-invoices.view' => ['name' => 'View Supplier Invoices', 'group' => 'Finance'],
+        'finance.customer-credit-notes.view' => ['name' => 'View Customer Credit Notes', 'group' => 'Finance'],
+        'finance.customer-credit-notes.create' => ['name' => 'Create Customer Credit Notes', 'group' => 'Finance'],
+        'finance.customer-credit-notes.update' => ['name' => 'Edit Customer Credit Notes', 'group' => 'Finance'],
+        'finance.customer-credit-notes.delete' => ['name' => 'Delete Customer Credit Notes', 'group' => 'Finance'],
+        'finance.customer-credit-notes.submit' => ['name' => 'Submit Customer Credit Notes', 'group' => 'Finance'],
+        'finance.customer-credit-notes.approve' => ['name' => 'Approve Customer Credit Notes', 'group' => 'Finance'],
+        'finance.customer-credit-notes.reject' => ['name' => 'Reject Customer Credit Notes', 'group' => 'Finance'],
+        'finance.customer-credit-notes.post' => ['name' => 'Post Customer Credit Notes', 'group' => 'Finance'],
+        'finance.customer-credit-notes.cancel' => ['name' => 'Cancel Customer Credit Notes', 'group' => 'Finance'],
     ];
 
     /**
@@ -164,6 +173,15 @@ class PermissionCatalog
         'core.fiscal-years.reopen' => ['core.periods.reopen'],
         'finance.intercompany.view' => ['finance.journals.view'],
         'finance.intercompany.create' => ['finance.journals.post'],
+        'finance.customer-credit-notes.view' => ['finance.customer-invoices.view'],
+        'finance.customer-credit-notes.create' => ['finance.customer-invoices.create'],
+        'finance.customer-credit-notes.update' => ['finance.customer-invoices.update'],
+        'finance.customer-credit-notes.delete' => ['finance.customer-invoices.delete'],
+        'finance.customer-credit-notes.submit' => ['finance.customer-invoices.submit'],
+        'finance.customer-credit-notes.approve' => ['finance.customer-invoices.approve'],
+        'finance.customer-credit-notes.reject' => ['finance.customer-invoices.reject'],
+        'finance.customer-credit-notes.post' => ['finance.customer-invoices.post'],
+        'finance.customer-credit-notes.cancel' => ['finance.customer-invoices.cancel'],
     ];
 
     /**

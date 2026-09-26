@@ -27,6 +27,7 @@ use Modules\Finance\Controllers\Web\CashAccountController;
 use Modules\Finance\Controllers\Web\ConsolidationController;
 use Modules\Finance\Controllers\Web\CostCenterController;
 use Modules\Finance\Controllers\Web\CustomerController;
+use Modules\Finance\Controllers\Web\CustomerCreditNoteController;
 use Modules\Finance\Controllers\Web\CustomerInvoiceController;
 use Modules\Finance\Controllers\Web\CustomerStatementController;
 use Modules\Finance\Controllers\Web\EInvoiceController;
@@ -316,6 +317,20 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::post('/customer-invoices/{id}/post', [CustomerInvoiceController::class, 'post'])->middleware('permission:finance.customer-invoices.post')->name('customer-invoices.post');
         Route::post('/customer-invoices/{id}/cancel', [CustomerInvoiceController::class, 'cancel'])->middleware('permission:finance.customer-invoices.cancel')->name('customer-invoices.cancel');
         Route::get('/customer-invoices/{id}/e-invoice', [EInvoiceController::class, 'show'])->whereNumber('id')->middleware('permission:finance.customer-invoices.view')->name('customer-invoices.e-invoice');
+
+        // Customer Credit Notes
+        Route::get('/customer-credit-notes', [CustomerCreditNoteController::class, 'index'])->middleware('permission:finance.customer-credit-notes.view')->name('customer-credit-notes.index');
+        Route::get('/customer-credit-notes/create', [CustomerCreditNoteController::class, 'create'])->middleware('permission:finance.customer-credit-notes.create')->name('customer-credit-notes.create');
+        Route::post('/customer-credit-notes', [CustomerCreditNoteController::class, 'store'])->middleware('permission:finance.customer-credit-notes.create')->name('customer-credit-notes.store');
+        Route::get('/customer-credit-notes/{id}', [CustomerCreditNoteController::class, 'show'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.view')->name('customer-credit-notes.show');
+        Route::get('/customer-credit-notes/{id}/edit', [CustomerCreditNoteController::class, 'edit'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.update')->name('customer-credit-notes.edit');
+        Route::put('/customer-credit-notes/{id}', [CustomerCreditNoteController::class, 'update'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.update')->name('customer-credit-notes.update');
+        Route::delete('/customer-credit-notes/{id}', [CustomerCreditNoteController::class, 'destroy'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.delete')->name('customer-credit-notes.destroy');
+        Route::post('/customer-credit-notes/{id}/submit', [CustomerCreditNoteController::class, 'submit'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.submit')->name('customer-credit-notes.submit');
+        Route::post('/customer-credit-notes/{id}/approve', [CustomerCreditNoteController::class, 'approve'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.approve')->name('customer-credit-notes.approve');
+        Route::post('/customer-credit-notes/{id}/reject', [CustomerCreditNoteController::class, 'reject'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.reject')->name('customer-credit-notes.reject');
+        Route::post('/customer-credit-notes/{id}/post', [CustomerCreditNoteController::class, 'post'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.post')->name('customer-credit-notes.post');
+        Route::post('/customer-credit-notes/{id}/cancel', [CustomerCreditNoteController::class, 'cancel'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.cancel')->name('customer-credit-notes.cancel');
 
         // Customer Statements
         Route::get('/customer-statements', [CustomerStatementController::class, 'index'])->middleware('permission:finance.customers.view')->name('customer-statements.index');

@@ -1031,6 +1031,11 @@ return [
                             'icon' => 'bi bi-file-text',
                         ],
                         [
+                            'text' => 'Customer Credit Notes',
+                            'url' => 'finance/customer-credit-notes', 'can' => 'finance.customer-credit-notes.view',
+                            'icon' => 'bi bi-arrow-counterclockwise',
+                        ],
+                        [
                             'text' => 'Receipts',
                             'url' => 'finance/receipts', 'can' => 'finance.receipts.view',
                             'icon' => 'bi bi-cash-stack',

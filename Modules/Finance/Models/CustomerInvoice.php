@@ -102,6 +102,14 @@ class CustomerInvoice extends Model
         return $this->hasMany(ReceiptAllocation::class, 'customer_invoice_id');
     }
 
+    /**
+     * Credit notes issued against this invoice.
+     */
+    public function creditNotes(): HasMany
+    {
+        return $this->hasMany(CustomerCreditNote::class);
+    }
+
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -147,8 +155,11 @@ class CustomerInvoice extends Model
         $paidAmount = $this->allocations()
             ->whereHas('receipt', fn ($q) => $q->where('status', 'POSTED'))
             ->sum('amount');
+        $creditedAmount = $this->creditNotes()
+            ->where('status', CustomerCreditNote::STATUS_POSTED)
+            ->sum('applied_amount');
 
-        $this->outstanding_amount = (float) bcsub($this->total_amount, $paidAmount, 4);
+        $this->outstanding_amount = (float) bcsub(bcsub((string) $this->total_amount, (string) $paidAmount, 4), (string) $creditedAmount, 4);
 
         if (bccomp($this->outstanding_amount, 0, 4) <= 0) {
             $this->status = self::STATUS_PAID;
