@@ -24,6 +24,7 @@ use Modules\Finance\Controllers\Web\BankReconciliationController;
 use Modules\Finance\Controllers\Web\BudgetController;
 use Modules\Finance\Controllers\Web\BudgetLineController;
 use Modules\Finance\Controllers\Web\CashAccountController;
+use Modules\Finance\Controllers\Web\ConsolidationController;
 use Modules\Finance\Controllers\Web\CostCenterController;
 use Modules\Finance\Controllers\Web\CustomerController;
 use Modules\Finance\Controllers\Web\CustomerInvoiceController;
@@ -157,6 +158,11 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         // Intercompany
         Route::get('/intercompany', [IntercompanyController::class, 'index'])->middleware('permission:finance.intercompany.view')->name('intercompany.index');
         Route::post('/intercompany', [IntercompanyController::class, 'store'])->middleware('permission:finance.intercompany.create')->name('intercompany.store');
+
+        // Consolidation
+        Route::get('/consolidation', [ConsolidationController::class, 'index'])->middleware('permission:finance.consolidation.view')->name('consolidation.index');
+        Route::post('/consolidation', [ConsolidationController::class, 'store'])->middleware('permission:finance.consolidation.manage')->name('consolidation.store');
+        Route::get('/consolidation/{id}', [ConsolidationController::class, 'show'])->whereNumber('id')->middleware('permission:finance.consolidation.view')->name('consolidation.show');
 
         // Foreign currency revaluation
         Route::get('/fx-revaluations', [FxRevaluationController::class, 'index'])->middleware('permission:finance.fx-revaluation.view')->name('fx-revaluations.index');

@@ -931,6 +931,11 @@ return [
                     'icon' => 'bi bi-arrow-left-right',
                 ],
                 [
+                    'text' => 'Consolidation',
+                    'url' => 'finance/consolidation', 'can' => 'finance.consolidation.view',
+                    'icon' => 'bi bi-diagram-2',
+                ],
+                [
                     'text' => 'FX Revaluation',
                     'url' => 'finance/fx-revaluations', 'can' => 'finance.fx-revaluation.view',
                     'icon' => 'bi bi-currency-exchange',
