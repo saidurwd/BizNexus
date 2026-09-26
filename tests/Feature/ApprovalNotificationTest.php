@@ -29,6 +29,15 @@ test('submitting a document notifies its approvers and their delegates, not the 
         ->and($clerk->notifications()->count())->toBe(0)
         ->and($bystander->notifications()->count())->toBe(0);
 
-    actingInCompany($approver, $company)->get(route('dashboard'))->assertOk()->assertSee('1 unread notification');
+    actingInCompany($approver, $company)->getJson(route('core.notifications.dropdown'))
+        ->assertOk()
+        ->assertJson(['label' => 1, 'label_color' => 'danger'])
+        ->assertJsonPath('dropdown', fn (string $html) => str_contains($html, $invoice->invoice_number) && str_contains($html, '1 unread notification'));
+
+    $notificationId = $approver->notifications()->value('id');
+    actingInCompany($approver, $company)->get(route('core.notifications.open', $notificationId))
+        ->assertRedirect(route('finance.customer-invoices.show', $invoice->id));
+    expect($approver->unreadNotifications()->count())->toBe(0);
+
     actingInCompany($approver, $company)->get(route('core.notifications.index'))->assertOk()->assertSee($invoice->invoice_number)->assertSee(route('finance.customer-invoices.show', $invoice->id), false);
 });

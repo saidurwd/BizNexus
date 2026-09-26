@@ -1,5 +1,6 @@
 <?php
 
+use App\Menu\TranslateDropdownFooterFilter;
 use JeroenNoten\LaravelAdminLte\Menu\Filters\ActiveFilter;
 use JeroenNoten\LaravelAdminLte\Menu\Filters\ClassesFilter;
 use JeroenNoten\LaravelAdminLte\Menu\Filters\DataFilter;
@@ -788,6 +789,18 @@ return [
             'topnav_right' => true,
         ],
         [
+            'type' => 'navbar-notification',
+            'id' => 'navbar-notifications',
+            'icon' => 'bi bi-bell',
+            'label' => '',
+            'label_color' => 'danger',
+            'route' => 'core.notifications.index',
+            'topnav_right' => true,
+            'dropdown_mode' => true,
+            'dropdown_flabel' => 'See all notifications',
+            'update_cfg' => ['route' => 'core.notifications.dropdown', 'period' => 60],
+        ],
+        [
             'type' => 'darkmode-widget',
             'topnav_right' => true,
         ],
@@ -1053,6 +1066,7 @@ return [
         ClassesFilter::class,
         LangFilter::class,
         DataFilter::class,
+        TranslateDropdownFooterFilter::class,
     ],
 
     /*

@@ -22,6 +22,7 @@ const SELF_SERVICE_ROUTES = [
     'branch.selection', 'branch.selection.submit', 'branch.switch', 'auth.branches.index',
     'core.notifications.index', 'core.notifications.show', 'core.notifications.mark-read',
     'core.notifications.mark-all-read', 'core.notifications.destroy', 'core.notifications.destroy-all',
+    'core.notifications.dropdown', 'core.notifications.open',
 ];
 
 /**

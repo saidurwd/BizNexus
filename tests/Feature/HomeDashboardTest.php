@@ -37,12 +37,12 @@ test('the dashboard shows ledger balances and profit for the fiscal year to date
         ->assertDontSee('Conversion Rate');
 });
 
-test('every page shows the active company in the navigation bar', function () {
+test('the top bar has the notification bell next to search and no company selector', function () {
     actingInCompany(companyUser([], $this->company), $this->company)
         ->get(route('dashboard'))
         ->assertOk()
-        ->assertSee(route('profile.edit').'#switch-company', false)
-        ->assertSee($this->company->code);
+        ->assertSeeInOrder(['navbar-search', 'id="navbar-notifications"', route('core.notifications.dropdown')], false)
+        ->assertDontSee('#switch-company', false);
 });
 
 test('users without the finance dashboard permission only see the work they can act on', function () {

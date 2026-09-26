@@ -102,46 +102,6 @@
 
     </div>
 @stop
-
-@section('content_top_nav_right')
-    @auth
-        @php
-            $companyContext = app(\Modules\Core\Services\CompanyContextService::class);
-            $branchContext = app(\Modules\Core\Services\BranchContextService::class);
-            $activeCompany = $companyContext->getActiveCompany();
-            $activeBranch = $branchContext->getActiveBranch();
-        @endphp
-
-        @php $unreadNotifications = auth()->user()->unreadNotifications()->count(); @endphp
-        <li class="nav-item">
-            <a class="nav-link position-relative" href="{{ route('core.notifications.index') }}" title="{{ __('Notifications') }}">
-                <i class="bi bi-bell" aria-hidden="true"></i>
-                @if($unreadNotifications > 0)
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-danger">{{ $unreadNotifications > 99 ? '99+' : $unreadNotifications }}</span>
-                @endif
-                <span class="visually-hidden">{{ trans_choice(':count unread notification|:count unread notifications', $unreadNotifications) }}</span>
-            </a>
-        </li>
-        @if($activeCompany)
-            <li class="nav-item">
-                <a class="nav-link" href="{{ route('profile.edit') }}#switch-company" title="{{ __('Active company and branch') }}">
-                    <span class="badge text-bg-primary d-inline-flex align-items-center gap-1">
-                        @if($activeCompany->logoUrl())
-                            <img src="{{ $activeCompany->logoUrl() }}" alt="" style="height: 14px; max-width: 48px; background: #fff; border-radius: 2px;">
-                        @else
-                            <i class="bi bi-building" aria-hidden="true"></i>
-                        @endif
-                        {{ $activeCompany->code }}<span class="d-none d-md-inline"> · {{ $activeCompany->name }}</span>
-                        @if($activeBranch)
-                            <span class="d-none d-lg-inline"> · {{ $activeBranch->code }}</span>
-                        @endif
-                    </span>
-                </a>
-            </li>
-        @endif
-    @endauth
-@show
-
 @section('adminlte_css')
     @stack('css')
     @yield('css')

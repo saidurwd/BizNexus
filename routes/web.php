@@ -113,6 +113,8 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
 
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('core.notifications.index');
+    Route::get('/notifications/dropdown', [NotificationController::class, 'dropdown'])->name('core.notifications.dropdown');
+    Route::get('/notifications/{id}/open', [NotificationController::class, 'open'])->name('core.notifications.open');
     Route::get('/notifications/{id}', [NotificationController::class, 'show'])->name('core.notifications.show');
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('core.notifications.mark-read');
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('core.notifications.mark-all-read');
