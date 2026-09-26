@@ -28,7 +28,7 @@ class StoreSupplierInvoiceRequest extends FormRequest
                 ->where('supplier_id', (int) $this->input('supplier_id'))
                 ->ignore($this->route('id'))],
             'invoice_date' => ['required', 'date'],
-            'due_date' => ['required', 'date', 'after_or_equal:invoice_date'],
+            'due_date' => ['nullable', 'date', 'after_or_equal:invoice_date'],
             'currency_id' => ['nullable', Rule::exists('currencies', 'id')],
             'discount_amount' => ['nullable', 'numeric', 'min:0'],
             'description' => ['nullable', 'string', 'max:1000'],

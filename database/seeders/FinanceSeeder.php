@@ -15,6 +15,7 @@ use Modules\Finance\Enums\AccountPurpose;
 use Modules\Finance\Models\Account;
 use Modules\Finance\Models\AccountCategory;
 use Modules\Finance\Models\AccountMapping;
+use Modules\Finance\Models\PaymentTerm;
 
 class FinanceSeeder extends Seeder
 {
@@ -71,6 +72,7 @@ class FinanceSeeder extends Seeder
                 'status' => 'active',
             ]
         );
+        PaymentTerm::createDefaultsFor($company->id);
 
         app(CompanyContextService::class)->runAs($company->id, function () use ($company) {
             $this->createFiscalYear($company);

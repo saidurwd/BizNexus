@@ -70,6 +70,7 @@
 
             <div class="app-content @unless(View::hasSection('content_header')) pt-3 @endunless">
                 <div class="container-fluid">
+                    @include('layouts.partials.flash-messages')
                     @yield('content')
                 </div>
             </div>

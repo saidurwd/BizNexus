@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Services;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
@@ -10,7 +11,9 @@ use Modules\Core\Services\AuditService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
+use Modules\Core\Support\Formatter;
 use Modules\Finance\Events\CustomerInvoiceApproved;
+use Modules\Finance\Models\Customer;
 use Modules\Finance\Models\CustomerInvoice;
 use Modules\Finance\Services\Concerns\EnforcesSegregationOfDuties;
 use Modules\Workflow\Services\WorkflowService;
@@ -33,7 +36,7 @@ class CustomerInvoiceService
                 'customer_id' => $data['customer_id'],
                 'invoice_number' => $data['invoice_number'] ?? $this->documentNumber->generateNumber($data['company_id'], 'CI'),
                 'invoice_date' => $data['invoice_date'],
-                'due_date' => $data['due_date'],
+                'due_date' => $data['due_date'] ?? Customer::findOrFail($data['customer_id'])->dueDateFor(Carbon::parse($data['invoice_date']))->toDateString(),
                 'currency_id' => $data['currency_id'] ?? null,
                 'exchange_rate' => $data['exchange_rate'] ?? app(ExchangeRateService::class)->rateForDocument(app(CompanyContextService::class)->getActiveCompanyId(), $data['currency_id'] ?? null, $data['invoice_date']),
                 'subtotal' => 0,
@@ -147,6 +150,8 @@ class CustomerInvoiceService
             throw new InvalidAccountingTransactionException('Only draft invoices can be submitted');
         }
 
+        $this->ensureWithinCreditLimit($invoice);
+
         $invoice->update(['status' => CustomerInvoice::STATUS_SUBMITTED]);
 
         $this->audit->logCustom('Finance', 'CustomerInvoice', $invoice->id, 'SUBMIT', [
@@ -259,7 +264,7 @@ class CustomerInvoiceService
             'customer_id' => $data['customer_id'],
             'invoice_number' => $data['invoice_number'] ?? $invoice->invoice_number,
             'invoice_date' => $data['invoice_date'],
-            'due_date' => $data['due_date'],
+            'due_date' => $data['due_date'] ?? Customer::findOrFail($data['customer_id'])->dueDateFor(Carbon::parse($data['invoice_date']))->toDateString(),
             'currency_id' => $data['currency_id'] ?? null,
             'exchange_rate' => $data['exchange_rate'] ?? app(ExchangeRateService::class)->rateForDocument(app(CompanyContextService::class)->getActiveCompanyId(), $data['currency_id'] ?? null, $data['invoice_date']),
             'discount_amount' => $data['discount_amount'] ?? 0,
@@ -288,5 +293,38 @@ class CustomerInvoiceService
         app(DocumentTaxService::class)->recalculate($invoice);
 
         return $invoice->fresh();
+    }
+
+    /**
+     * Refuse (or, in "warn" mode, flag) an invoice that takes the customer's open receivables above their credit
+     * limit. Amounts are compared in the functional currency.
+     */
+    public function ensureWithinCreditLimit(CustomerInvoice $invoice): void
+    {
+        $mode = config('finance.controls.credit_limit', 'block');
+        $customer = $invoice->customer;
+
+        if ($mode === 'off' || $customer?->credit_limit === null) {
+            return;
+        }
+
+        $open = app(ReceiptService::class)->getARAging((int) $invoice->company_id, $customer->id)['total'];
+        $exposure = bcadd($open, bcmul((string) $invoice->total_amount, (string) ($invoice->exchange_rate ?: 1), 4), 4);
+
+        if (bccomp($exposure, (string) $customer->credit_limit, 4) <= 0) {
+            return;
+        }
+
+        $message = __(':customer would owe :exposure, above the credit limit of :limit.', [
+            'customer' => $customer->name,
+            'exposure' => Formatter::amount($exposure),
+            'limit' => Formatter::amount($customer->credit_limit),
+        ]);
+
+        if ($mode === 'block') {
+            throw new InvalidAccountingTransactionException($message);
+        }
+
+        session()->flash('warning', $message);
     }
 }

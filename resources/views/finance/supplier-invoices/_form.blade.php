@@ -9,7 +9,7 @@
         <select id="supplier_id" name="supplier_id" class="form-select @error('supplier_id') is-invalid @enderror" data-searchable required>
             <option value="">{{ __('Select supplier') }}</option>
             @foreach ($suppliers as $supplier)
-                <option value="{{ $supplier->id }}" @selected((string) old('supplier_id', $invoice?->supplier_id) === (string) $supplier->id)>{{ $supplier->supplier_code ? $supplier->supplier_code.' — ' : '' }}{{ $supplier->name }}</option>
+                <option value="{{ $supplier->id }}" data-due-days="{{ $supplier->paymentTerm?->due_days }}" data-due-basis="{{ $supplier->paymentTerm?->due_basis }}" @selected((string) old('supplier_id', $invoice?->supplier_id) === (string) $supplier->id)>{{ $supplier->supplier_code ? $supplier->supplier_code.' — ' : '' }}{{ $supplier->name }}</option>
             @endforeach
         </select>
         @error('supplier_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -36,7 +36,8 @@
     </div>
     <div class="col-md-4">
         <label for="due_date" class="form-label">{{ __('Due date') }}</label>
-        <input type="date" id="due_date" name="due_date" class="form-control @error('due_date') is-invalid @enderror" value="{{ old('due_date', $invoice?->due_date?->toDateString() ?? now()->addDays(30)->toDateString()) }}" required>
+        <input type="date" id="due_date" name="due_date" class="form-control @error('due_date') is-invalid @enderror" value="{{ old('due_date', $invoice?->due_date?->toDateString()) }}" data-due-date>
+        <div class="form-text">{{ __("Filled in from the payment term; leave empty to use it.") }}</div>
         @error('due_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
     </div>
     <div class="col-md-4">
@@ -52,3 +53,29 @@
 
 <h5 class="mt-4">{{ __('Lines') }}</h5>
 <x-finance.document-lines :accounts="$accounts" :taxes="$taxes" :lines="$lines" />
+
+@once
+    @push('js')
+        <script type="module">
+            const party = document.querySelector('#supplier_id');
+            const invoiceDate = document.querySelector('#invoice_date');
+            const dueDate = document.querySelector('[data-due-date]');
+
+            const fillDueDate = () => {
+                const option = party?.selectedOptions[0];
+                if (!option || option.dataset.dueDays === '' || !invoiceDate.value) {
+                    return;
+                }
+                const date = new Date(invoiceDate.value + 'T00:00:00Z');
+                if (option.dataset.dueBasis === 'end_of_month') {
+                    date.setUTCMonth(date.getUTCMonth() + 1, 0);
+                }
+                date.setUTCDate(date.getUTCDate() + Number(option.dataset.dueDays));
+                dueDate.value = date.toISOString().slice(0, 10);
+            };
+
+            party?.addEventListener('change', fillDueDate);
+            invoiceDate?.addEventListener('change', fillDueDate);
+        </script>
+    @endpush
+@endonce

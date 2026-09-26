@@ -103,7 +103,7 @@ class CustomerInvoiceController extends Controller
     protected function formData(): array
     {
         return [
-            'customers' => Customer::where('status', 'active')->orderBy('name')->get(),
+            'customers' => Customer::with('paymentTerm')->where('status', 'active')->orderBy('name')->get(),
             'accounts' => Account::postable()->active()->orderBy('account_code')->get(['id', 'account_code', 'account_name']),
             'taxes' => Tax::where('status', 'active')->orderBy('tax_code')->get(),
             'currencies' => Currency::where('status', 'active')->orderBy('code')->get(),

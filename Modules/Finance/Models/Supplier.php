@@ -3,6 +3,8 @@
 namespace Modules\Finance\Models;
 
 use App\Models\User;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Database\Factories\SupplierFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -33,6 +35,7 @@ class Supplier extends Model
         'tax_number',
         'country_code',
         'currency_id',
+        'payment_term_id',
         'payable_account_id',
         'status',
         'created_by',
@@ -89,5 +92,18 @@ class Supplier extends Model
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
+    }
+
+    public function paymentTerm(): BelongsTo
+    {
+        return $this->belongsTo(PaymentTerm::class);
+    }
+
+    /**
+     * The due date of an invoice dated on the given day under this party's payment term (on the day without one).
+     */
+    public function dueDateFor(CarbonInterface $invoiceDate): CarbonImmutable
+    {
+        return $this->paymentTerm?->dueDate($invoiceDate) ?? CarbonImmutable::parse($invoiceDate)->startOfDay();
     }
 }

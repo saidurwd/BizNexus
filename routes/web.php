@@ -38,6 +38,7 @@ use Modules\Finance\Controllers\Web\FxRevaluationController;
 use Modules\Finance\Controllers\Web\IntercompanyController;
 use Modules\Finance\Controllers\Web\JournalController;
 use Modules\Finance\Controllers\Web\PaymentController;
+use Modules\Finance\Controllers\Web\PaymentTermController;
 use Modules\Finance\Controllers\Web\ReceiptController;
 use Modules\Finance\Controllers\Web\RecurringJournalController;
 use Modules\Finance\Controllers\Web\ReportController;
@@ -230,6 +231,9 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::get('/customers/create', [CustomerController::class, 'create'])->middleware('permission:finance.customers.create')->name('customers.create');
         Route::post('/customers', [CustomerController::class, 'store'])->middleware('permission:finance.customers.create')->name('customers.store');
         Route::get('/customers/{id}', [CustomerController::class, 'show'])->middleware('permission:finance.customers.view')->name('customers.show');
+        Route::get('/customers/{id}/edit', [CustomerController::class, 'edit'])->whereNumber('id')->middleware('permission:finance.customers.update')->name('customers.edit');
+        Route::put('/customers/{id}', [CustomerController::class, 'update'])->whereNumber('id')->middleware('permission:finance.customers.update')->name('customers.update');
+        Route::delete('/customers/{id}', [CustomerController::class, 'destroy'])->whereNumber('id')->middleware('permission:finance.customers.delete')->name('customers.destroy');
 
         // Reports
         Route::prefix('reports')->name('reports.')->group(function () {
@@ -317,6 +321,12 @@ Route::middleware(['auth', 'verified', 'company.and.branch'])->group(function ()
         Route::get('/customer-invoices/{id}/e-invoice', [EInvoiceController::class, 'show'])->whereNumber('id')->middleware('permission:finance.customer-invoices.view')->name('customer-invoices.e-invoice');
         Route::get('/customer-invoices/{id}/pdf', [SalesDocumentPdfController::class, 'invoice'])->whereNumber('id')->middleware('permission:finance.customer-invoices.view')->name('customer-invoices.pdf');
         Route::get('/customer-credit-notes/{id}/pdf', [SalesDocumentPdfController::class, 'creditNote'])->whereNumber('id')->middleware('permission:finance.customer-credit-notes.view')->name('customer-credit-notes.pdf');
+
+        // Payment Terms
+        Route::get('/payment-terms', [PaymentTermController::class, 'index'])->middleware('permission:finance.payment-terms.view')->name('payment-terms.index');
+        Route::post('/payment-terms', [PaymentTermController::class, 'store'])->middleware('permission:finance.payment-terms.manage')->name('payment-terms.store');
+        Route::put('/payment-terms/{id}', [PaymentTermController::class, 'update'])->whereNumber('id')->middleware('permission:finance.payment-terms.manage')->name('payment-terms.update');
+        Route::delete('/payment-terms/{id}', [PaymentTermController::class, 'destroy'])->whereNumber('id')->middleware('permission:finance.payment-terms.manage')->name('payment-terms.destroy');
 
         // Customer Credit Notes
         Route::get('/customer-credit-notes', [CustomerCreditNoteController::class, 'index'])->middleware('permission:finance.customer-credit-notes.view')->name('customer-credit-notes.index');

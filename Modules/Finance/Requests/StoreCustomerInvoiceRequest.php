@@ -26,7 +26,7 @@ class StoreCustomerInvoiceRequest extends FormRequest
             'customer_id' => ['required', Rule::exists('customers', 'id')->where('company_id', $companyId)],
             'invoice_number' => ['nullable', 'string', 'max:50', Rule::unique('customer_invoices', 'invoice_number')->where('company_id', $companyId)->ignore($this->route('id'))],
             'invoice_date' => ['required', 'date'],
-            'due_date' => ['required', 'date', 'after_or_equal:invoice_date'],
+            'due_date' => ['nullable', 'date', 'after_or_equal:invoice_date'],
             'currency_id' => ['nullable', Rule::exists('currencies', 'id')],
             'discount_amount' => ['nullable', 'numeric', 'min:0'],
             'description' => ['nullable', 'string', 'max:1000'],

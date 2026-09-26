@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Services;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
@@ -11,6 +12,7 @@ use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Services\DocumentNumberService;
 use Modules\Finance\Events\SupplierInvoiceApproved;
+use Modules\Finance\Models\Supplier;
 use Modules\Finance\Models\SupplierInvoice;
 use Modules\Finance\Services\Concerns\EnforcesSegregationOfDuties;
 use Modules\Workflow\Services\WorkflowService;
@@ -34,7 +36,7 @@ class SupplierInvoiceService
                 'supplier_id' => $data['supplier_id'],
                 'invoice_number' => $data['invoice_number'] ?? $this->documentNumber->generateNumber($data['company_id'], 'SI'),
                 'invoice_date' => $data['invoice_date'],
-                'due_date' => $data['due_date'],
+                'due_date' => $data['due_date'] ?? Supplier::findOrFail($data['supplier_id'])->dueDateFor(Carbon::parse($data['invoice_date']))->toDateString(),
                 'currency_id' => $data['currency_id'] ?? null,
                 'exchange_rate' => $data['exchange_rate'] ?? app(ExchangeRateService::class)->rateForDocument(app(CompanyContextService::class)->getActiveCompanyId(), $data['currency_id'] ?? null, $data['invoice_date']),
                 'subtotal' => 0,
@@ -257,7 +259,7 @@ class SupplierInvoiceService
             'supplier_id' => $data['supplier_id'],
             'invoice_number' => $data['invoice_number'],
             'invoice_date' => $data['invoice_date'],
-            'due_date' => $data['due_date'],
+            'due_date' => $data['due_date'] ?? Supplier::findOrFail($data['supplier_id'])->dueDateFor(Carbon::parse($data['invoice_date']))->toDateString(),
             'currency_id' => $data['currency_id'] ?? null,
             'exchange_rate' => $data['exchange_rate'] ?? app(ExchangeRateService::class)->rateForDocument(app(CompanyContextService::class)->getActiveCompanyId(), $data['currency_id'] ?? null, $data['invoice_date']),
             'discount_amount' => $data['discount_amount'] ?? 0,

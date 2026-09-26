@@ -12,20 +12,6 @@
 @endsection
 
 @section('content')
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible">
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-hidden="true"></button>
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible">
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-hidden="true"></button>
-            {{ session('error') }}
-        </div>
-    @endif
-
     @if($fiscalYears->count() === 0)
         <div class="card">
             <div class="card-body text-center py-5">

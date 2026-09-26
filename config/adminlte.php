@@ -941,6 +941,7 @@ return [
             'icon' => 'bi bi-sliders',
             'submenu' => [
                 ['text' => 'Account Determination', 'url' => 'finance/account-mappings', 'icon' => 'bi bi-signpost-split', 'can' => 'finance.accounts.view'],
+                ['text' => 'Payment Terms', 'url' => 'finance/payment-terms', 'icon' => 'bi bi-calendar-check', 'can' => 'finance.payment-terms.view'],
                 ['text' => 'Exchange Rates', 'url' => 'exchange-rates', 'icon' => 'bi bi-currency-exchange', 'can' => 'core.exchange-rates.view'],
             ],
         ],

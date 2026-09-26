@@ -28,4 +28,17 @@ return [
 
     'budget_control' => env('FINANCE_BUDGET_CONTROL', 'block'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Customer Credit Limits
+    |--------------------------------------------------------------------------
+    |
+    | "block" refuses to submit an invoice that takes a customer's open
+    | receivables above their credit limit, "warn" allows it with a message,
+    | "off" ignores credit limits. Customers without a limit are not checked.
+    |
+    */
+
+    'credit_limit' => env('FINANCE_CREDIT_LIMIT', 'block'),
+
 ];
