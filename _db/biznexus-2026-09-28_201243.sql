@@ -287,7 +287,7 @@ CREATE TABLE `activity_logs` (
   CONSTRAINT `activity_logs_company_id_foreign` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE SET NULL,
   CONSTRAINT `activity_logs_tenant_id_foreign` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE SET NULL,
   CONSTRAINT `activity_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=64 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -346,7 +346,21 @@ INSERT INTO `activity_logs` VALUES
 (46,1,1,2,'POST','inventory.purchase-orders.approve','/inventory/purchase-orders/1/approve',302,12,'127.0.0.1','2026-09-26 09:22:09'),
 (47,1,1,2,'POST','inventory.goods-receipts.store','/inventory/purchase-orders/1/receive',302,34,'127.0.0.1','2026-09-26 09:22:36'),
 (48,1,NULL,1,'POST',NULL,'/login',302,284,'127.0.0.1','2026-09-26 09:51:36'),
-(49,1,1,1,'POST','company.selection.submit','/company-selection',302,9,'127.0.0.1','2026-09-26 09:51:42');
+(49,1,1,1,'POST','company.selection.submit','/company-selection',302,9,'127.0.0.1','2026-09-26 09:51:42'),
+(50,1,1,1,'POST','inventory.purchase-orders.store','/inventory/purchase-orders',302,225,'127.0.0.1','2026-09-27 05:20:23'),
+(51,1,1,1,'POST','inventory.purchase-orders.submit','/inventory/purchase-orders/2/submit',302,544,'127.0.0.1','2026-09-27 05:20:40'),
+(52,1,1,1,'POST','inventory.purchase-orders.approve','/inventory/purchase-orders/2/approve',302,87,'127.0.0.1','2026-09-27 05:20:48'),
+(53,1,NULL,1,'POST',NULL,'/login',302,462,'127.0.0.1','2026-09-27 20:42:26'),
+(54,1,1,1,'POST','company.selection.submit','/company-selection',302,16,'127.0.0.1','2026-09-27 20:42:32'),
+(55,1,NULL,1,'POST',NULL,'/login',302,393,'127.0.0.1','2026-09-28 07:51:06'),
+(56,1,1,1,'POST','company.selection.submit','/company-selection',302,10,'127.0.0.1','2026-09-28 07:51:14'),
+(57,1,1,1,'PUT','core.companies.update','/companies/2',302,196,'127.0.0.1','2026-09-28 08:00:35'),
+(58,1,1,1,'PUT','core.users.update','/users/1',302,68,'127.0.0.1','2026-09-28 08:01:40'),
+(59,1,NULL,1,'POST',NULL,'/login',302,305,'127.0.0.1','2026-09-28 08:02:17'),
+(60,1,2,1,'POST','company.selection.submit','/company-selection',302,6,'127.0.0.1','2026-09-28 08:02:23'),
+(61,1,2,1,'POST','core.branches.store','/branches',302,15,'127.0.0.1','2026-09-28 08:03:59'),
+(62,1,NULL,1,'POST',NULL,'/login',302,274,'127.0.0.1','2026-09-28 08:04:07'),
+(63,1,2,1,'POST','company.selection.submit','/company-selection',302,9,'127.0.0.1','2026-09-28 08:04:14');
 /*!40000 ALTER TABLE `activity_logs` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -602,7 +616,7 @@ CREATE TABLE `audit_logs` (
   KEY `audit_logs_created_at_index` (`created_at`),
   CONSTRAINT `audit_logs_company_id_foreign` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`),
   CONSTRAINT `audit_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -636,7 +650,9 @@ INSERT INTO `audit_logs` VALUES
 (21,1,1,'Finance','Journal',4,'SUBMIT',NULL,'{\"id\":4,\"company_id\":1,\"branch_id\":1,\"department_id\":null,\"journal_number\":\"JV-2026-000004\",\"journal_date\":\"2026-09-11T00:00:00.000000Z\",\"posting_date\":null,\"fiscal_period_id\":null,\"adjustment_period\":false,\"reference_type\":null,\"reference_id\":null,\"description\":null,\"status\":\"SUBMITTED\",\"submitted_by\":1,\"submitted_at\":\"2026-09-26T05:38:48.000000Z\",\"approved_by\":null,\"approved_at\":null,\"currency_id\":1,\"exchange_rate\":\"1.00000000\",\"total_debit\":\"0.0000\",\"total_credit\":\"0.0000\",\"posted_at\":null,\"posted_by\":null,\"reversal_of_journal_id\":null,\"reversal_reason\":null,\"reversed_at\":null,\"reversed_by\":null,\"created_by\":1,\"updated_by\":1,\"created_at\":\"2026-09-11T08:15:42.000000Z\",\"updated_at\":\"2026-09-26T05:38:48.000000Z\",\"lines\":[{\"id\":7,\"journal_id\":4,\"company_id\":1,\"counterparty_company_id\":null,\"account_id\":3,\"description\":\"Groceries\",\"debit\":\"670.0000\",\"credit\":\"0.0000\",\"currency_debit\":\"670.0000\",\"currency_credit\":\"0.0000\",\"cost_center_id\":null,\"department_id\":null,\"branch_id\":null,\"business_unit_id\":null,\"project_id\":null,\"tax_id\":null,\"reference\":null,\"line_type\":\"standard\",\"created_at\":\"2026-09-11T08:15:42.000000Z\",\"updated_at\":\"2026-09-11T08:15:42.000000Z\",\"account\":{\"id\":3,\"company_id\":1,\"parent_id\":2,\"account_code\":\"1110\",\"account_name\":\"Cash\",\"account_type\":\"ASSET\",\"account_category\":null,\"account_category_id\":null,\"normal_balance\":\"DEBIT\",\"level\":3,\"is_group\":false,\"is_postable\":true,\"revalue_foreign_currency\":false,\"is_control_account\":false,\"cash_flow_category\":null,\"is_current\":null,\"currency_id\":null,\"status\":\"active\",\"description\":null,\"created_by\":null,\"updated_by\":null,\"created_at\":\"2026-09-07T15:44:23.000000Z\",\"updated_at\":\"2026-09-07T15:44:23.000000Z\",\"deleted_at\":null}},{\"id\":8,\"journal_id\":4,\"company_id\":1,\"counterparty_company_id\":null,\"account_id\":4,\"description\":\"Expances\",\"debit\":\"0.0000\",\"credit\":\"670.0000\",\"currency_debit\":\"0.0000\",\"currency_credit\":\"670.0000\",\"cost_center_id\":null,\"department_id\":null,\"branch_id\":null,\"business_unit_id\":null,\"project_id\":null,\"tax_id\":null,\"reference\":null,\"line_type\":\"standard\",\"created_at\":\"2026-09-11T08:15:42.000000Z\",\"updated_at\":\"2026-09-11T08:15:42.000000Z\",\"account\":{\"id\":4,\"company_id\":1,\"parent_id\":2,\"account_code\":\"1120\",\"account_name\":\"Bank\",\"account_type\":\"ASSET\",\"account_category\":null,\"account_category_id\":null,\"normal_balance\":\"DEBIT\",\"level\":3,\"is_group\":false,\"is_postable\":true,\"revalue_foreign_currency\":false,\"is_control_account\":false,\"cash_flow_category\":null,\"is_current\":null,\"currency_id\":null,\"status\":\"active\",\"description\":null,\"created_by\":null,\"updated_by\":null,\"created_at\":\"2026-09-07T15:44:23.000000Z\",\"updated_at\":\"2026-09-07T15:44:23.000000Z\",\"deleted_at\":null}}],\"currency\":{\"id\":1,\"code\":\"BDT\",\"name\":\"Bangladeshi Taka\",\"symbol\":\"\\u09f3\",\"decimal_places\":2,\"status\":\"active\",\"created_at\":\"2026-09-07T15:44:23.000000Z\",\"updated_at\":\"2026-09-07T15:44:23.000000Z\"}}','127.0.0.1','Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0',NULL,'72e369f6a3331101c14193fe737a4c28aa0ab4fdaeea859acd81d735b9b92c15','2026-09-25 23:38:48'),
 (22,1,1,'Inventory','PurchaseOrder',1,'CREATE',NULL,'{\"supplier_id\":\"4\",\"supplier_reference\":\"REF#543\",\"order_date\":\"2026-09-26T00:00:00.000000Z\",\"expected_date\":\"2026-09-26T00:00:00.000000Z\",\"warehouse_id\":\"1\",\"currency_id\":null,\"branch_id\":1,\"notes\":null,\"company_id\":1,\"order_number\":\"PO-2026-000001\",\"status\":\"DRAFT\",\"created_by\":1,\"updated_at\":\"2026-09-26T11:27:24.000000Z\",\"created_at\":\"2026-09-26T11:27:24.000000Z\",\"id\":1,\"subtotal\":\"321.0000\",\"tax_amount\":\"0.0000\",\"total_amount\":\"321.0000\"}','127.0.0.1','Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0','72e369f6a3331101c14193fe737a4c28aa0ab4fdaeea859acd81d735b9b92c15','4bbebd7a0a7cd8dccd2aa135450a8b8ddd9799a6dd88c86af312a55312482a82','2026-09-26 05:27:24'),
 (23,1,1,'Inventory','PurchaseOrder',1,'SUBMIT',NULL,'{\"previous_status\":\"DRAFT\"}','127.0.0.1','Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0','4bbebd7a0a7cd8dccd2aa135450a8b8ddd9799a6dd88c86af312a55312482a82','b5467d5de3ae9d5c2d1d8001490fe2ce6e847cb1727c5597250e722e8dfbc0b5','2026-09-26 05:27:48'),
-(24,1,2,'Inventory','PurchaseOrder',1,'APPROVE',NULL,'{\"previous_status\":\"SUBMITTED\"}','127.0.0.1','Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0','b5467d5de3ae9d5c2d1d8001490fe2ce6e847cb1727c5597250e722e8dfbc0b5','615865f1c5f97afd4a250552e2101bba7e989bac8d446c0bd31b36c8f2c02a59','2026-09-26 09:22:09');
+(24,1,2,'Inventory','PurchaseOrder',1,'APPROVE',NULL,'{\"previous_status\":\"SUBMITTED\"}','127.0.0.1','Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0','b5467d5de3ae9d5c2d1d8001490fe2ce6e847cb1727c5597250e722e8dfbc0b5','615865f1c5f97afd4a250552e2101bba7e989bac8d446c0bd31b36c8f2c02a59','2026-09-26 09:22:09'),
+(25,1,1,'Inventory','PurchaseOrder',2,'CREATE',NULL,'{\"supplier_id\":\"5\",\"supplier_reference\":\"REF#5433\",\"order_date\":\"2026-09-27T00:00:00.000000Z\",\"expected_date\":\"2026-09-28T00:00:00.000000Z\",\"warehouse_id\":\"1\",\"currency_id\":null,\"branch_id\":1,\"notes\":null,\"company_id\":1,\"order_number\":\"PO-2026-000002\",\"status\":\"DRAFT\",\"created_by\":1,\"updated_at\":\"2026-09-27T11:20:23.000000Z\",\"created_at\":\"2026-09-27T11:20:23.000000Z\",\"id\":2,\"subtotal\":\"12200.0000\",\"tax_amount\":\"0.0000\",\"total_amount\":\"12200.0000\"}','127.0.0.1','Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0','615865f1c5f97afd4a250552e2101bba7e989bac8d446c0bd31b36c8f2c02a59','6e4c2c105490209682a78e89b63e49b9d99ce78757d512ecde94fc58eae550a9','2026-09-27 05:20:23'),
+(26,1,1,'Inventory','PurchaseOrder',2,'SUBMIT',NULL,'{\"previous_status\":\"DRAFT\"}','127.0.0.1','Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0','6e4c2c105490209682a78e89b63e49b9d99ce78757d512ecde94fc58eae550a9','65c62327cafb9357d16d4e7e8b008a0416c64ea064d2482956a83e275002b60b','2026-09-27 05:20:39');
 /*!40000 ALTER TABLE `audit_logs` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -815,7 +831,7 @@ CREATE TABLE `branches` (
   UNIQUE KEY `branches_company_id_code_unique` (`company_id`,`code`),
   KEY `branches_status_index` (`status`),
   CONSTRAINT `branches_company_id_foreign` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -827,7 +843,8 @@ LOCK TABLES `branches` WRITE;
 set autocommit=0;
 INSERT INTO `branches` VALUES
 (1,1,'AMTE','Amo Tea Estate',NULL,NULL,'amo@duncanbd.com','active','2026-09-07 23:50:44','2026-09-09 01:24:02'),
-(2,1,'NLTE','Nalua Tea Estate',NULL,'+88-09666774422','nal@duncanbd.com','active','2026-09-09 01:24:21','2026-09-09 01:24:21');
+(2,1,'NLTE','Nalua Tea Estate',NULL,'+88-09666774422','nal@duncanbd.com','active','2026-09-09 01:24:21','2026-09-09 01:24:21'),
+(3,2,'KAPNATEA','Kapnapahar Tea Estate','5 Road No. 11, Dhaka 1213, Bangladesh','+8801911731214','tea@kapnatea.com','active','2026-09-28 08:03:59','2026-09-28 08:03:59');
 /*!40000 ALTER TABLE `branches` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -1121,7 +1138,7 @@ LOCK TABLES `companies` WRITE;
 set autocommit=0;
 INSERT INTO `companies` VALUES
 (1,1,'AMTC','Amo Tea Company Limited','Amo Tea Company Limited',NULL,'123 Business Street, Dhaka, Bangladesh','+880 1234-567890',NULL,'amo@duncanbd.com',NULL,'TAX-123456789',NULL,'REG-123456',1,'Asia/Dhaka','en','2026-01-01','active',0,NULL,NULL,'2026-09-07 09:44:23','2026-09-09 01:23:39'),
-(2,1,'BIZNEXUS','BizNexus Limited','BizNexus Limited',NULL,'456 Test Street','+880 9999-999999',NULL,'test2@example.com',NULL,'TAX-999999999',NULL,'REG-999999',1,'Asia/Dhaka','en','2026-01-01','active',0,NULL,NULL,'2026-09-08 01:01:06','2026-09-08 05:11:29'),
+(2,1,'KAPNA','The Kapna Tea Co. Ltd.','The Kapna Tea Co. Ltd.','company-logos/2/zWXZqRrl5UdTl0aHhttmxnwFsnb0ZmrqoqSWmBam.png','5 Road No. 11, Dhaka 1213, Bangladesh','+880 9999-999999',NULL,'tea@kapnatea.com',NULL,'TAX-999999999','BD','REG-999999',1,'Asia/Dhaka','en','2026-01-01','active',0,NULL,NULL,'2026-09-08 01:01:06','2026-09-28 08:00:35'),
 (3,1,'DEMO','Demo Company Ltd.','Demo Company Limited',NULL,'123 Business Street, Dhaka, Bangladesh','+880 1234-567890',NULL,'info@democompany.com',NULL,'TAX-123456789',NULL,'REG-123456',1,'Asia/Dhaka','en','2026-01-01','active',0,NULL,NULL,'2026-09-11 00:39:01','2026-09-11 00:39:01'),
 (4,1,'lme','Collins, Cummings and Renner','Kuvalis, Wilderman and Lebsack Ltd.',NULL,'425 Ed Square\nChristinastad, MI 15702','559-473-7215',NULL,'timothy.jenkins@rogahn.com',NULL,'TAX-52167058',NULL,'REG-763412',2,'Asia/Dhaka','en','2026-01-01','active',0,NULL,NULL,'2026-09-11 04:06:28','2026-09-11 04:06:28'),
 (5,1,'htw','Jacobson-Simonis','Brown Group Ltd.',NULL,'588 Kaylah Parkways Apt. 916\nBernardoview, IL 18387-8055','+1.325.503.1159',NULL,'jaylan.turner@dibbert.com',NULL,'TAX-03120386',NULL,'REG-434458',2,'Asia/Dhaka','en','2026-01-01','active',0,NULL,NULL,'2026-09-11 04:11:15','2026-09-11 04:11:15');
@@ -1153,7 +1170,7 @@ CREATE TABLE `company_user_roles` (
   CONSTRAINT `company_user_roles_company_id_foreign` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE,
   CONSTRAINT `company_user_roles_role_id_foreign` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE,
   CONSTRAINT `company_user_roles_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1164,10 +1181,10 @@ LOCK TABLES `company_user_roles` WRITE;
 /*!40000 ALTER TABLE `company_user_roles` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `company_user_roles` VALUES
-(12,1,1,1,'active',NULL,NULL,'2026-09-09 03:04:08','2026-09-09 03:04:08'),
-(13,1,2,1,'active',NULL,NULL,'2026-09-09 03:04:08','2026-09-09 03:04:08'),
 (28,2,1,7,'active',NULL,NULL,'2026-09-26 09:21:43','2026-09-26 09:21:43'),
-(29,2,2,7,'active',NULL,NULL,'2026-09-26 09:21:43','2026-09-26 09:21:43');
+(29,2,2,7,'active',NULL,NULL,'2026-09-26 09:21:43','2026-09-26 09:21:43'),
+(30,1,1,1,'active',NULL,NULL,'2026-09-28 08:01:40','2026-09-28 08:01:40'),
+(31,1,2,1,'active',NULL,NULL,'2026-09-28 08:01:40','2026-09-28 08:01:40');
 /*!40000 ALTER TABLE `company_user_roles` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -2568,7 +2585,7 @@ CREATE TABLE `login_histories` (
   KEY `login_histories_user_id_logged_in_at_index` (`user_id`,`logged_in_at`),
   CONSTRAINT `login_histories_tenant_id_foreign` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE SET NULL,
   CONSTRAINT `login_histories_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2589,7 +2606,11 @@ INSERT INTO `login_histories` VALUES
 (8,1,2,'password','127.0.0.1','Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0','2026-09-26 09:16:54','2026-09-26 09:20:46'),
 (9,1,1,'password','127.0.0.1','Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0','2026-09-26 09:20:50','2026-09-26 09:21:47'),
 (10,1,2,'password','127.0.0.1','Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0','2026-09-26 09:21:50','2026-09-26 09:23:50'),
-(11,1,1,'password','127.0.0.1','Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0','2026-09-26 09:51:36',NULL);
+(11,1,1,'password','127.0.0.1','Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0','2026-09-26 09:51:36',NULL),
+(12,1,1,'password','127.0.0.1','Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0','2026-09-27 20:42:26',NULL),
+(13,1,1,'password','127.0.0.1','Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0','2026-09-28 07:51:06','2026-09-28 08:02:13'),
+(14,1,1,'password','127.0.0.1','Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0','2026-09-28 08:02:17','2026-09-28 08:04:03'),
+(15,1,1,'password','127.0.0.1','Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0','2026-09-28 08:04:07','2026-09-28 08:08:11');
 /*!40000 ALTER TABLE `login_histories` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -2789,6 +2810,7 @@ LOCK TABLES `notifications` WRITE;
 /*!40000 ALTER TABLE `notifications` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `notifications` VALUES
+('295a7426-eebd-4250-bb15-7bfe6ad7077c','Modules\\Core\\Notifications\\ApprovalRequested','App\\Models\\User',2,'{\"type\":\"approval_requested\",\"message\":\"Purchase order PO-2026-000002 is waiting for your approval\",\"document\":\"Purchase order\",\"number\":\"PO-2026-000002\",\"url\":\"http:\\/\\/biznexus.test\\/inventory\\/purchase-orders\\/2\",\"submitted_by\":\"BizNexus Limited\",\"amount\":\"12200.0000\",\"currency\":null,\"company_id\":1}',NULL,'2026-09-27 05:20:39','2026-09-27 05:20:39'),
 ('8749d124-4878-45f0-a0f6-d7674b95251e','Modules\\Core\\Notifications\\ApprovalRequested','App\\Models\\User',2,'{\"type\":\"approval_requested\",\"message\":\"Journal JV-2026-000004 is waiting for your approval\",\"document\":\"Journal\",\"number\":\"JV-2026-000004\",\"url\":\"http:\\/\\/biznexus.test\\/finance\\/journals\\/4\",\"submitted_by\":\"Administrator\",\"amount\":\"0.0000\",\"currency\":null,\"company_id\":1}','2026-09-26 09:15:41','2026-09-25 23:38:48','2026-09-26 09:15:41');
 /*!40000 ALTER TABLE `notifications` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -2855,7 +2877,7 @@ INSERT INTO `number_sequences` VALUES
 (26,3,2,'CI','CI','{PREFIX}-{YEAR}-{SEQUENCE:6}',0,1,'2026-09-11 02:41:50','2026-09-11 02:41:50'),
 (27,3,2,'SP','SP','{PREFIX}-{YEAR}-{SEQUENCE:6}',0,1,'2026-09-11 02:41:50','2026-09-11 02:41:50'),
 (28,3,2,'CR','CR','{PREFIX}-{YEAR}-{SEQUENCE:6}',0,1,'2026-09-11 02:41:50','2026-09-11 02:41:50'),
-(29,1,NULL,'PO','PO','{PREFIX}-{YEAR}-{SEQUENCE:6}',1,1,'2026-09-26 05:27:24','2026-09-26 05:27:24');
+(29,1,NULL,'PO','PO','{PREFIX}-{YEAR}-{SEQUENCE:6}',2,1,'2026-09-26 05:27:24','2026-09-27 05:20:23');
 /*!40000 ALTER TABLE `number_sequences` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -3965,7 +3987,7 @@ CREATE TABLE `purchase_order_lines` (
   CONSTRAINT `purchase_order_lines_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`),
   CONSTRAINT `purchase_order_lines_purchase_order_id_foreign` FOREIGN KEY (`purchase_order_id`) REFERENCES `purchase_orders` (`id`) ON DELETE CASCADE,
   CONSTRAINT `purchase_order_lines_tax_id_foreign` FOREIGN KEY (`tax_id`) REFERENCES `taxes` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3976,7 +3998,8 @@ LOCK TABLES `purchase_order_lines` WRITE;
 /*!40000 ALTER TABLE `purchase_order_lines` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `purchase_order_lines` VALUES
-(2,1,2,'Uria',120.0000,321.0000,NULL,38520.0000,0.0000,38520.0000,0.0000,0.0000,0.0000,0.0000,'2026-09-26 05:27:42','2026-09-26 05:27:42');
+(2,1,2,'Uria',120.0000,321.0000,NULL,38520.0000,0.0000,38520.0000,0.0000,0.0000,0.0000,0.0000,'2026-09-26 05:27:42','2026-09-26 05:27:42'),
+(3,2,2,'Uria',122.0000,100.0000,NULL,12200.0000,0.0000,12200.0000,0.0000,0.0000,0.0000,0.0000,'2026-09-27 05:20:23','2026-09-27 05:20:23');
 /*!40000 ALTER TABLE `purchase_order_lines` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -4029,7 +4052,7 @@ CREATE TABLE `purchase_orders` (
   CONSTRAINT `purchase_orders_supplier_id_foreign` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`id`),
   CONSTRAINT `purchase_orders_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `purchase_orders_warehouse_id_foreign` FOREIGN KEY (`warehouse_id`) REFERENCES `warehouses` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4040,7 +4063,8 @@ LOCK TABLES `purchase_orders` WRITE;
 /*!40000 ALTER TABLE `purchase_orders` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `purchase_orders` VALUES
-(1,1,NULL,'PO-2026-000001',4,'REF#543','2026-09-26','2026-09-26',1,NULL,38520.0000,0.0000,38520.0000,'APPROVED',NULL,NULL,1,2,2,'2026-09-26 09:22:09','2026-09-26 05:27:24','2026-09-26 09:22:09');
+(1,1,NULL,'PO-2026-000001',4,'REF#543','2026-09-26','2026-09-26',1,NULL,38520.0000,0.0000,38520.0000,'APPROVED',NULL,NULL,1,2,2,'2026-09-26 09:22:09','2026-09-26 05:27:24','2026-09-26 09:22:09'),
+(2,1,1,'PO-2026-000002',5,'REF#5433','2026-09-27','2026-09-28',1,NULL,12200.0000,0.0000,12200.0000,'SUBMITTED',NULL,NULL,1,1,NULL,NULL,'2026-09-27 05:20:23','2026-09-27 05:20:39');
 /*!40000 ALTER TABLE `purchase_orders` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -4468,7 +4492,7 @@ LOCK TABLES `sessions` WRITE;
 /*!40000 ALTER TABLE `sessions` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `sessions` VALUES
-('cIrkZmbdgXx1jbOlVJqLczNJ0lrezRAnQY6M8lYI',1,'127.0.0.1','Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0','eyJfdG9rZW4iOiJ6MHRqRjR2a2NvNDRwTnlvQXZRQzFoSFA4c1A3V0U3TmlOSjFZODZrIiwiX2ZsYXNoIjp7Im9sZCI6W10sIm5ldyI6W119LCJfcHJldmlvdXMiOnsidXJsIjoiaHR0cDpcL1wvYml6bmV4dXMudGVzdFwvbm90aWZpY2F0aW9uc1wvZHJvcGRvd24iLCJyb3V0ZSI6ImNvcmUubm90aWZpY2F0aW9ucy5kcm9wZG93biJ9LCJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI6MSwic2VjdXJpdHkiOnsibG9naW5faGlzdG9yeV9pZCI6MTF9LCJhY3RpdmVfY29tcGFueV9pZCI6MSwiYWN0aXZlX2JyYW5jaF9pZCI6MX0=',1790438595);
+('Fui9LB9Q1xxXq4I6kNSNy0arZFS6UwI3bXRMoLxn',NULL,'127.0.0.1','Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:155.0) Gecko/20100101 Firefox/155.0','eyJfdG9rZW4iOiI3U2g5Sm45S240UFpIcldXQkJ2RlZnempzRFRHT3JGODhVd0VsVFdrIiwiX2ZsYXNoIjp7Im9sZCI6W10sIm5ldyI6W119LCJfcHJldmlvdXMiOnsidXJsIjoiaHR0cDpcL1wvYml6bmV4dXMudGVzdFwvbG9naW4iLCJyb3V0ZSI6ImxvZ2luIn19',1790604491);
 /*!40000 ALTER TABLE `sessions` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -5539,7 +5563,7 @@ CREATE TABLE `user_branches` (
   CONSTRAINT `user_branches_branch_id_foreign` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`) ON DELETE CASCADE,
   CONSTRAINT `user_branches_company_id_foreign` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE,
   CONSTRAINT `user_branches_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -5550,8 +5574,8 @@ LOCK TABLES `user_branches` WRITE;
 /*!40000 ALTER TABLE `user_branches` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `user_branches` VALUES
-(1,1,1,1,'active','2026-09-09 03:04:08','2026-09-09 03:04:08'),
-(2,1,1,2,'active','2026-09-09 03:04:08','2026-09-09 03:04:08');
+(3,1,1,1,'active','2026-09-28 08:01:40','2026-09-28 08:01:40'),
+(4,1,1,2,'active','2026-09-28 08:01:40','2026-09-28 08:01:40');
 /*!40000 ALTER TABLE `user_branches` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -5577,7 +5601,7 @@ CREATE TABLE `user_companies` (
   KEY `user_companies_company_id_foreign` (`company_id`),
   CONSTRAINT `user_companies_company_id_foreign` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE,
   CONSTRAINT `user_companies_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -5588,10 +5612,10 @@ LOCK TABLES `user_companies` WRITE;
 /*!40000 ALTER TABLE `user_companies` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `user_companies` VALUES
-(13,1,1,1,0,'active','2026-09-09 03:04:08','2026-09-09 03:04:08'),
-(14,1,2,0,0,'active','2026-09-09 03:04:08','2026-09-09 03:04:08'),
 (23,2,1,1,1,'active','2026-09-26 09:21:43','2026-09-26 09:21:43'),
-(24,2,2,0,1,'active','2026-09-26 09:21:43','2026-09-26 09:21:43');
+(24,2,2,0,1,'active','2026-09-26 09:21:43','2026-09-26 09:21:43'),
+(25,1,1,1,1,'active','2026-09-28 08:01:40','2026-09-28 08:01:40'),
+(26,1,2,0,1,'active','2026-09-28 08:01:40','2026-09-28 08:01:40');
 /*!40000 ALTER TABLE `user_companies` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -5674,7 +5698,7 @@ LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `users` VALUES
-(1,1,'BizNexus Limited','admin@biznexus.com','en',NULL,'$2y$12$32bSSR3Jetggl9AWy1TjIeQD1KTF5ROHn/jJmMkaBlaXmSzXhAEvi',NULL,NULL,NULL,'active','2026-09-26 09:51:36','profile-pictures/f6EPlilQOWDwiDduhdE7mL9SmBJpMNdrS9T26Wwl.jpg','vhCKfYsoeeXLX7eC08OvGQK06r6DOtu2NnMzVUMmVy7s1T49eJ3MEX7E6DUc','2026-09-07 10:04:20','2026-09-26 09:51:36'),
+(1,1,'BizNexus Limited','admin@biznexus.com','en',NULL,'$2y$12$32bSSR3Jetggl9AWy1TjIeQD1KTF5ROHn/jJmMkaBlaXmSzXhAEvi',NULL,NULL,NULL,'active','2026-09-28 08:04:07','profile-pictures/f6EPlilQOWDwiDduhdE7mL9SmBJpMNdrS9T26Wwl.jpg','QGwL3INrW6So394nTFkzjYfRsEvvA5mMBxqZXFYjSqtZub74Hq06Jxtp5hlV','2026-09-07 10:04:20','2026-09-28 08:04:07'),
 (2,1,'Purchasing Manager','engsaidur@gmail.com',NULL,'2026-09-08 00:51:01','$2y$12$D.eMtKNZzaJm/IM5sgMfvegnfL434KSygH/TRPCIKDRq.XSwiNlbq',NULL,NULL,NULL,'active','2026-09-26 09:21:50',NULL,'m4s0w7FW3DU03q4vmBuqtTsyL1BHlqmeR0KdqijDTDaKGC9KtOXN8gpGrTpD','2026-09-08 00:51:02','2026-09-26 09:21:50');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -5874,4 +5898,4 @@ commit;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-09-26 22:04:13
+-- Dump completed on 2026-09-28 20:12:44
