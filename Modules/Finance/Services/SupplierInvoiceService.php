@@ -34,6 +34,7 @@ class SupplierInvoiceService
         return DB::transaction(function () use ($data) {
             $invoice = SupplierInvoice::create([
                 'company_id' => $data['company_id'],
+                'branch_id' => $data['branch_id'] ?? null,
                 'supplier_id' => $data['supplier_id'],
                 'purchase_order_id' => $data['purchase_order_id'] ?? null,
                 'invoice_number' => $data['invoice_number'] ?? $this->documentNumber->generateNumber($data['company_id'], 'SI'),

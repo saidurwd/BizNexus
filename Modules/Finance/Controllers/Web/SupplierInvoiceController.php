@@ -53,6 +53,7 @@ class SupplierInvoiceController extends Controller
         $invoice = $this->supplierInvoiceService->createInvoice([
             ...$request->validated(),
             'company_id' => $this->getActiveCompanyId(),
+            'branch_id' => $this->getActiveBranchId(),
         ]);
 
         return redirect()

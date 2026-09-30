@@ -4,6 +4,7 @@ namespace Modules\Inventory\Services;
 
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Exceptions\InvalidAccountingTransactionException;
+use Modules\Core\Services\BranchContextService;
 use Modules\Core\Services\CompanyContextService;
 use Modules\Core\Services\DefaultAccountService;
 use Modules\Core\Support\Money;
@@ -32,6 +33,7 @@ class PurchaseInvoiceMatcher implements PurchaseMatching
     public function __construct(
         protected DefaultAccountService $defaultAccounts,
         protected CompanyContextService $companyContext,
+        protected BranchContextService $branchContext
     ) {}
 
     /**
@@ -69,6 +71,7 @@ class PurchaseInvoiceMatcher implements PurchaseMatching
         return DB::transaction(function () use ($order, $data, $lines) {
             $invoice = app(SupplierInvoiceService::class)->createInvoice([
                 'company_id' => $order->company_id,
+                'branch_id' => $order->branch_id ?? $this->branchContext->getActiveBranchId(),
                 'supplier_id' => $order->supplier_id,
                 'purchase_order_id' => $order->id,
                 'invoice_number' => $data['invoice_number'],

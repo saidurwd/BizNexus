@@ -59,6 +59,7 @@ class SupplierInvoiceController extends Controller
         ]);
 
         $validated['company_id'] = $this->companyContext->getActiveCompanyId();
+        $validated['branch_id'] = $this->getActiveBranchId();
 
         try {
             $invoice = $this->supplierInvoiceService->createInvoice($validated);
